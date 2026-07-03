@@ -45,3 +45,14 @@ create table if not exists participants (
 create index if not exists idx_orders_product on orders(product_id);
 create index if not exists idx_participants_product on participants(product_id);
 create index if not exists idx_products_region on products(region);
+
+create table if not exists inquiries (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  phone text not null,
+  message text not null,
+  region text not null default 'mukho',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_inquiries_phone on inquiries(phone);

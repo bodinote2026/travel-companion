@@ -3,12 +3,13 @@ import Image from 'next/image';
 import { ChevronLeft, Receipt } from 'lucide-react';
 import { getRegion } from '@/lib/regions';
 import { GroupBuyCard } from '@/components/GroupBuyCard';
+import { PageShell } from '@/components/PageShell';
 
 const region = getRegion();
 
 export default function GroupBuyPage() {
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-background pb-12">
+    <PageShell active="group-buy">
       <header className="flex items-center gap-3 px-4 pt-12 pb-4">
         <Link
           href="/"
@@ -43,11 +44,11 @@ export default function GroupBuyPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 px-4">
+      <div className="flex flex-col gap-3 px-4 pb-28">
         {region.products.map((product) => (
           <GroupBuyCard key={product.id} product={product} />
         ))}
       </div>
-    </main>
+    </PageShell>
   );
 }

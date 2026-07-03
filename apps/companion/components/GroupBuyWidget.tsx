@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Users } from 'lucide-react';
 import type { RegionProduct } from '@/lib/regions/types';
 import {
@@ -8,6 +8,7 @@ import {
   formatPrice,
   perPersonCharge,
 } from '@/lib/geo';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { cn } from '@/lib/utils';
 
 declare global {
@@ -46,10 +47,26 @@ function loadPortOneScript(): Promise<void> {
 }
 
 export function GroupBuyWidget({ product }: Props) {
+  const { profile, updateProfile } = useUserProfile();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'paid' | 'error'>('idle');
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name);
+      setPhone(profile.phone);
+    }
+  }, [profile]);
+
+  const persistProfile = () => {
+    updateProfile({
+      name: name.trim(),
+      phone: phone.trim(),
+      region: product.region,
+    });
+  };
 
   const isComplete =
     product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount;
@@ -65,6 +82,7 @@ export function GroupBuyWidget({ product }: Props) {
 
     setStatus('loading');
     setMessage('');
+    persistProfile();
 
     try {
       const prepareRes = await fetch('/api/payments/confirm', {
@@ -125,6 +143,7 @@ export function GroupBuyWidget({ product }: Props) {
           }
           setStatus('paid');
           setMessage('결제가 완료되었습니다. 이용권이 발급됩니다.');
+          persistProfile();
         },
       );
     } catch (err) {

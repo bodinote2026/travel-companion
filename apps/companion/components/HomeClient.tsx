@@ -145,20 +145,6 @@ export function HomeClient() {
             </div>
           </div>
         )}
-
-        {tab === 'chat' && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center text-muted-foreground">
-            <p className="text-sm">채팅 기능은 준비 중입니다.</p>
-            <p className="text-xs">동행 신청 후 1:1 대화는 추후 제공 예정이에요.</p>
-          </div>
-        )}
-
-        {tab === 'profile' && (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-8 text-center text-muted-foreground">
-            <p className="text-sm">마이페이지는 준비 중입니다.</p>
-            <p className="text-xs">참여·주문 내역은 주문/주문 현황 메뉴에서 확인하세요.</p>
-          </div>
-        )}
       </div>
 
       <BottomNav active={tab} onChange={setTab} />

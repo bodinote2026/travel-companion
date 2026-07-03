@@ -101,6 +101,12 @@ export async function listOrders(): Promise<OrderRecord[]> {
   return [...memoryOrders];
 }
 
+export async function listOrdersByPhone(phone: string): Promise<OrderRecord[]> {
+  const normalized = phone.replace(/\D/g, '');
+  const orders = await listOrders();
+  return orders.filter((o) => o.participant_phone.replace(/\D/g, '') === normalized);
+}
+
 export async function addParticipant(
   participant: Omit<ParticipantRecord, 'id' | 'created_at'>,
 ): Promise<ParticipantRecord> {
