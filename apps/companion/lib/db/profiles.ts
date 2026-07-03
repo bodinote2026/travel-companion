@@ -41,7 +41,7 @@ export async function upsertProfile(input: {
 
     const { data, error } = await supabase
       .from('profiles')
-      .insert({ phone, name, region })
+      .insert({ phone, name, region, avatar_url: null, companion_seed_id: null })
       .select()
       .single();
     if (error) throw new Error(error.message);

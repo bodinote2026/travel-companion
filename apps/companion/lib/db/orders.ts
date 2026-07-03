@@ -1,4 +1,6 @@
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { toOrderInsert, toOrderUpdate, toParticipantInsert } from '@/lib/supabase/rows';
+import type { ProductRow } from '@/lib/supabase/types';
 import { normalizePhone } from '@/lib/user-profile';
 
 export type OrderRecord = {
@@ -33,14 +35,18 @@ export async function saveOrder(
   order: Omit<OrderRecord, 'id' | 'created_at'>,
 ): Promise<OrderRecord> {
   const supabase = getSupabaseAdmin();
-  const row = {
+  const row: OrderRecord = {
     ...order,
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
   };
 
   if (supabase) {
-    const { data, error } = await supabase.from('orders').insert(row).select().single();
+    const { data, error } = await supabase
+      .from('orders')
+      .insert(toOrderInsert(row))
+      .select()
+      .single();
     if (error) throw new Error(error.message);
     return data as OrderRecord;
   }
@@ -58,7 +64,7 @@ export async function updateOrderPayment(
   if (supabase) {
     const { data, error } = await supabase
       .from('orders')
-      .update(patch)
+      .update(toOrderUpdate(patch))
       .eq('merchant_uid', merchantUid)
       .select()
       .single();
@@ -109,14 +115,18 @@ export async function addParticipant(
   participant: Omit<ParticipantRecord, 'id' | 'created_at'>,
 ): Promise<ParticipantRecord> {
   const supabase = getSupabaseAdmin();
-  const row = {
+  const row: ParticipantRecord = {
     ...participant,
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
   };
 
   if (supabase) {
-    const { data, error } = await supabase.from('participants').insert(row).select().single();
+    const { data, error } = await supabase
+      .from('participants')
+      .insert(toParticipantInsert(row))
+      .select()
+      .single();
     if (error) throw new Error(error.message);
     return data as ParticipantRecord;
   }
@@ -145,14 +155,15 @@ export async function incrementProductCount(productId: string): Promise<void> {
 
   const { data: product } = await supabase
     .from('products')
-    .select('current_count, target_count')
+    .select('*')
     .eq('id', productId)
     .single();
 
   if (!product) return;
 
-  const nextCount = (product.current_count as number) + 1;
-  const status = nextCount >= (product.target_count as number) ? 'success' : 'open';
+  const row = product as ProductRow;
+  const nextCount = row.current_count + 1;
+  const status = nextCount >= row.target_count ? 'success' : 'open';
 
   await supabase
     .from('products')
