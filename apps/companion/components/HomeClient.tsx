@@ -83,6 +83,8 @@ export function HomeClient() {
         <CategoryFilterBar active={category} onChange={setCategory} />
       )}
 
+      {tab === 'map' && <GroupBuySection products={region.products} variant="home" />}
+
       <div className="relative min-h-0 flex-1 overflow-hidden">
         {tab === 'map' && (
           <div className="flex h-full flex-col overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -121,8 +123,6 @@ export function HomeClient() {
                 })}
               </div>
             </div>
-
-            <GroupBuySection products={region.products} />
           </div>
         )}
 

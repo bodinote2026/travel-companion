@@ -1,6 +1,6 @@
 'use client';
 
-import { Compass, Home, MessageCircle, ShoppingBag, User } from 'lucide-react';
+import { Compass, Map, MessageCircle, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,15 +15,15 @@ type Props = {
 const TABS: {
   id: NavTab;
   label: string;
-  icon: typeof Home;
+  icon: typeof Map;
   href?: string;
   homeOnly?: boolean;
 }[] = [
-  { id: 'map', label: '동행', icon: Home, href: '/' },
-  { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/group-buy' },
+  { id: 'map', label: '지도', icon: Map, homeOnly: true },
   { id: 'explore', label: '탐색', icon: Compass, homeOnly: true },
+  { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/group-buy' },
   { id: 'chat', label: '채팅', icon: MessageCircle, href: '/chat' },
-  { id: 'profile', label: 'MY', icon: User, href: '/mypage' },
+  { id: 'profile', label: '내프로필', icon: User, href: '/mypage' },
 ];
 
 export function BottomNav({ active, onChange }: Props) {
@@ -54,16 +54,24 @@ export function BottomNav({ active, onChange }: Props) {
             </>
           );
 
-          if (homeOnly && isHome) {
+          if (homeOnly) {
+            if (isHome) {
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => onChange?.(id)}
+                  className="flex flex-col items-center gap-0.5 px-2 py-1"
+                >
+                  {content}
+                </button>
+              );
+            }
+
             return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => onChange?.(id)}
-                className="flex flex-col items-center gap-0.5 px-2 py-1"
-              >
+              <Link key={id} href="/" className="flex flex-col items-center gap-0.5 px-2 py-1">
                 {content}
-              </button>
+              </Link>
             );
           }
 
