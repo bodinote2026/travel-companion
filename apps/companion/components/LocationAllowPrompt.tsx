@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
 import {
   getLocationEnvironmentMessage,
+  IOS_LOCATION_DENIED_HELP,
+  isIosDevice,
   requestGeolocationFromUserGesture,
   type GeoPosition,
 } from '@/lib/geo/browser-geolocation';
@@ -44,12 +46,15 @@ export function LocationAllowPrompt({
   }, []);
 
   function handleClick() {
-    // Cancel any previous in-flight request before starting a new one
     cleanupRef.current?.();
     cleanupRef.current = null;
-    onStart();
+    // iOS: setState 전에 getCurrentPosition을 동기 호출해야 권한 창이 뜸
     cleanupRef.current = requestGeolocationFromUserGesture(onSuccess, onError, onWatchStart);
+    onStart();
   }
+
+  const showIosDeniedHint =
+    hasError && isIosDevice() && (error?.includes('거부') || error?.includes('aA'));
 
   const buttonLabel = loading
     ? loadingMessage || '요청 중…'
@@ -82,6 +87,11 @@ export function LocationAllowPrompt({
         >
           {buttonLabel}
         </button>
+        {showIosDeniedHint && (
+          <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+            {IOS_LOCATION_DENIED_HELP}
+          </p>
+        )}
       </div>
     );
   }
@@ -113,6 +123,11 @@ export function LocationAllowPrompt({
       >
         {buttonLabel}
       </button>
+      {showIosDeniedHint && (
+        <p className="max-w-xs text-center text-[10px] leading-relaxed text-muted-foreground">
+          {IOS_LOCATION_DENIED_HELP}
+        </p>
+      )}
     </div>
   );
 }

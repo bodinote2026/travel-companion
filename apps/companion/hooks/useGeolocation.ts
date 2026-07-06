@@ -85,18 +85,18 @@ export function useGeolocation(active: boolean, intervalMs = 90_000) {
     gestureCleanupRef.current?.();
     gestureCleanupRef.current = null;
 
+    gestureCleanupRef.current = requestGeolocationFromUserGesture(
+      (next) => applyPosition(next),
+      (message) => reportError(message),
+      watchModeStart,
+    );
+
     failureCountRef.current = 0;
     loadingRef.current = true;
     setUseRegionFallback(false);
     setLoading(true);
     setError(null);
     setLoadingMessage(null);
-
-    gestureCleanupRef.current = requestGeolocationFromUserGesture(
-      (next) => applyPosition(next),
-      (message) => reportError(message),
-      watchModeStart,
-    );
   }, [active, applyPosition, reportError, watchModeStart]);
 
   const retryWithFeedback = useCallback(

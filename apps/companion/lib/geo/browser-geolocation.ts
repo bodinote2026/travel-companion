@@ -12,6 +12,9 @@ const REFRESH_OPTIONS: PositionOptions = {
 
 const GENERIC_ERROR = '위치를 가져올 수 없습니다. 다시 시도해 주세요.';
 
+export const IOS_LOCATION_DENIED_HELP =
+  '위치가 거부되어 있습니다. Safari 주소창 왼쪽 aA → 웹사이트 설정 → 위치 → 허용으로 바꾼 뒤 다시 시도해 주세요.';
+
 export function isIosDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -32,7 +35,18 @@ export function geolocationErrorMessage(err: GeolocationPositionError): string {
 async function resolveGeolocationErrorMessage(err: GeolocationPositionError): Promise<string> {
   const permission = await queryGeolocationPermission();
   if (permission === 'granted') {
+    if (err.code === err.TIMEOUT) {
+      return 'GPS 신호 수신 중입니다. 잠시 후 다시 시도해 주세요.';
+    }
     return GENERIC_ERROR;
+  }
+  if (err.code === err.PERMISSION_DENIED) {
+    if (permission === 'denied') {
+      return isIosDevice() ? IOS_LOCATION_DENIED_HELP : geolocationErrorMessage(err);
+    }
+    return isIosDevice()
+      ? '위치 권한 창에서 「허용」을 선택해 주세요.'
+      : geolocationErrorMessage(err);
   }
   return geolocationErrorMessage(err);
 }
@@ -162,34 +176,46 @@ export function requestGeolocationFromUserGesture(
     void resolveGeolocationErrorMessage(err).then(onError);
   }
 
+  function startWatchFallback() {
+    onWatchStart?.('GPS 신호를 잡고 있어요…');
+    watchCancel = watchPositionUntilFix(
+      onSuccess,
+      () => {
+        tryGetCurrentPosition(
+          { enableHighAccuracy: false, maximumAge: 30_000, timeout: 20_000 },
+          onSuccess,
+          finalError,
+        );
+      },
+      90_000,
+    );
+  }
+
   function handlePrimaryError(err: GeolocationPositionError) {
     if (err.code === err.PERMISSION_DENIED) {
+      if (isIosDevice()) {
+        // iOS는 prompt 상태에서도 PERMISSION_DENIED를 반환하는 경우가 있음
+        void queryGeolocationPermission().then((state) => {
+          if (state === 'denied') {
+            void resolveGeolocationErrorMessage(err).then(onError);
+          } else {
+            startWatchFallback();
+          }
+        });
+        return;
+      }
       finalError(err);
       return;
     }
 
     if (isIosDevice()) {
-      // GPS hardware is still searching. Switch to watchPosition so we capture
-      // the fix whenever it arrives rather than immediately giving up.
-      onWatchStart?.('GPS 신호를 잡고 있어요…');
-      watchCancel = watchPositionUntilFix(
-        onSuccess,
-        () => {
-          // 90s watch expired with no fix. One final attempt with cached/low-accuracy.
-          tryGetCurrentPosition(
-            { enableHighAccuracy: false, maximumAge: 30_000, timeout: 20_000 },
-            onSuccess,
-            finalError,
-          );
-        },
-        90_000,
-      );
+      startWatchFallback();
     } else {
-      // Non-iOS: standard two-step fallback
       tryGetCurrentPosition(fallbackOptions, onSuccess, finalError);
     }
   }
 
+  // iOS: getCurrentPosition must run synchronously inside the user-gesture handler
   tryGetCurrentPosition(primary, onSuccess, handlePrimaryError);
 
   return cancel;
