@@ -2,12 +2,13 @@
 
 import Image from 'next/image';
 import { Navigation } from 'lucide-react';
-import type { RegionCompanion, RegionSpot } from '@/lib/regions/types';
+import type { CompanionListItem } from '@/lib/companions/types';
+import type { RegionSpot } from '@/lib/regions/types';
 import { bearingDegrees, latLngToMapPercent, temperatureLabel } from '@/lib/geo';
 import { cn } from '@/lib/utils';
 
 type Props = {
-  companions: RegionCompanion[];
+  companions: CompanionListItem[];
   spots: RegionSpot[];
   centerLat: number;
   centerLng: number;
@@ -69,9 +70,38 @@ export function CompanionMap({
 
       {companions.map((c) => {
         const pos = latLngToMapPercent(c.lat, c.lng, centerLat, centerLng, radiusKm);
-        const angle = bearingDegrees(originLat, originLng, c.lat, c.lng);
-        const tone = temperatureLabel(c.temperature);
         const active = c.id === activeId;
+
+        if (c.kind === 'real') {
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => onSelect(c.id)}
+              aria-label={`${c.name}${c.activityActive ? ', 지금 활동 중' : ''}`}
+              className={cn(
+                'absolute -translate-x-1/2 -translate-y-full transition-transform duration-200 hover:scale-105',
+                active ? 'z-20 scale-110' : 'z-10',
+              )}
+              style={{ top: `${pos.top}%`, left: `${pos.left}%` }}
+            >
+              <span
+                className={cn(
+                  'relative flex size-8 items-center justify-center rounded-full border-2 border-background text-[11px] font-bold shadow-md',
+                  c.activityActive ? 'bg-emerald-500 text-white' : 'bg-card text-foreground',
+                )}
+              >
+                {c.name.slice(0, 1)}
+                {c.activityActive && (
+                  <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-emerald-400" />
+                )}
+              </span>
+            </button>
+          );
+        }
+
+        const angle = bearingDegrees(originLat, originLng, c.lat, c.lng);
+        const tone = temperatureLabel(c.temperature ?? 0);
 
         return (
           <button

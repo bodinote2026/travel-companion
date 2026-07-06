@@ -3,21 +3,29 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Handshake, Heart, Loader2, MapPin, MessageCircle, X, Zap } from 'lucide-react';
-import type { RegionCompanion } from '@/lib/regions/types';
-import { CATEGORY_LABELS } from '@/lib/regions/types';
+import {
+  Handshake,
+  Heart,
+  Loader2,
+  MapPin,
+  MessageCircle,
+  User,
+  X,
+  Zap,
+} from 'lucide-react';
+import { categoryLabel } from '@/lib/companions/build-list';
+import type { CompanionListItem } from '@/lib/companions/types';
 import { formatDistance, temperatureLabel } from '@/lib/geo';
 import { DEFAULT_REGION_CODE } from '@/lib/regions';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { TemperatureRing } from './TemperatureRing';
 
 type Props = {
-  companion: RegionCompanion | null;
-  liveDistanceKm?: number;
+  companion: CompanionListItem | null;
   onClose: () => void;
 };
 
-export function CompanionDetailSheet({ companion, liveDistanceKm, onClose }: Props) {
+export function CompanionDetailSheet({ companion, onClose }: Props) {
   const router = useRouter();
   const { profile, ready } = useUserProfile();
   const [starting, setStarting] = useState(false);
@@ -40,14 +48,23 @@ export function CompanionDetailSheet({ companion, liveDistanceKm, onClose }: Pro
 
     setStarting(true);
     try {
+      const body =
+        companion.kind === 'real' && companion.peerProfileId
+          ? {
+              myProfileId: profile.id,
+              peerProfileId: companion.peerProfileId,
+              region: DEFAULT_REGION_CODE,
+            }
+          : {
+              myProfileId: profile.id,
+              companionSeedId: companion.companionSeedId ?? companion.id,
+              region: DEFAULT_REGION_CODE,
+            };
+
       const res = await fetch('/api/chat/rooms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          myProfileId: profile.id,
-          companionSeedId: companion.id,
-          region: DEFAULT_REGION_CODE,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? '채팅방 생성 실패');
@@ -62,8 +79,8 @@ export function CompanionDetailSheet({ companion, liveDistanceKm, onClose }: Pro
 
   if (!companion) return null;
 
-  const tone = temperatureLabel(companion.temperature);
-  const distance = liveDistanceKm ?? companion.distanceKm;
+  const hasTemperature = companion.temperature != null;
+  const tone = hasTemperature ? temperatureLabel(companion.temperature!) : null;
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col justify-end">
@@ -90,76 +107,111 @@ export function CompanionDetailSheet({ companion, liveDistanceKm, onClose }: Pro
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <span className="relative size-24 overflow-hidden rounded-full border-4 border-card shadow-md">
-              <Image
-                src={companion.avatar}
-                alt={`${companion.name} 프로필`}
-                fill
-                className="object-cover"
-                sizes="96px"
-              />
-            </span>
+            {companion.avatar ? (
+              <span className="relative size-24 overflow-hidden rounded-full border-4 border-card shadow-md">
+                <Image
+                  src={companion.avatar}
+                  alt={`${companion.name} 프로필`}
+                  fill
+                  className="object-cover"
+                  sizes="96px"
+                />
+              </span>
+            ) : (
+              <span className="flex size-24 items-center justify-center rounded-full border-4 border-card bg-primary/10 text-primary shadow-md">
+                <User className="size-10" />
+              </span>
+            )}
             <h2 className="mt-3 text-xl font-bold">
               {companion.name}
-              <span className="ml-1 text-base font-medium text-muted-foreground">
-                {companion.age}세
-              </span>
+              {companion.age != null && (
+                <span className="ml-1 text-base font-medium text-muted-foreground">
+                  만 {companion.age}세
+                </span>
+              )}
             </h2>
-            <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+            <p className="mt-0.5 flex flex-wrap items-center justify-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5" />
-              {companion.area} · 약 {formatDistance(distance)}
+              {companion.area} · 약 {formatDistance(companion.distanceKm)}
+              {companion.activityLabel && (
+                <span
+                  className={
+                    companion.activityActive
+                      ? 'font-medium text-emerald-600'
+                      : undefined
+                  }
+                >
+                  · {companion.activityLabel}
+                </span>
+              )}
             </p>
           </div>
         </div>
 
         <div className="mx-5 mt-5 flex items-center gap-4 rounded-3xl border border-border bg-card p-4">
-          <TemperatureRing temperature={companion.temperature} size={84} stroke={8} />
+          {hasTemperature ? (
+            <TemperatureRing temperature={companion.temperature!} size={84} stroke={8} />
+          ) : (
+            <span className="flex size-[84px] shrink-0 items-center justify-center rounded-full border border-border bg-muted text-2xl font-bold text-muted-foreground">
+              -
+            </span>
+          )}
           <div>
             <p className="text-xs font-medium text-muted-foreground">동행 온도</p>
-            <p className="text-lg font-bold" style={{ color: tone.color }}>
-              {tone.label}
-            </p>
+            {hasTemperature && tone ? (
+              <p className="text-lg font-bold" style={{ color: tone.color }}>
+                {tone.label}
+              </p>
+            ) : (
+              <p className="text-lg font-bold text-muted-foreground">준비 중</p>
+            )}
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              함께할 때의 케미 지표예요. 화면 사용 중 위치로 거리·방향을 갱신합니다.
+              {hasTemperature
+                ? '함께할 때의 케미 지표예요. 화면 사용 중 위치로 거리·방향을 갱신합니다.'
+                : '동행 온도는 추후 제공될 예정이에요.'}
             </p>
           </div>
         </div>
 
-        <div className="mx-5 mt-3 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl border border-border bg-card p-3">
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Handshake className="size-3.5" /> 동행 성공
-            </p>
-            <p className="mt-1 text-lg font-bold">{companion.matches}회</p>
+        {companion.kind === 'mock' && companion.matches != null && companion.responseRate != null && (
+          <div className="mx-5 mt-3 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-border bg-card p-3">
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Handshake className="size-3.5" /> 동행 성공
+              </p>
+              <p className="mt-1 text-lg font-bold">{companion.matches}회</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-3">
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Zap className="size-3.5" /> 응답률
+              </p>
+              <p className="mt-1 text-lg font-bold">{companion.responseRate}%</p>
+            </div>
           </div>
-          <div className="rounded-2xl border border-border bg-card p-3">
-            <p className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Zap className="size-3.5" /> 응답률
-            </p>
-            <p className="mt-1 text-lg font-bold">{companion.responseRate}%</p>
-          </div>
-        </div>
+        )}
 
         <div className="mx-5 mt-5">
           <h3 className="text-sm font-semibold">
             <span className="rounded-md bg-accent px-1.5 py-0.5 text-accent-foreground">
-              {CATEGORY_LABELS[companion.category]}
+              {categoryLabel(companion)}
             </span>{' '}
             {companion.headline}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-foreground/80">{companion.bio}</p>
         </div>
 
-        <div className="mx-5 mt-4 flex flex-wrap gap-2">
-          {companion.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium"
-            >
-              #{tag}
-            </span>
-          ))}
-        </div>
+        {companion.tags.length > 0 && (
+          <div className="mx-5 mt-4 flex flex-wrap gap-2">
+            {companion.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="absolute inset-x-0 bottom-0 flex items-center gap-2 border-t border-border bg-background/95 px-5 py-3 backdrop-blur">
           <button
@@ -180,7 +232,7 @@ export function CompanionDetailSheet({ companion, liveDistanceKm, onClose }: Pro
             ) : (
               <>
                 <MessageCircle className="size-5" />
-                동행 신청하기
+                {companion.kind === 'real' ? '채팅하기' : '동행 신청하기'}
               </>
             )}
           </button>

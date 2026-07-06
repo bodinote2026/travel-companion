@@ -19,6 +19,10 @@ export type AirtableUserFields = {
   Bio?: string;
   'Interest Category'?: string[];
   'Profile Completed'?: boolean;
+  Age?: number;
+  Latitude?: number;
+  Longitude?: number;
+  'Location Updated At'?: string;
 };
 
 export type AirtableUser = {
@@ -31,6 +35,10 @@ export type AirtableUser = {
   bio: string | null;
   interestCategories: string[];
   profileCompleted: boolean;
+  age: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  locationUpdatedAt: string | null;
 };
 
 function mapUser(record: { id: string; fields: AirtableUserFields }): AirtableUser {
@@ -44,6 +52,10 @@ function mapUser(record: { id: string; fields: AirtableUserFields }): AirtableUs
     bio: record.fields.Bio?.trim() || null,
     interestCategories: record.fields['Interest Category'] ?? [],
     profileCompleted: record.fields['Profile Completed'] === true,
+    age: typeof record.fields.Age === 'number' ? record.fields.Age : null,
+    latitude: typeof record.fields.Latitude === 'number' ? record.fields.Latitude : null,
+    longitude: typeof record.fields.Longitude === 'number' ? record.fields.Longitude : null,
+    locationUpdatedAt: record.fields['Location Updated At'] ?? null,
   };
 }
 
@@ -159,6 +171,7 @@ export async function updateUserProfile(
     bio?: string | null;
     interestCategories?: string[];
     profileCompleted?: boolean;
+    age?: number | null;
   },
 ): Promise<AirtableUser> {
   const config = requireAirtableConfig();
@@ -173,9 +186,43 @@ export async function updateUserProfile(
   if (input.profileCompleted !== undefined) {
     fields['Profile Completed'] = input.profileCompleted;
   }
+  if (input.age !== undefined) {
+    fields.Age = input.age ?? undefined;
+  }
 
   const updated = await updateRecord<AirtableUserFields>(config.usersTable, userId, fields);
   return mapUser(updated);
+}
+
+export async function updateUserLocation(
+  userId: string,
+  lat: number,
+  lng: number,
+): Promise<AirtableUser> {
+  const config = requireAirtableConfig();
+  const updated = await updateRecord<AirtableUserFields>(config.usersTable, userId, {
+    Latitude: lat,
+    Longitude: lng,
+    'Location Updated At': new Date().toISOString(),
+  });
+  return mapUser(updated);
+}
+
+/** 1시간 이내 위치 갱신된 실가입자 (반경 필터는 클라이언트) */
+export async function listNearbyActiveUsers(
+  region: string,
+  excludeUserId?: string,
+): Promise<AirtableUser[]> {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const users = await listRealUsers(region, excludeUserId);
+
+  return users.filter(
+    (user) =>
+      user.latitude != null &&
+      user.longitude != null &&
+      user.locationUpdatedAt != null &&
+      user.locationUpdatedAt >= oneHourAgo,
+  );
 }
 
 export async function getOrCreateCompanionUser(

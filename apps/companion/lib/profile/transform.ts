@@ -11,5 +11,6 @@ export function airtableUserToUserProfile(user: AirtableUser): UserProfile {
     bio: user.bio,
     interest_categories: user.interestCategories,
     profile_completed: user.profileCompleted,
+    age: user.age,
   };
 }

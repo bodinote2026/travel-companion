@@ -34,11 +34,18 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { bio, interest_categories, profile_completed } = body as {
+    const { bio, interest_categories, profile_completed, age } = body as {
       bio?: string | null;
       interest_categories?: unknown;
       profile_completed?: boolean;
+      age?: number | null;
     };
+
+    if (age !== undefined && age !== null) {
+      if (!Number.isInteger(age) || age < 14 || age > 99) {
+        return NextResponse.json({ error: '만 나이는 14~99 사이로 입력해주세요.' }, { status: 400 });
+      }
+    }
 
     const user = await updateUserProfile(session.id, {
       bio: bio !== undefined ? (bio?.trim() || null) : undefined,
@@ -47,6 +54,7 @@ export async function PATCH(request: Request) {
           ? normalizeInterestCategories(interest_categories)
           : undefined,
       profileCompleted: profile_completed,
+      age: age !== undefined ? age : undefined,
     });
 
     return NextResponse.json({ user: airtableUserToUserProfile(user) });

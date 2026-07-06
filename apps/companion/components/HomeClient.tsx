@@ -3,13 +3,14 @@
 import { useMemo, useState } from 'react';
 import { Bell, Search } from 'lucide-react';
 import { getRegion } from '@/lib/regions';
-import type { CategoryFilter, RegionCompanion, RegionProduct } from '@/lib/regions/types';
-import {
-  bearingDegrees,
-  haversineDistanceKm,
-} from '@/lib/geo';
+import type { CategoryFilter, RegionProduct } from '@/lib/regions/types';
+import { buildCompanionList } from '@/lib/companions/build-list';
+import { bearingDegrees } from '@/lib/geo';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLocationConsent } from '@/hooks/useLocationConsent';
+import { useLocationReporter } from '@/hooks/useLocationReporter';
+import { useNearbyUsers } from '@/hooks/useNearbyUsers';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { CategoryFilter as CategoryFilterBar } from '@/components/CategoryFilter';
 import { CompanionMap } from '@/components/CompanionMap';
 import { CompanionCard } from '@/components/CompanionCard';
@@ -24,40 +25,41 @@ type Props = {
   products: RegionProduct[];
 };
 
-function enrichCompanion(
-  c: RegionCompanion,
-  userLat?: number,
-  userLng?: number,
-): { distanceKm?: number; angle?: number } {
-  if (userLat == null || userLng == null) return {};
-  return {
-    distanceKm: haversineDistanceKm(userLat, userLng, c.lat, c.lng),
-    angle: bearingDegrees(userLat, userLng, c.lat, c.lng),
-  };
-}
-
 export function HomeClient({ products }: Props) {
   const { consented, accept, decline, ready } = useLocationConsent();
-  const geoEnabled = consented === true;
-  const { position } = useGeolocation(geoEnabled);
-
+  const { profile } = useUserProfile();
   const [tab, setTab] = useState<NavTab>('map');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const companions = useMemo(() => {
-    const list =
-      category === 'all'
-        ? region.companions
-        : region.companions.filter((c) => c.category === category);
-    return [...list].sort((a, b) => {
-      const da = enrichCompanion(a, position?.lat, position?.lng).distanceKm ?? a.distanceKm;
-      const db = enrichCompanion(b, position?.lat, position?.lng).distanceKm ?? b.distanceKm;
-      return da - db;
-    });
-  }, [category, position]);
+  const mapOrExplore = tab === 'map' || tab === 'explore';
+  const geoEnabled = consented === true && mapOrExplore;
+  const { position } = useGeolocation(geoEnabled);
+  const { users: nearbyUsers } = useNearbyUsers(geoEnabled && !!profile?.id);
+  useLocationReporter(position, geoEnabled && !!profile?.id);
+
+  const companions = useMemo(
+    () =>
+      buildCompanionList({
+        mocks: region.companions,
+        realUsers: nearbyUsers,
+        spots: region.spots,
+        category,
+        radiusKm: region.searchRadiusKm,
+        userLat: position?.lat,
+        userLng: position?.lng,
+      }),
+    [category, position, nearbyUsers],
+  );
 
   const activeCompanion = companions.find((c) => c.id === activeId) ?? null;
+
+  function liveAngle(companionId: string, lat: number, lng: number) {
+    if (position == null) return undefined;
+    const item = companions.find((c) => c.id === companionId);
+    if (item?.kind !== 'mock') return undefined;
+    return bearingDegrees(position.lat, position.lng, lat, lng);
+  }
 
   return (
     <main className="relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden bg-background">
@@ -83,9 +85,7 @@ export function HomeClient({ products }: Props) {
         </div>
       </div>
 
-      {(tab === 'map' || tab === 'explore') && (
-        <CategoryFilterBar active={category} onChange={setCategory} />
-      )}
+      {mapOrExplore && <CategoryFilterBar active={category} onChange={setCategory} />}
 
       {tab === 'map' && <GroupBuySection products={products} variant="home" />}
 
@@ -112,19 +112,15 @@ export function HomeClient({ products }: Props) {
                 <span className="text-xs text-muted-foreground">가까운 순</span>
               </div>
               <div className="flex flex-col gap-3 px-4 pb-4">
-                {companions.map((c) => {
-                  const live = enrichCompanion(c, position?.lat, position?.lng);
-                  return (
-                    <CompanionCard
-                      key={c.id}
-                      companion={c}
-                      active={c.id === activeId}
-                      liveDistanceKm={live.distanceKm}
-                      liveAngle={live.angle}
-                      onClick={() => setActiveId(c.id)}
-                    />
-                  );
-                })}
+                {companions.map((c) => (
+                  <CompanionCard
+                    key={c.id}
+                    companion={c}
+                    active={c.id === activeId}
+                    liveAngle={liveAngle(c.id, c.lat, c.lng)}
+                    onClick={() => setActiveId(c.id)}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -133,19 +129,15 @@ export function HomeClient({ products }: Props) {
         {tab === 'explore' && (
           <div className="h-full overflow-y-auto px-4 pb-24 pt-1">
             <div className="flex flex-col gap-3">
-              {companions.map((c) => {
-                const live = enrichCompanion(c, position?.lat, position?.lng);
-                return (
-                  <CompanionCard
-                    key={c.id}
-                    companion={c}
-                    active={c.id === activeId}
-                    liveDistanceKm={live.distanceKm}
-                    liveAngle={live.angle}
-                    onClick={() => setActiveId(c.id)}
-                  />
-                );
-              })}
+              {companions.map((c) => (
+                <CompanionCard
+                  key={c.id}
+                  companion={c}
+                  active={c.id === activeId}
+                  liveAngle={liveAngle(c.id, c.lat, c.lng)}
+                  onClick={() => setActiveId(c.id)}
+                />
+              ))}
             </div>
           </div>
         )}
@@ -153,17 +145,9 @@ export function HomeClient({ products }: Props) {
 
       <BottomNav active={tab} onChange={setTab} />
 
-      <CompanionDetailSheet
-        companion={activeCompanion}
-        liveDistanceKm={
-          activeCompanion
-            ? enrichCompanion(activeCompanion, position?.lat, position?.lng).distanceKm
-            : undefined
-        }
-        onClose={() => setActiveId(null)}
-      />
+      <CompanionDetailSheet companion={activeCompanion} onClose={() => setActiveId(null)} />
 
-      {ready && consented === null && (
+      {ready && consented === null && mapOrExplore && (
         <LocationConsentBanner onAccept={accept} onDecline={decline} />
       )}
 

@@ -27,6 +27,7 @@ type Props = {
   returnUrl: string;
   initialBio?: string | null;
   initialCategories?: string[];
+  initialAge?: number | null;
   showSkip?: boolean;
   title?: string;
   subtitle?: string;
@@ -36,12 +37,14 @@ export function ProfileSetupForm({
   returnUrl,
   initialBio = '',
   initialCategories = [],
+  initialAge = null,
   showSkip = true,
   title = '프로필 작성',
   subtitle = '동행자에게 나를 소개해 보세요.',
 }: Props) {
   const router = useRouter();
   const [bio, setBio] = useState(initialBio ?? '');
+  const [age, setAge] = useState(initialAge != null ? String(initialAge) : '');
   const [categories, setCategories] = useState<InterestCategory[]>(
     initialCategories.filter((c): c is InterestCategory =>
       (INTEREST_CATEGORIES as readonly string[]).includes(c),
@@ -57,15 +60,19 @@ export function ProfileSetupForm({
     );
   }
 
-  async function saveProfile(profileCompleted: boolean) {
+  async function saveProfile(profileCompleted: boolean, includeAge: boolean) {
+    const payload: Record<string, unknown> = {
+      bio: bio.trim() || null,
+      interest_categories: categories,
+      profile_completed: profileCompleted,
+    };
+    if (includeAge && age.trim()) {
+      payload.age = Number(age);
+    }
     const res = await fetch('/api/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        bio: bio.trim() || null,
-        interest_categories: categories,
-        profile_completed: profileCompleted,
-      }),
+      body: JSON.stringify(payload),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? '프로필 저장 실패');
@@ -75,9 +82,14 @@ export function ProfileSetupForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    const ageNum = Number(age);
+    if (!age.trim() || !Number.isInteger(ageNum) || ageNum < 14 || ageNum > 99) {
+      setError('만 나이는 14~99 사이로 입력해주세요.');
+      return;
+    }
     setLoading(true);
     try {
-      await saveProfile(true);
+      await saveProfile(true, true);
       router.push(safeReturnUrl(returnUrl));
       router.refresh();
     } catch (err) {
@@ -91,7 +103,7 @@ export function ProfileSetupForm({
     setError('');
     setSkipping(true);
     try {
-      await saveProfile(true);
+      await saveProfile(true, false);
       router.push(safeReturnUrl(returnUrl));
       router.refresh();
     } catch (err) {
@@ -111,6 +123,21 @@ export function ProfileSetupForm({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <label className="block">
+          <span className="text-sm font-medium">나이 (만)</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={14}
+            max={99}
+            placeholder="26"
+            value={age}
+            onChange={(e) => setAge(e.target.value)}
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">만 나이를 입력해 주세요.</span>
+        </label>
+
         <label className="block">
           <span className="text-sm font-medium">자기소개</span>
           <textarea

@@ -45,6 +45,7 @@ export function useUserProfile() {
         bio: data.user.bio,
         interest_categories: data.user.interest_categories,
         profile_completed: data.user.profile_completed,
+        age: data.user.age,
       };
       setProfile(next);
       return next;

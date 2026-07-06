@@ -50,6 +50,7 @@ export function ProfileSetupPageClient() {
       returnUrl={returnUrl}
       initialBio={profile.bio}
       initialCategories={profile.interest_categories}
+      initialAge={profile.age}
       showSkip={!fromMypage && !profile.profile_completed}
       title={fromMypage ? '프로필 수정' : '프로필 작성'}
       subtitle={

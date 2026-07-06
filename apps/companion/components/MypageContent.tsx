@@ -85,7 +85,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
             <User className="size-6" />
           </span>
           <div>
-            <p className="text-lg font-bold">{profile.name}</p>
+            <p className="text-lg font-bold">{profile.name}{profile.age != null ? ` · 만 ${profile.age}세` : ''}</p>
             <p className="flex items-center gap-1 text-sm text-muted-foreground">
               <Phone className="size-3.5" />
               {profile.phone}

@@ -7,6 +7,7 @@ export type UserProfile = {
   bio?: string | null;
   interest_categories?: string[];
   profile_completed?: boolean;
+  age?: number | null;
 };
 
 const STORAGE_KEY = 'mukho-user-profile';

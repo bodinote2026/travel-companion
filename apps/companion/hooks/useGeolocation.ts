@@ -8,7 +8,7 @@ export type GeoPosition = {
   accuracy: number;
 };
 
-export function useGeolocation(enabled: boolean) {
+export function useGeolocation(enabled: boolean, intervalMs = 90_000) {
   const [position, setPosition] = useState<GeoPosition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,9 +42,9 @@ export function useGeolocation(enabled: boolean) {
     if (!enabled) return;
 
     refresh();
-    const id = window.setInterval(refresh, 15000);
+    const id = window.setInterval(refresh, intervalMs);
     return () => window.clearInterval(id);
-  }, [enabled, refresh]);
+  }, [enabled, refresh, intervalMs]);
 
   return { position, error, loading, refresh };
 }
