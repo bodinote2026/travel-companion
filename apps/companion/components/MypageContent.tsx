@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, Phone, User } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Loader2, LogOut, Phone, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { formatPrice } from '@/lib/geo';
-import { DEFAULT_REGION_CODE, getRegion } from '@/lib/regions';
+import { getRegion } from '@/lib/regions';
 import type { OrderRecord } from '@/lib/db/orders';
 
 type Props = {
@@ -13,20 +14,12 @@ type Props = {
 };
 
 export function MypageContent({ initialOrders = [] }: Props) {
-  const { profile, ready, loading, login } = useUserProfile();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const router = useRouter();
+  const { profile, ready, loading, logout } = useUserProfile();
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders);
   const [loadingOrders, setLoadingOrders] = useState(false);
 
   const region = getRegion();
-
-  useEffect(() => {
-    if (profile) {
-      setName(profile.name);
-      setPhone(profile.phone);
-    }
-  }, [profile]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -40,13 +33,13 @@ export function MypageContent({ initialOrders = [] }: Props) {
       .finally(() => setLoadingOrders(false));
   }, [profile?.id]);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim()) return;
-    await login(name.trim(), phone.trim(), DEFAULT_REGION_CODE);
+  async function handleLogout() {
+    await logout();
+    router.push('/');
+    router.refresh();
   }
 
-  if (!ready) {
+  if (!ready || !profile) {
     return (
       <div className="flex justify-center py-20">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -54,47 +47,21 @@ export function MypageContent({ initialOrders = [] }: Props) {
     );
   }
 
-  if (!profile) {
-    return (
-      <form onSubmit={handleLogin} className="flex flex-col gap-4 px-4 pb-28 pt-2">
-        <p className="text-sm text-muted-foreground">
-          이름과 연락처로 간단히 확인합니다. (별도 비밀번호 없음)
-        </p>
-        <label className="block">
-          <span className="text-sm font-medium">이름</span>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-            required
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">연락처</span>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex h-12 items-center justify-center rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
-        >
-          {loading ? <Loader2 className="size-5 animate-spin" /> : '확인하기'}
-        </button>
-      </form>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5 px-4 pb-28 pt-2">
       <div className="rounded-2xl border border-border bg-card p-4">
-        <p className="text-xs font-medium text-primary">내 정보</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-xs font-medium text-primary">내 정보</p>
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loading}
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary disabled:opacity-60"
+          >
+            {loading ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
+            로그아웃
+          </button>
+        </div>
         <div className="mt-3 flex items-center gap-3">
           <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <User className="size-6" />

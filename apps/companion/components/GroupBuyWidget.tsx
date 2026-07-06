@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader2, Users } from 'lucide-react';
 import type { RegionProduct } from '@/lib/regions/types';
 import {
@@ -47,26 +48,10 @@ function loadPortOneScript(): Promise<void> {
 }
 
 export function GroupBuyWidget({ product }: Props) {
-  const { profile, updateProfile } = useUserProfile();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const router = useRouter();
+  const { profile, ready } = useUserProfile();
   const [status, setStatus] = useState<'idle' | 'loading' | 'paid' | 'error'>('idle');
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    if (profile) {
-      setName(profile.name);
-      setPhone(profile.phone);
-    }
-  }, [profile]);
-
-  const persistProfile = async () => {
-    return updateProfile({
-      name: name.trim(),
-      phone: phone.trim(),
-      region: product.region,
-    });
-  };
 
   const isComplete =
     product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount;
@@ -74,9 +59,13 @@ export function GroupBuyWidget({ product }: Props) {
   const totalDiscounted = discountedPrice(product.regularPrice, product.discountRate);
 
   async function handleParticipate() {
-    if (!name.trim() || !phone.trim()) {
-      setMessage('이름과 연락처를 입력해주세요.');
-      setStatus('error');
+    if (!ready) return;
+
+    if (!profile) {
+      const returnUrl = encodeURIComponent(
+        typeof window !== 'undefined' ? window.location.pathname : `/product/${product.id}`,
+      );
+      router.push(`/login?returnUrl=${returnUrl}`);
       return;
     }
 
@@ -84,17 +73,15 @@ export function GroupBuyWidget({ product }: Props) {
     setMessage('');
 
     try {
-      const savedProfile = await persistProfile();
-
       const prepareRes = await fetch('/api/payments/confirm', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId: product.id,
-          name: name.trim(),
-          phone: phone.trim(),
+          name: profile.name,
+          phone: profile.phone,
           region: product.region,
-          profileId: savedProfile?.id ?? profile?.id,
+          profileId: profile.id,
         }),
       });
       const prepare = await prepareRes.json();
@@ -112,8 +99,8 @@ export function GroupBuyWidget({ product }: Props) {
           merchant_uid: prepare.merchantUid,
           name: product.name,
           amount: prepare.amount,
-          buyer_name: name.trim(),
-          buyer_tel: phone.trim(),
+          buyer_name: profile.name,
+          buyer_tel: profile.phone,
         },
         async (response) => {
           if (!response.success) {
@@ -130,8 +117,8 @@ export function GroupBuyWidget({ product }: Props) {
               merchantUid: prepare.merchantUid,
               impUid: response.imp_uid,
               amount: prepare.amount,
-              name: name.trim(),
-              phone: phone.trim(),
+              name: profile.name,
+              phone: profile.phone,
               productId: product.id,
               productName: product.name,
               region: product.region,
@@ -145,7 +132,6 @@ export function GroupBuyWidget({ product }: Props) {
           }
           setStatus('paid');
           setMessage('결제가 완료되었습니다. 이용권이 발급됩니다.');
-          await persistProfile();
         },
       );
     } catch (err) {
@@ -187,35 +173,32 @@ export function GroupBuyWidget({ product }: Props) {
 
       {!isComplete && status !== 'paid' && (
         <div className="mt-4 space-y-2">
-          <input
-            type="text"
-            placeholder="이름"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-          />
-          <input
-            type="tel"
-            placeholder="연락처"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-          />
+          {profile ? (
+            <p className="rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+              <span className="font-medium">{profile.name}</span> · {profile.phone}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              결제하려면 휴대폰 인증 로그인이 필요합니다.
+            </p>
+          )}
           <button
             type="button"
-            disabled={status === 'loading'}
+            disabled={status === 'loading' || !ready}
             onClick={handleParticipate}
             className={cn(
               'flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground',
-              status === 'loading' && 'opacity-70',
+              (status === 'loading' || !ready) && 'opacity-70',
             )}
           >
             {status === 'loading' ? (
               <>
                 <Loader2 className="size-5 animate-spin" /> 결제 진행 중…
               </>
-            ) : (
+            ) : profile ? (
               '함께 구매하기 (결제)'
+            ) : (
+              '로그인하고 구매하기'
             )}
           </button>
         </div>

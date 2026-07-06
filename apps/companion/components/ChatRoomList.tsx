@@ -24,9 +24,7 @@ function formatTime(iso: string | null | undefined) {
 }
 
 export function ChatRoomList() {
-  const { profile, ready, loading, login } = useUserProfile();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const { profile, ready } = useUserProfile();
   const [rooms, setRooms] = useState<ChatRoomWithPeer[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [startingId, setStartingId] = useState<string | null>(null);
@@ -49,12 +47,6 @@ export function ChatRoomList() {
   useEffect(() => {
     loadRooms();
   }, [loadRooms]);
-
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim() || !phone.trim()) return;
-    await login(name.trim(), phone.trim(), DEFAULT_REGION_CODE);
-  }
 
   async function startChat(companionSeedId: string) {
     if (!profile?.id) return;
@@ -79,48 +71,11 @@ export function ChatRoomList() {
     }
   }
 
-  if (!ready) {
+  if (!ready || !profile) {
     return (
       <div className="flex justify-center py-20">
         <Loader2 className="size-6 animate-spin text-muted-foreground" />
       </div>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <form onSubmit={handleLogin} className="flex flex-col gap-4 px-4 pb-28 pt-2">
-        <p className="text-sm text-muted-foreground">
-          동행자와 1:1 채팅을 하려면 이름과 연락처를 입력해주세요.
-        </p>
-        <label className="block">
-          <span className="text-sm font-medium">이름</span>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-            required
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">연락처</span>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex h-12 items-center justify-center rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
-        >
-          {loading ? <Loader2 className="size-5 animate-spin" /> : '시작하기'}
-        </button>
-      </form>
     );
   }
 
