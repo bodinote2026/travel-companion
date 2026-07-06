@@ -130,6 +130,49 @@ export function refreshGeolocation(
   );
 }
 
+export type GeolocationPermissionState = 'granted' | 'denied' | 'prompt' | 'unknown';
+
+export async function queryGeolocationPermission(): Promise<GeolocationPermissionState> {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
+    return 'unknown';
+  }
+
+  try {
+    const status = await navigator.permissions.query({ name: 'geolocation' });
+    return status.state as GeolocationPermissionState;
+  } catch {
+    return 'unknown';
+  }
+}
+
+/** Permissions API change 이벤트 — iOS Safari 등에서 설정 변경 감지 */
+export function watchGeolocationPermission(
+  onChange: (state: GeolocationPermissionState) => void,
+): () => void {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
+    return () => {};
+  }
+
+  let disposed = false;
+  let statusRef: PermissionStatus | null = null;
+  let handler: (() => void) | null = null;
+
+  navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+    if (disposed) return;
+    statusRef = status;
+    handler = () => onChange(status.state as GeolocationPermissionState);
+    status.addEventListener('change', handler);
+    onChange(status.state as GeolocationPermissionState);
+  });
+
+  return () => {
+    disposed = true;
+    if (statusRef && handler) {
+      statusRef.removeEventListener('change', handler);
+    }
+  };
+}
+
 export function getLocationEnvironmentMessage(): string | null {
   if (typeof window === 'undefined') return null;
   if (!window.isSecureContext) return 'HTTPS 연결에서만 위치를 사용할 수 있습니다.';

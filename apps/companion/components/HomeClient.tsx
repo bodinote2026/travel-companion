@@ -38,6 +38,7 @@ export function HomeClient({ products }: Props) {
     position,
     error: geoError,
     loading: geoLoading,
+    loadingMessage: geoLoadingMessage,
     applyPosition,
     reportError,
     startLoading,
@@ -81,6 +82,7 @@ export function HomeClient({ products }: Props) {
 
   const locationPromptProps = {
     loading: geoLoading,
+    loadingMessage: geoLoadingMessage,
     error: geoError,
     onStart: startLoading,
     onSuccess: handleLocationSuccess,

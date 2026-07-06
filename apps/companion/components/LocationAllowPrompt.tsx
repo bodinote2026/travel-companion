@@ -10,6 +10,7 @@ import {
 
 type Props = {
   loading?: boolean;
+  loadingMessage?: string | null;
   error?: string | null;
   onStart: () => void;
   onSuccess: (position: GeoPosition) => void;
@@ -19,6 +20,7 @@ type Props = {
 
 export function LocationAllowPrompt({
   loading = false,
+  loadingMessage,
   error,
   onStart,
   onSuccess,
@@ -26,20 +28,27 @@ export function LocationAllowPrompt({
   compact = false,
 }: Props) {
   const envMessage = getLocationEnvironmentMessage();
-  const hasError = Boolean(error);
+  const hasError = Boolean(error) && !loading;
+  const autoRetrying = loading && Boolean(loadingMessage);
 
   function handleClick() {
     onStart();
     requestGeolocationFromUserGesture(onSuccess, onError);
   }
 
-  const buttonLabel = loading ? '요청 중…' : hasError ? '다시 시도' : '위치 허용하기';
+  const buttonLabel = loading
+    ? loadingMessage || '요청 중…'
+    : hasError
+      ? '다시 시도'
+      : '위치 허용하기';
 
-  const helpText = hasError
-    ? error
-    : isIosDevice()
-      ? '버튼을 누르면 Safari 위치 허용 팝업이 표시됩니다. 팝업이 안 뜨면 아래 안내를 확인해 주세요.'
-      : '버튼을 누르면 브라우저 위치 허용 팝업이 표시됩니다.';
+  const helpText = autoRetrying
+    ? loadingMessage
+    : hasError
+      ? error
+      : isIosDevice()
+        ? '버튼을 누르면 Safari 위치 허용 팝업이 표시됩니다. 팝업이 안 뜨면 아래 안내를 확인해 주세요.'
+        : '버튼을 누르면 브라우저 위치 허용 팝업이 표시됩니다.';
 
   if (compact) {
     return (
@@ -47,6 +56,9 @@ export function LocationAllowPrompt({
         <p className="text-sm font-medium">내 주변 동행을 보려면 위치 허용이 필요합니다</p>
         {envMessage && (
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{envMessage}</p>
+        )}
+        {autoRetrying && (
+          <p className="mt-2 text-xs leading-relaxed text-primary">{loadingMessage}</p>
         )}
         {hasError && (
           <p className="mt-2 text-xs leading-relaxed text-destructive">{error}</p>
@@ -73,7 +85,11 @@ export function LocationAllowPrompt({
         <br />
         위치 허용이 필요합니다
       </p>
-      <p className="text-center text-xs leading-relaxed text-muted-foreground">
+      <p
+        className={`text-center text-xs leading-relaxed ${
+          autoRetrying ? 'font-medium text-primary' : 'text-muted-foreground'
+        }`}
+      >
         {helpText}
         {envMessage ? ` ${envMessage}` : ''}
       </p>
