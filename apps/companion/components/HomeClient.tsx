@@ -35,7 +35,7 @@ export function HomeClient({ products }: Props) {
 
   const mapOrExplore = tab === 'map' || tab === 'explore';
   const geoEnabled = consented === true && mapOrExplore;
-  const { position } = useGeolocation(geoEnabled);
+  const { position, refresh: refreshGeolocation } = useGeolocation(geoEnabled);
   const { users: nearbyUsers } = useNearbyUsers(geoEnabled && !!profile?.id);
   useLocationReporter(position, geoEnabled && !!profile?.id);
 
@@ -158,7 +158,13 @@ export function HomeClient({ products }: Props) {
       <CompanionDetailSheet companion={activeCompanion} onClose={() => setActiveId(null)} />
 
       {ready && consented === null && mapOrExplore && (
-        <LocationConsentBanner onAccept={accept} onDecline={decline} />
+        <LocationConsentBanner
+          onAccept={() => {
+            accept();
+            refreshGeolocation({ force: true });
+          }}
+          onDecline={decline}
+        />
       )}
 
       {geoEnabled && !position && (

@@ -8,7 +8,10 @@ export function useLocationConsent() {
   const [consented, setConsented] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setConsented(localStorage.getItem(STORAGE_KEY) === 'true');
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'true') setConsented(true);
+    else if (stored === 'false') setConsented(false);
+    else setConsented(null);
   }, []);
 
   const accept = () => {

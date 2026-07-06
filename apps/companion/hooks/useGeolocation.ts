@@ -13,8 +13,10 @@ export function useGeolocation(enabled: boolean, intervalMs = 90_000) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const refresh = useCallback(() => {
-    if (!enabled || typeof navigator === 'undefined' || !navigator.geolocation) {
+  const refresh = useCallback((options?: { force?: boolean }) => {
+    const active = options?.force === true || enabled;
+    if (!active || typeof navigator === 'undefined' || !navigator.geolocation) {
+      if (!active) return;
       setError('이 브라우저에서는 위치 서비스를 사용할 수 없습니다.');
       return;
     }
