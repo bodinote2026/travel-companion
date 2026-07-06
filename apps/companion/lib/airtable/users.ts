@@ -11,9 +11,9 @@ import {
 import { getAirtableConfig, requireAirtableConfig } from './config';
 
 export type AirtableUserFields = {
-  Phone: string;
-  Name: string;
-  Region: string;
+  Phone?: string;
+  Name?: string;
+  Region?: string;
   'Avatar URL'?: string;
   'Companion Seed ID'?: string;
   Bio?: string;
@@ -53,9 +53,9 @@ function parseNumberField(value: unknown): number | null {
 function mapUser(record: { id: string; fields: AirtableUserFields }): AirtableUser {
   return {
     id: record.id,
-    phone: record.fields.Phone,
-    name: record.fields.Name,
-    region: record.fields.Region,
+    phone: record.fields.Phone ?? '',
+    name: record.fields.Name ?? '',
+    region: record.fields.Region ?? '',
     avatarUrl: record.fields['Avatar URL'] ?? null,
     companionSeedId: record.fields['Companion Seed ID'] ?? null,
     bio: record.fields.Bio?.trim() || null,
@@ -147,14 +147,17 @@ export async function listAllRealUsers(excludeUserId?: string): Promise<Airtable
   return filterRealUsers(records.map(mapUser), excludeUserId);
 }
 
+function isRealUser(user: AirtableUser): boolean {
+  const phone = user.phone.trim();
+  if (!phone) return false;
+  if (user.companionSeedId) return false;
+  if (phone.startsWith('seed:')) return false;
+  return true;
+}
+
 function filterRealUsers(users: AirtableUser[], excludeUserId?: string): AirtableUser[] {
   return users
-    .filter(
-      (user) =>
-        !user.companionSeedId &&
-        !user.phone.startsWith('seed:') &&
-        user.id !== excludeUserId,
-    )
+    .filter((user) => isRealUser(user) && user.id !== excludeUserId)
     .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
 }
 
