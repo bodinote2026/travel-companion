@@ -36,7 +36,11 @@ export function LoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? '로그인 실패');
-      router.push(returnUrl);
+
+      const destination = data.user?.profile_completed
+        ? returnUrl
+        : `/profile/setup?returnUrl=${encodeURIComponent(returnUrl)}`;
+      router.push(destination);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : '로그인에 실패했습니다.');

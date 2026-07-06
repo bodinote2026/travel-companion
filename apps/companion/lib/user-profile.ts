@@ -4,6 +4,9 @@ export type UserProfile = {
   phone: string;
   region: string;
   avatar_url?: string | null;
+  bio?: string | null;
+  interest_categories?: string[];
+  profile_completed?: boolean;
 };
 
 const STORAGE_KEY = 'mukho-user-profile';

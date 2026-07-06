@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, Phone, User } from 'lucide-react';
+import { Loader2, LogOut, Pencil, Phone, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { formatPrice } from '@/lib/geo';
 import { getRegion } from '@/lib/regions';
@@ -20,6 +20,15 @@ export function MypageContent({ initialOrders = [] }: Props) {
   const [loadingOrders, setLoadingOrders] = useState(false);
 
   const region = getRegion();
+
+  useEffect(() => {
+    if (!ready || !profile) return;
+    if (!profile.profile_completed) {
+      router.replace(
+        `/profile/setup?returnUrl=${encodeURIComponent('/mypage')}`,
+      );
+    }
+  }, [ready, profile, router]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -52,7 +61,15 @@ export function MypageContent({ initialOrders = [] }: Props) {
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-start justify-between gap-2">
           <p className="text-xs font-medium text-primary">내 정보</p>
-          <button
+          <div className="flex items-center gap-1">
+            <Link
+              href="/profile/setup?returnUrl=%2Fmypage&edit=1"
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+            >
+              <Pencil className="size-3.5" />
+              프로필 수정
+            </Link>
+            <button
             type="button"
             onClick={handleLogout}
             disabled={loading}
@@ -61,6 +78,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
             {loading ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
             로그아웃
           </button>
+          </div>
         </div>
         <div className="mt-3 flex items-center gap-3">
           <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -75,6 +93,33 @@ export function MypageContent({ initialOrders = [] }: Props) {
             <p className="mt-0.5 text-xs text-muted-foreground">지역 · {region.name}</p>
           </div>
         </div>
+        {(profile.bio || (profile.interest_categories?.length ?? 0) > 0) && (
+          <div className="mt-4 space-y-2 border-t border-border pt-4">
+            {profile.bio && (
+              <p className="text-sm leading-relaxed text-muted-foreground">{profile.bio}</p>
+            )}
+            {(profile.interest_categories?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {profile.interest_categories!.map((category) => (
+                  <span
+                    key={category}
+                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary"
+                  >
+                    {category}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {!profile.bio && (profile.interest_categories?.length ?? 0) === 0 && (
+          <p className="mt-4 border-t border-border pt-4 text-sm text-muted-foreground">
+            아직 자기소개가 없어요.{' '}
+            <Link href="/profile/setup?returnUrl=%2Fmypage&edit=1" className="font-medium text-primary">
+              프로필 작성하기
+            </Link>
+          </p>
+        )}
       </div>
 
       <section>

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Loader2, MessageCircle, Plus, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { getRegion, DEFAULT_REGION_CODE } from '@/lib/regions';
@@ -30,6 +31,7 @@ function formatTime(iso: string | null | undefined) {
 }
 
 export function ChatRoomList() {
+  const router = useRouter();
   const { profile, ready } = useUserProfile();
   const [rooms, setRooms] = useState<ChatRoomWithPeer[]>([]);
   const [loadingRooms, setLoadingRooms] = useState(false);
@@ -39,6 +41,13 @@ export function ChatRoomList() {
   const [loadingRealUsers, setLoadingRealUsers] = useState(false);
 
   const region = getRegion();
+
+  useEffect(() => {
+    if (!ready || !profile) return;
+    if (!profile.profile_completed) {
+      router.replace(`/profile/setup?returnUrl=${encodeURIComponent('/chat')}`);
+    }
+  }, [ready, profile, router]);
 
   const loadRooms = useCallback(async () => {
     if (!profile?.id) return;

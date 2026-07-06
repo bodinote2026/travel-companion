@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { completeLogin } from '@/lib/auth/complete-login';
-import { createSessionToken, sessionUserToProfile, setSessionCookie } from '@/lib/auth/session';
+import { createSessionToken, setSessionCookie } from '@/lib/auth/session';
+import { getUserById } from '@/lib/airtable/users';
+import { airtableUserToUserProfile } from '@/lib/profile/transform';
 import { DEFAULT_REGION_CODE } from '@/lib/regions';
 import { normalizePhone } from '@/lib/user-profile';
 
@@ -29,7 +31,18 @@ export async function POST(request: Request) {
     });
 
     const token = await createSessionToken(user);
-    const response = NextResponse.json({ user: sessionUserToProfile(user) });
+    const airtableUser = await getUserById(user.id);
+    const profile = airtableUser
+      ? airtableUserToUserProfile(airtableUser)
+      : {
+          id: user.id,
+          name: user.name,
+          phone: user.phone,
+          region: user.region,
+          avatar_url: null,
+          profile_completed: false,
+        };
+    const response = NextResponse.json({ user: profile });
     setSessionCookie(response, token);
     return response;
   } catch (error) {

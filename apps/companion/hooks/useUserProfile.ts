@@ -42,6 +42,9 @@ export function useUserProfile() {
         phone: data.user.phone,
         region: data.user.region,
         avatar_url: data.user.avatar_url,
+        bio: data.user.bio,
+        interest_categories: data.user.interest_categories,
+        profile_completed: data.user.profile_completed,
       };
       setProfile(next);
       return next;

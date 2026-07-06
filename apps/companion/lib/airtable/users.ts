@@ -16,6 +16,9 @@ export type AirtableUserFields = {
   Region: string;
   'Avatar URL'?: string;
   'Companion Seed ID'?: string;
+  Bio?: string;
+  'Interest Category'?: string[];
+  'Profile Completed'?: boolean;
 };
 
 export type AirtableUser = {
@@ -25,6 +28,9 @@ export type AirtableUser = {
   region: string;
   avatarUrl: string | null;
   companionSeedId: string | null;
+  bio: string | null;
+  interestCategories: string[];
+  profileCompleted: boolean;
 };
 
 function mapUser(record: { id: string; fields: AirtableUserFields }): AirtableUser {
@@ -35,6 +41,9 @@ function mapUser(record: { id: string; fields: AirtableUserFields }): AirtableUs
     region: record.fields.Region,
     avatarUrl: record.fields['Avatar URL'] ?? null,
     companionSeedId: record.fields['Companion Seed ID'] ?? null,
+    bio: record.fields.Bio?.trim() || null,
+    interestCategories: record.fields['Interest Category'] ?? [],
+    profileCompleted: record.fields['Profile Completed'] === true,
   };
 }
 
@@ -142,6 +151,31 @@ export async function upsertUser(input: {
     Region: region,
   });
   return mapUser(created);
+}
+
+export async function updateUserProfile(
+  userId: string,
+  input: {
+    bio?: string | null;
+    interestCategories?: string[];
+    profileCompleted?: boolean;
+  },
+): Promise<AirtableUser> {
+  const config = requireAirtableConfig();
+  const fields: Partial<AirtableUserFields> = {};
+
+  if (input.bio !== undefined) {
+    fields.Bio = input.bio?.trim() || undefined;
+  }
+  if (input.interestCategories !== undefined) {
+    fields['Interest Category'] = input.interestCategories;
+  }
+  if (input.profileCompleted !== undefined) {
+    fields['Profile Completed'] = input.profileCompleted;
+  }
+
+  const updated = await updateRecord<AirtableUserFields>(config.usersTable, userId, fields);
+  return mapUser(updated);
 }
 
 export async function getOrCreateCompanionUser(
