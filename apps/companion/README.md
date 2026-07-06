@@ -24,12 +24,10 @@ npm run dev
 | Root Directory | `apps/companion` |
 | Production Branch | `main` |
 
-환경 변수는 `.env.local.example` 참고 (`NEXT_PUBLIC_SUPABASE_*`, `SUPABASE_SECRET_KEY` 등).
-
-Supabase SQL: `supabase/schema.sql` → Dashboard SQL Editor에서 실행.
+환경 변수는 `.env.local.example` 참고 (Airtable, PortOne, `AUTH_SESSION_SECRET`).
 
 ## 범위
 
 - ✅ 묵호 지역 데이터, GPS 거리·각도 (화면 사용 중)
 - ✅ 공동구매, PortOne(아임포트) 테스트 PG
-- ✅ Supabase 1:1 채팅 (Realtime), 마이페이지·주문 내역
+- ✅ Airtable 기반 로그인·주문·1:1 채팅 (폴링), 마이페이지·주문 내역
