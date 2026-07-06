@@ -14,10 +14,13 @@ type ListResponse<T> = {
 async function airtableFetch<T>(
   config: AirtableConfig,
   table: string,
-  init?: RequestInit & { searchParams?: Record<string, string> },
+  init?: RequestInit & { searchParams?: Record<string, string>; recordId?: string },
 ): Promise<T> {
-  const { searchParams, ...rest } = init ?? {};
-  const url = new URL(`https://api.airtable.com/v0/${config.baseId}/${encodeURIComponent(table)}`);
+  const { searchParams, recordId, ...rest } = init ?? {};
+  const path = recordId
+    ? `${config.baseId}/${encodeURIComponent(table)}/${recordId}`
+    : `${config.baseId}/${encodeURIComponent(table)}`;
+  const url = new URL(`https://api.airtable.com/v0/${path}`);
   if (searchParams) {
     for (const [key, value] of Object.entries(searchParams)) {
       url.searchParams.set(key, value);
@@ -71,6 +74,11 @@ export async function createRecord<T extends Record<string, unknown>>(
     body: JSON.stringify({ records: [{ fields }] }),
   });
   return data.records[0];
+}
+
+export async function getRecord<T>(table: string, recordId: string): Promise<AirtableRecord<T>> {
+  const config = requireAirtableConfig();
+  return airtableFetch<AirtableRecord<T>>(config, table, { recordId });
 }
 
 export async function updateRecord<T extends Record<string, unknown>>(

@@ -5,8 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { createBrowserClient } from '@/lib/supabase/client';
-import type { ChatMessageRow } from '@/lib/supabase/types';
+import { CHAT_POLL_INTERVAL_MS, type ChatMessageRow } from '@/lib/chat/types';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -26,15 +25,23 @@ export function ChatRoomView({ roomId }: Props) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const latestMessageAtRef = useRef<string | null>(null);
 
   const scrollToBottom = useCallback(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  const appendMessage = useCallback((msg: ChatMessageRow) => {
+  const mergeMessages = useCallback((incoming: ChatMessageRow[]) => {
+    if (incoming.length === 0) return;
     setMessages((prev) => {
-      if (prev.some((m) => m.id === msg.id)) return prev;
-      return [...prev, msg];
+      const map = new Map(prev.map((m) => [m.id, m]));
+      for (const msg of incoming) map.set(msg.id, msg);
+      const merged = [...map.values()].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
+      const last = merged[merged.length - 1];
+      if (last) latestMessageAtRef.current = last.created_at;
+      return merged;
     });
   }, []);
 
@@ -43,6 +50,7 @@ export function ChatRoomView({ roomId }: Props) {
 
     let cancelled = false;
     setLoading(true);
+    latestMessageAtRef.current = null;
 
     fetch(
       `/api/chat/messages?roomId=${encodeURIComponent(roomId)}&profileId=${encodeURIComponent(profile.id)}`,
@@ -50,7 +58,11 @@ export function ChatRoomView({ roomId }: Props) {
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
-        if (data.messages) setMessages(data.messages);
+        if (data.messages) {
+          setMessages(data.messages);
+          const last = data.messages[data.messages.length - 1] as ChatMessageRow | undefined;
+          if (last) latestMessageAtRef.current = last.created_at;
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -73,33 +85,38 @@ export function ChatRoomView({ roomId }: Props) {
   }, [roomId, profile?.id]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    if (!profile?.id || loading) return;
+
+    let cancelled = false;
+
+    const poll = async () => {
+      const since = latestMessageAtRef.current;
+      const params = new URLSearchParams({
+        roomId,
+        profileId: profile.id,
+      });
+      if (since) params.set('since', since);
+
+      try {
+        const res = await fetch(`/api/chat/messages?${params.toString()}`);
+        const data = await res.json();
+        if (cancelled || !data.messages?.length) return;
+        mergeMessages(data.messages);
+      } catch {
+        // 폴링 실패는 다음 주기에 재시도
+      }
+    };
+
+    const interval = setInterval(poll, CHAT_POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [roomId, profile?.id, loading, mergeMessages]);
 
   useEffect(() => {
-    const supabase = createBrowserClient();
-    if (!supabase) return;
-
-    const channel = supabase
-      .channel(`room:${roomId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chat_messages',
-          filter: `room_id=eq.${roomId}`,
-        },
-        (payload) => {
-          appendMessage(payload.new as ChatMessageRow);
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [roomId, appendMessage]);
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -118,12 +135,7 @@ export function ChatRoomView({ roomId }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? '전송 실패');
 
-      appendMessage(data.message);
-
-      const supabase = createBrowserClient();
-      if (!supabase) {
-        // 인메모리 모드: Realtime 없음 — API 응답만 반영
-      }
+      mergeMessages([data.message]);
     } catch (err) {
       setText(body);
       alert(err instanceof Error ? err.message : '메시지 전송 실패');

@@ -5,6 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const roomId = searchParams.get('roomId');
   const profileId = searchParams.get('profileId');
+  const since = searchParams.get('since');
 
   if (!roomId || !profileId) {
     return NextResponse.json({ error: 'roomId, profileId 필요' }, { status: 400 });
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: '접근 권한 없음' }, { status: 403 });
     }
 
-    const messages = await listMessages(roomId);
+    const messages = await listMessages(roomId, since ? { since } : undefined);
     return NextResponse.json({ messages });
   } catch (error) {
     console.error(error);

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Loader2, MessageCircle, Plus } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { getRegion, DEFAULT_REGION_CODE } from '@/lib/regions';
-import type { ChatRoomWithPeer } from '@/lib/supabase/types';
+import type { ChatRoomWithPeer } from '@/lib/chat/types';
 import { cn } from '@/lib/utils';
 
 function formatTime(iso: string | null | undefined) {

@@ -28,7 +28,7 @@ async function checkTable(table: string): Promise<CheckResult> {
   }
 }
 
-/** Airtable 연결 진단 — 테이블별 접근 테스트 */
+/** Airtable 연결 진단 — 전체 테이블 접근 테스트 */
 export async function GET() {
   const config = getAirtableConfig();
   if (!config) {
@@ -42,18 +42,23 @@ export async function GET() {
     );
   }
 
-  const [users, otp, products, orders, participants] = await Promise.all([
-    checkTable(config.usersTable),
-    checkTable(config.otpTable),
-    checkTable(config.productsTable),
-    checkTable(config.ordersTable),
-    checkTable(config.participantsTable),
-  ]);
+  const [users, otp, products, orders, participants, chatRooms, chatMembers, chatMessages] =
+    await Promise.all([
+      checkTable(config.usersTable),
+      checkTable(config.otpTable),
+      checkTable(config.productsTable),
+      checkTable(config.ordersTable),
+      checkTable(config.participantsTable),
+      checkTable(config.chatRoomsTable),
+      checkTable(config.chatRoomMembersTable),
+      checkTable(config.chatMessagesTable),
+    ]);
 
   const commerceOk = products.ok && orders.ok && participants.ok;
+  const chatOk = chatRooms.ok && chatMembers.ok && chatMessages.ok;
 
   return NextResponse.json({
-    ok: users.ok && commerceOk,
+    ok: users.ok && commerceOk && chatOk,
     config: {
       baseId: config.baseId,
       usersTable: config.usersTable,
@@ -61,6 +66,9 @@ export async function GET() {
       productsTable: config.productsTable,
       ordersTable: config.ordersTable,
       participantsTable: config.participantsTable,
+      chatRoomsTable: config.chatRoomsTable,
+      chatRoomMembersTable: config.chatRoomMembersTable,
+      chatMessagesTable: config.chatMessagesTable,
     },
     checks: {
       users,
@@ -68,7 +76,9 @@ export async function GET() {
       products,
       orders,
       participants,
+      chatRooms,
+      chatMembers,
+      chatMessages,
     },
-    note: '공동구매(2단계)는 products, orders, participants 테이블이 필요합니다.',
   });
 }

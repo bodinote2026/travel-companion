@@ -1,45 +1,18 @@
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { getAirtableConfig } from '@/lib/airtable/config';
+import * as airtableChat from '@/lib/airtable/chat';
 import type {
   ChatMessageRow,
-  ChatRoomMemberRow,
   ChatRoomRow,
   ChatRoomWithPeer,
   ProfileRow,
-} from '@/lib/supabase/types';
+} from '@/lib/chat/types';
 import { getOrCreateCompanionProfile, getProfileById } from './profiles';
 
 const memoryRooms: ChatRoomRow[] = [];
 const memoryMembers: { room_id: string; profile_id: string }[] = [];
 const memoryMessages: ChatMessageRow[] = [];
 
-async function findExistingRoom(profileA: string, profileB: string): Promise<ChatRoomRow | null> {
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data: roomsA } = await supabase
-      .from('chat_room_members')
-      .select('*')
-      .eq('profile_id', profileA);
-    const roomIds = ((roomsA ?? []) as ChatRoomMemberRow[]).map((r) => r.room_id);
-    if (roomIds.length === 0) return null;
-
-    const { data: match } = await supabase
-      .from('chat_room_members')
-      .select('*')
-      .eq('profile_id', profileB)
-      .in('room_id', roomIds)
-      .limit(1)
-      .maybeSingle();
-
-    if (!match) return null;
-    const matched = match as ChatRoomMemberRow;
-    const { data: room } = await supabase
-      .from('chat_rooms')
-      .select('*')
-      .eq('id', matched.room_id)
-      .single();
-    return room as ChatRoomRow;
-  }
-
+async function findExistingRoomMemory(profileA: string, profileB: string): Promise<ChatRoomRow | null> {
   for (const room of memoryRooms) {
     const members = memoryMembers.filter((m) => m.room_id === room.id).map((m) => m.profile_id);
     if (members.includes(profileA) && members.includes(profileB)) return room;
@@ -53,6 +26,10 @@ export async function getOrCreateChatRoom(input: {
   companionSeedId?: string;
   region: string;
 }): Promise<ChatRoomRow> {
+  if (getAirtableConfig()) {
+    return airtableChat.getOrCreateChatRoom(input);
+  }
+
   let peerId = input.peerProfileId;
   if (!peerId && input.companionSeedId) {
     const peer = await getOrCreateCompanionProfile(input.companionSeedId, input.region);
@@ -61,26 +38,8 @@ export async function getOrCreateChatRoom(input: {
   if (!peerId) throw new Error('대화 상대가 필요합니다.');
   if (peerId === input.myProfileId) throw new Error('자신과는 대화할 수 없습니다.');
 
-  const existing = await findExistingRoom(input.myProfileId, peerId);
+  const existing = await findExistingRoomMemory(input.myProfileId, peerId);
   if (existing) return existing;
-
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data: room, error } = await supabase
-      .from('chat_rooms')
-      .insert({ region: input.region })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-
-    const createdRoom = room as ChatRoomRow;
-    const { error: memberError } = await supabase.from('chat_room_members').insert([
-      { room_id: createdRoom.id, profile_id: input.myProfileId },
-      { room_id: createdRoom.id, profile_id: peerId },
-    ]);
-    if (memberError) throw new Error(memberError.message);
-    return createdRoom;
-  }
 
   const room: ChatRoomRow = {
     id: crypto.randomUUID(),
@@ -95,56 +54,8 @@ export async function getOrCreateChatRoom(input: {
 }
 
 export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer[]> {
-  const supabase = getSupabaseAdmin();
-
-  if (supabase) {
-    const { data: memberships, error } = await supabase
-      .from('chat_room_members')
-      .select('*')
-      .eq('profile_id', profileId);
-    if (error) throw new Error(error.message);
-
-    const results: ChatRoomWithPeer[] = [];
-    for (const { room_id } of (memberships ?? []) as ChatRoomMemberRow[]) {
-      const { data: room } = await supabase.from('chat_rooms').select('*').eq('id', room_id).single();
-      const { data: members } = await supabase
-        .from('chat_room_members')
-        .select('*')
-        .eq('room_id', room_id);
-
-      const peerId = ((members ?? []) as ChatRoomMemberRow[])
-        .map((m) => m.profile_id)
-        .find((id) => id !== profileId);
-      if (!peerId || !room) continue;
-
-      const peer = await getProfileById(peerId);
-      if (!peer) continue;
-
-      const { data: lastMsg } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('room_id', room_id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      results.push({
-        ...(room as ChatRoomRow),
-        peer: {
-          id: peer.id,
-          name: peer.name,
-          avatar_url: peer.avatar_url,
-          companion_seed_id: peer.companion_seed_id,
-        },
-        last_message: (lastMsg as ChatMessageRow | null)?.body ?? null,
-      });
-    }
-
-    return results.sort(
-      (a, b) =>
-        new Date(b.last_message_at ?? b.created_at).getTime() -
-        new Date(a.last_message_at ?? a.created_at).getTime(),
-    );
+  if (getAirtableConfig()) {
+    return airtableChat.listChatRooms(profileId);
   }
 
   const roomIds = memoryMembers.filter((m) => m.profile_id === profileId).map((m) => m.room_id);
@@ -179,31 +90,26 @@ export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer
 }
 
 export async function isRoomMember(roomId: string, profileId: string): Promise<boolean> {
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data } = await supabase
-      .from('chat_room_members')
-      .select('profile_id')
-      .eq('room_id', roomId)
-      .eq('profile_id', profileId)
-      .maybeSingle();
-    return Boolean(data);
+  if (getAirtableConfig()) {
+    return airtableChat.isRoomMember(roomId, profileId);
   }
   return memoryMembers.some((m) => m.room_id === roomId && m.profile_id === profileId);
 }
 
-export async function listMessages(roomId: string): Promise<ChatMessageRow[]> {
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('*')
-      .eq('room_id', roomId)
-      .order('created_at', { ascending: true });
-    if (error) throw new Error(error.message);
-    return (data ?? []) as ChatMessageRow[];
+export async function listMessages(
+  roomId: string,
+  options?: { since?: string },
+): Promise<ChatMessageRow[]> {
+  if (getAirtableConfig()) {
+    return airtableChat.listMessages(roomId, options);
   }
-  return memoryMessages.filter((m) => m.room_id === roomId);
+
+  let messages = memoryMessages.filter((m) => m.room_id === roomId);
+  if (options?.since) {
+    const sinceMs = new Date(options.since).getTime();
+    messages = messages.filter((m) => new Date(m.created_at).getTime() > sinceMs);
+  }
+  return messages;
 }
 
 export async function sendMessage(input: {
@@ -211,25 +117,14 @@ export async function sendMessage(input: {
   senderId: string;
   body: string;
 }): Promise<ChatMessageRow> {
+  if (getAirtableConfig()) {
+    return airtableChat.sendMessage(input);
+  }
+
   const text = input.body.trim();
   if (!text) throw new Error('메시지를 입력해주세요.');
 
-  const supabase = getSupabaseAdmin();
   const now = new Date().toISOString();
-
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .insert({ room_id: input.roomId, sender_id: input.senderId, body: text })
-      .select()
-      .single();
-    if (error) throw new Error(error.message);
-
-    await supabase.from('chat_rooms').update({ last_message_at: now }).eq('id', input.roomId);
-
-    return data as ChatMessageRow;
-  }
-
   const row: ChatMessageRow = {
     id: crypto.randomUUID(),
     room_id: input.roomId,
@@ -244,17 +139,8 @@ export async function sendMessage(input: {
 }
 
 export async function getRoomPeer(roomId: string, myProfileId: string): Promise<ProfileRow | null> {
-  const supabase = getSupabaseAdmin();
-  if (supabase) {
-    const { data: members } = await supabase
-      .from('chat_room_members')
-      .select('*')
-      .eq('room_id', roomId);
-    const peerId = ((members ?? []) as ChatRoomMemberRow[])
-      .map((m) => m.profile_id)
-      .find((id) => id !== myProfileId);
-    if (!peerId) return null;
-    return getProfileById(peerId);
+  if (getAirtableConfig()) {
+    return airtableChat.getRoomPeer(roomId, myProfileId);
   }
   const peerMember = memoryMembers.find((m) => m.room_id === roomId && m.profile_id !== myProfileId);
   return peerMember ? getProfileById(peerMember.profile_id) : null;

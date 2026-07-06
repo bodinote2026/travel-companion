@@ -6,6 +6,9 @@ export type AirtableConfig = {
   productsTable: string;
   ordersTable: string;
   participantsTable: string;
+  chatRoomsTable: string;
+  chatRoomMembersTable: string;
+  chatMessagesTable: string;
 };
 
 export function getAirtableConfig(): AirtableConfig | null {
@@ -21,6 +24,10 @@ export function getAirtableConfig(): AirtableConfig | null {
     productsTable: cleanEnv(process.env.AIRTABLE_PRODUCTS_TABLE) || 'Products',
     ordersTable: cleanEnv(process.env.AIRTABLE_ORDERS_TABLE) || 'Orders',
     participantsTable: cleanEnv(process.env.AIRTABLE_PARTICIPANTS_TABLE) || 'Participants',
+    chatRoomsTable: cleanEnv(process.env.AIRTABLE_CHAT_ROOMS_TABLE) || 'Chat_Rooms',
+    chatRoomMembersTable:
+      cleanEnv(process.env.AIRTABLE_CHAT_ROOM_MEMBERS_TABLE) || 'Chat_Room_Members',
+    chatMessagesTable: cleanEnv(process.env.AIRTABLE_CHAT_MESSAGES_TABLE) || 'Chat_Messages',
   };
 }
 
