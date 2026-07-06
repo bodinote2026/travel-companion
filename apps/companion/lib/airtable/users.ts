@@ -95,6 +95,28 @@ export async function findUserByPhone(phone: string, region: string): Promise<Ai
   return mapUser(records[0]);
 }
 
+/** 실제 가입자 — Companion Seed ID 없음, seed: 전화번호 제외 */
+export async function listRealUsers(
+  region: string,
+  excludeUserId?: string,
+): Promise<AirtableUser[]> {
+  const config = requireAirtableConfig();
+  const formula = `{Region}="${escapeAirtableFormula(region)}"`;
+  const records = await listRecords<AirtableUserFields>(config.usersTable, {
+    filterByFormula: formula,
+  });
+
+  return records
+    .map(mapUser)
+    .filter(
+      (user) =>
+        !user.companionSeedId &&
+        !user.phone.startsWith('seed:') &&
+        user.id !== excludeUserId,
+    )
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+}
+
 export async function upsertUser(input: {
   phone: string;
   name: string;

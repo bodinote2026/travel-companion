@@ -3,11 +3,17 @@
 import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Loader2, MessageCircle, Plus } from 'lucide-react';
+import { Loader2, MessageCircle, Plus, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { getRegion, DEFAULT_REGION_CODE } from '@/lib/regions';
 import type { ChatRoomWithPeer } from '@/lib/chat/types';
 import { cn } from '@/lib/utils';
+
+type RealUser = {
+  id: string;
+  name: string;
+  phone: string;
+};
 
 function formatTime(iso: string | null | undefined) {
   if (!iso) return '';
@@ -29,6 +35,8 @@ export function ChatRoomList() {
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [realUsers, setRealUsers] = useState<RealUser[]>([]);
+  const [loadingRealUsers, setLoadingRealUsers] = useState(false);
 
   const region = getRegion();
 
@@ -48,7 +56,28 @@ export function ChatRoomList() {
     loadRooms();
   }, [loadRooms]);
 
-  async function startChat(companionSeedId: string) {
+  useEffect(() => {
+    if (!showNew || !profile?.id) return;
+
+    let cancelled = false;
+    setLoadingRealUsers(true);
+
+    fetch(`/api/users?region=${encodeURIComponent(DEFAULT_REGION_CODE)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.users) setRealUsers(data.users);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingRealUsers(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showNew, profile?.id]);
+
+  async function startChatWithSeed(companionSeedId: string) {
     if (!profile?.id) return;
     setStartingId(companionSeedId);
     try {
@@ -58,6 +87,29 @@ export function ChatRoomList() {
         body: JSON.stringify({
           myProfileId: profile.id,
           companionSeedId,
+          region: DEFAULT_REGION_CODE,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? '채팅방 생성 실패');
+      window.location.href = `/chat/${data.room.id}`;
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '채팅을 시작할 수 없습니다.');
+    } finally {
+      setStartingId(null);
+    }
+  }
+
+  async function startChatWithPeer(peerProfileId: string) {
+    if (!profile?.id) return;
+    setStartingId(peerProfileId);
+    try {
+      const res = await fetch('/api/chat/rooms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          myProfileId: profile.id,
+          peerProfileId,
           region: DEFAULT_REGION_CODE,
         }),
       });
@@ -94,31 +146,70 @@ export function ChatRoomList() {
       </div>
 
       {showNew && (
-        <div className="rounded-2xl border border-border bg-card p-3">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">동행자 선택</p>
-          <div className="flex flex-col gap-2">
-            {region.companions.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                disabled={startingId === c.id}
-                onClick={() => startChat(c.id)}
-                className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-secondary/50 disabled:opacity-60"
-              >
-                <span className="relative size-10 shrink-0 overflow-hidden rounded-full">
-                  <Image src={c.avatar} alt="" fill className="object-cover" sizes="40px" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold">{c.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{c.headline}</span>
-                </span>
-                {startingId === c.id ? (
-                  <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
-                ) : (
-                  <MessageCircle className="size-4 shrink-0 text-primary" />
-                )}
-              </button>
-            ))}
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-3">
+          <div>
+            <p className="mb-2 text-xs font-medium text-muted-foreground">Mock 동행자</p>
+            <div className="flex flex-col gap-2">
+              {region.companions.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  disabled={startingId === c.id}
+                  onClick={() => startChatWithSeed(c.id)}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-secondary/50 disabled:opacity-60"
+                >
+                  <span className="relative size-10 shrink-0 overflow-hidden rounded-full">
+                    <Image src={c.avatar} alt="" fill className="object-cover" sizes="40px" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold">{c.name}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{c.headline}</span>
+                  </span>
+                  {startingId === c.id ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                  ) : (
+                    <MessageCircle className="size-4 shrink-0 text-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-medium text-muted-foreground">가입한 동행자</p>
+            {loadingRealUsers ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="size-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : realUsers.length === 0 ? (
+              <p className="rounded-xl bg-secondary px-3 py-4 text-center text-sm text-muted-foreground">
+                아직 다른 가입자가 없습니다.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {realUsers.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    disabled={startingId === u.id}
+                    onClick={() => startChatWithPeer(u.id)}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-secondary/50 disabled:opacity-60"
+                  >
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <User className="size-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold">{u.name}</span>
+                    </span>
+                    {startingId === u.id ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
+                    ) : (
+                      <MessageCircle className="size-4 shrink-0 text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
