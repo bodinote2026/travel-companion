@@ -57,7 +57,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex flex-col gap-5 px-4 pb-28 pt-2">
+    <div className="flex flex-col gap-5 px-4 pb-4 pt-2">
       <p className="text-sm leading-relaxed text-muted-foreground">
         이름과 연락처만 입력하면 바로 이용할 수 있어요. (별도 비밀번호 없음)
       </p>

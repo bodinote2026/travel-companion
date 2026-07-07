@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, Store } from 'lucide-react';
+import { BottomChrome, bottomChromePaddingClass } from '@/components/BottomChrome';
 import { getProductById } from '@/lib/db/products';
 import { GroupBuyWidget } from '@/components/GroupBuyWidget';
 import { listParticipants } from '@/lib/db/orders';
@@ -18,7 +19,7 @@ export default async function ProductPage({ params }: Props) {
   const participants = await listParticipants(id);
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-background pb-12">
+    <main className={`mx-auto min-h-screen max-w-md bg-background ${bottomChromePaddingClass(true)}`}>
       <div className="relative h-64 w-full">
         <Image
           src={product.imageUrl}
@@ -70,6 +71,7 @@ export default async function ProductPage({ params }: Props) {
           </ul>
         </section>
       )}
+      <BottomChrome hideNav />
     </main>
   );
 }

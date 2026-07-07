@@ -116,7 +116,7 @@ export function ProfileSetupForm({
   const busy = loading || skipping;
 
   return (
-    <div className="flex flex-col gap-5 px-4 pb-28 pt-2">
+    <div className="flex flex-col gap-5 px-4 pb-4 pt-2">
       <div>
         <h2 className="text-base font-bold">{title}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>

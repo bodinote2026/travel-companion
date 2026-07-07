@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
+import { BottomChrome, bottomChromePaddingClass } from '@/components/BottomChrome';
 import { listOrders } from '@/lib/db/orders';
 import { formatPrice } from '@/lib/geo';
 
@@ -7,7 +8,7 @@ export default async function OrdersPage() {
   const orders = await listOrders();
 
   return (
-    <main className="mx-auto min-h-screen max-w-md bg-background pb-12">
+    <main className={`mx-auto min-h-screen max-w-md bg-background ${bottomChromePaddingClass(true)}`}>
       <header className="flex items-center gap-3 px-4 pt-12 pb-4">
         <Link
           href="/group-buy"
@@ -58,6 +59,7 @@ export default async function OrdersPage() {
           ))
         )}
       </div>
+      <BottomChrome hideNav />
     </main>
   );
 }

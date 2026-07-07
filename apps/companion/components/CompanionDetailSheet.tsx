@@ -92,7 +92,7 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
         className="absolute inset-0 bg-foreground/40 backdrop-blur-[2px]"
       />
 
-      <div className="relative max-h-[86%] overflow-y-auto rounded-t-[2rem] border-t border-border bg-background pb-24 shadow-2xl">
+      <div className="relative max-h-[86%] overflow-y-auto rounded-t-[2rem] border-t border-border bg-background pb-36 shadow-2xl">
         <div className="sticky top-0 flex justify-center pt-3">
           <span className="h-1.5 w-10 rounded-full bg-border" />
         </div>

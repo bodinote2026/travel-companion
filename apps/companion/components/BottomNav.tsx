@@ -10,6 +10,8 @@ export type NavTab = 'map' | 'explore' | 'group-buy' | 'chat' | 'profile';
 type Props = {
   active?: NavTab;
   onChange?: (tab: NavTab) => void;
+  /** BottomChrome 내부에서 사용 시 fixed 스타일 제거 */
+  embedded?: boolean;
 };
 
 const TABS: {
@@ -26,12 +28,18 @@ const TABS: {
   { id: 'profile', label: '내프로필', icon: User, href: '/mypage' },
 ];
 
-export function BottomNav({ active, onChange }: Props) {
+export function BottomNav({ active, onChange, embedded }: Props) {
   const pathname = usePathname();
   const isHome = pathname === '/';
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border bg-background/95 px-2 pb-5 pt-2 backdrop-blur">
+    <nav
+      className={cn(
+        embedded
+          ? 'px-2 pb-5 pt-1'
+          : 'fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border bg-background/95 px-2 pb-5 pt-2 backdrop-blur',
+      )}
+    >
       <div className="flex items-center justify-around">
         {TABS.map(({ id, label, icon: Icon, href, homeOnly }) => {
           const selected =

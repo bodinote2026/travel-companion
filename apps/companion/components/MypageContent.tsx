@@ -57,7 +57,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-5 px-4 pb-28 pt-2">
+    <div className="flex flex-col gap-5 px-4 pb-4 pt-2">
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-start justify-between gap-2">
           <p className="text-xs font-medium text-primary">내 정보</p>

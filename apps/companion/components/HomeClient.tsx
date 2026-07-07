@@ -17,7 +17,8 @@ import { CompanionMap } from '@/components/CompanionMap';
 import { CompanionCard } from '@/components/CompanionCard';
 import { CompanionDetailSheet } from '@/components/CompanionDetailSheet';
 import { GroupBuySection } from '@/components/GroupBuySection';
-import { BottomNav, type NavTab } from '@/components/BottomNav';
+import { BottomChrome } from '@/components/BottomChrome';
+import type { NavTab } from '@/components/BottomNav';
 import { LocationAllowPrompt } from '@/components/LocationAllowPrompt';
 
 const region = getRegion();
@@ -197,7 +198,7 @@ export function HomeClient({ products }: Props) {
                 <p className="text-sm font-semibold">내 주변 동행 {companions.length}명</p>
                 <span className="text-xs text-muted-foreground">가까운 순</span>
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-36 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <div className="flex flex-col gap-3">
                   {companions.map((c) => (
                     <CompanionCard
@@ -215,7 +216,7 @@ export function HomeClient({ products }: Props) {
         )}
 
         {tab === 'explore' && (
-          <div className="h-full overflow-y-auto px-4 pb-24 pt-1">
+          <div className="h-full overflow-y-auto px-4 pb-36 pt-1">
             {!position && (
               <div className="mb-3">
                 <LocationAllowPrompt {...locationPromptProps} compact />
@@ -236,7 +237,7 @@ export function HomeClient({ products }: Props) {
         )}
       </div>
 
-      <BottomNav active={tab} onChange={setTab} />
+      <BottomChrome active={tab} onNavChange={setTab} />
 
       <CompanionDetailSheet companion={activeCompanion} onClose={() => setActiveId(null)} />
     </main>

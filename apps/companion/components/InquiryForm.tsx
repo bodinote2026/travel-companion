@@ -49,7 +49,7 @@ export function InquiryForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-4 pb-28 pt-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-4 pb-4 pt-2">
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MessageSquare className="size-4 text-primary" />

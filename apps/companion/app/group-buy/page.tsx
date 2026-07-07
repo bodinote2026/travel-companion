@@ -47,7 +47,7 @@ export default async function GroupBuyPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 px-4 pb-28">
+      <div className="flex flex-col gap-3 px-4 pb-4">
         {products.map((product) => (
           <GroupBuyCard key={product.id} product={product} />
         ))}

@@ -141,7 +141,7 @@ export function ChatRoomList() {
   }
 
   return (
-    <div className="flex flex-col gap-3 px-4 pb-28 pt-2">
+    <div className="flex flex-col gap-3 px-4 pb-4 pt-2">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{profile.name}님의 대화</p>
         <button

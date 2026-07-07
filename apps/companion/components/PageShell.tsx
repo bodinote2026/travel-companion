@@ -1,5 +1,6 @@
 import type { NavTab } from '@/components/BottomNav';
-import { BottomNav } from '@/components/BottomNav';
+import { BottomChrome, bottomChromePaddingClass } from '@/components/BottomChrome';
+import { cn } from '@/lib/utils';
 
 type Props = {
   children: React.ReactNode;
@@ -9,9 +10,14 @@ type Props = {
 
 export function PageShell({ children, active, hideNav }: Props) {
   return (
-    <div className="relative mx-auto min-h-[100dvh] max-w-md bg-background">
+    <div
+      className={cn(
+        'relative mx-auto min-h-[100dvh] max-w-md bg-background',
+        bottomChromePaddingClass(hideNav),
+      )}
+    >
       {children}
-      {!hideNav && <BottomNav active={active} />}
+      <BottomChrome active={active} hideNav={hideNav} />
     </div>
   );
 }
