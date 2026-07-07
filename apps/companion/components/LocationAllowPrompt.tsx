@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
 import {
+  invokeGeolocationOnUserClick,
   getLocationEnvironmentMessage,
   IOS_LOCATION_DENIED_HELP,
   isIosDevice,
   isIosLocationDeniedMessage,
-  requestGeolocationFromUserGesture,
   type GeoPosition,
 } from '@/lib/geo/browser-geolocation';
 
@@ -18,7 +17,6 @@ type Props = {
   onStart: () => void;
   onSuccess: (position: GeoPosition) => void;
   onError: (message: string) => void;
-  onWatchStart?: (message: string) => void;
   compact?: boolean;
 };
 
@@ -31,27 +29,15 @@ export function LocationAllowPrompt({
   onStart,
   onSuccess,
   onError,
-  onWatchStart,
   compact = false,
 }: Props) {
   const envMessage = getLocationEnvironmentMessage();
   const hasError = Boolean(error) && !loading;
   const autoRetrying = loading && Boolean(loadingMessage);
-  // Cancel any in-flight watchPosition when the component unmounts
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    return () => {
-      cleanupRef.current?.();
-    };
-  }, []);
 
   function handleClick() {
-    cleanupRef.current?.();
-    cleanupRef.current = null;
-    // iOS: setState(onStart) 전에 geolocation API를 동기 호출해야 권한 팝업이 뜸
-    cleanupRef.current = requestGeolocationFromUserGesture(onSuccess, onError, onWatchStart);
-    onStart();
+    const started = invokeGeolocationOnUserClick(onSuccess, onError);
+    if (started) onStart();
   }
 
   const showIosDeniedHint = hasError && isIosDevice() && isIosLocationDeniedMessage(error ?? '');

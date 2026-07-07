@@ -10,10 +10,16 @@ const REFRESH_OPTIONS: PositionOptions = {
   timeout: 15_000,
 };
 
-const GENERIC_ERROR = '위치를 가져올 수 없습니다. 다시 시도해 주세요.';
+const GENERIC_ERROR = '위치를 가져올 수 없습니다. 잠시 후 다시 시도해주세요.';
 
-export const IOS_LOCATION_DENIED_HELP =
-  '위치가 거부되어 있습니다. Safari 주소창 왼쪽 aA → 웹사이트 설정 → 위치 → 허용으로 바꾼 뒤 「위치 허용하기」를 다시 눌러 주세요.';
+/** iOS Safari 사용자 제스처 흐름용 (코드별 고정 문구) */
+export const USER_GESTURE_GEO_ERRORS = {
+  PERMISSION_DENIED: '설정 앱 → Safari → 위치 → 이 웹사이트 허용으로 변경해주세요',
+  POSITION_UNAVAILABLE: '위치를 가져올 수 없습니다. 잠시 후 다시 시도해주세요',
+  TIMEOUT: '위치 요청 시간이 초과됐습니다. 다시 시도해주세요',
+} as const;
+
+export const IOS_LOCATION_DENIED_HELP = USER_GESTURE_GEO_ERRORS.PERMISSION_DENIED;
 
 export const IOS_LOCATION_BLOCKED_HELP =
   '브라우저에서 위치 접근이 차단되었습니다. Safari 설정 → Safari → 위치에서 「물어보기」 또는 「허용」을 선택한 뒤, 이 페이지에서 다시 시도해 주세요.';
@@ -21,6 +27,19 @@ export const IOS_LOCATION_BLOCKED_HELP =
 export function isIosDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+export function userGestureGeolocationErrorMessage(err: GeolocationPositionError): string {
+  switch (err.code) {
+    case err.PERMISSION_DENIED:
+      return USER_GESTURE_GEO_ERRORS.PERMISSION_DENIED;
+    case err.POSITION_UNAVAILABLE:
+      return USER_GESTURE_GEO_ERRORS.POSITION_UNAVAILABLE;
+    case err.TIMEOUT:
+      return USER_GESTURE_GEO_ERRORS.TIMEOUT;
+    default:
+      return USER_GESTURE_GEO_ERRORS.POSITION_UNAVAILABLE;
+  }
 }
 
 export function geolocationErrorMessage(err: GeolocationPositionError): string {
@@ -73,13 +92,31 @@ function tryGetCurrentPosition(
   );
 }
 
-// iOS GPS first-fix can take 30-60s. Use generous timeouts so we don't give up prematurely.
-function getUserGestureOptions(): [PositionOptions, PositionOptions] {
-  const lowAccuracy: PositionOptions = {
-    enableHighAccuracy: false,
-    maximumAge: 0,
-    timeout: 40_000,
-  };
+/**
+ * 사용자 클릭 핸들러에서 React setState 없이 즉시 getCurrentPosition 호출.
+ * iOS Safari는 이 동기 호출이 제스처와 직접 연결되어야 권한 팝업이 뜸.
+ */
+export function invokeGeolocationOnUserClick(
+  onSuccess: (position: GeoPosition) => void,
+  onError: (message: string) => void,
+): boolean {
+  if (typeof window === 'undefined') return false;
+
+  if (!window.isSecureContext) {
+    onError('HTTPS 연결에서만 위치를 사용할 수 있습니다.');
+    return false;
+  }
+
+  if (!navigator.geolocation) {
+    onError('이 브라우저에서는 위치 서비스를 사용할 수 없습니다.');
+    return false;
+  }
+
+  const envMessage = getLocationEnvironmentMessage();
+  if (envMessage) {
+    onError(envMessage);
+    return false;
+  }
 
   const highAccuracy: PositionOptions = {
     enableHighAccuracy: true,
@@ -87,151 +124,41 @@ function getUserGestureOptions(): [PositionOptions, PositionOptions] {
     timeout: 55_000,
   };
 
-  return isIosDevice() ? [lowAccuracy, highAccuracy] : [highAccuracy, lowAccuracy];
-}
+  const lowAccuracy: PositionOptions = {
+    enableHighAccuracy: false,
+    maximumAge: 0,
+    timeout: 40_000,
+  };
 
-/**
- * watchPosition until first fix, then stop.
- * On iOS must be started synchronously inside the user-gesture handler.
- */
-function watchPositionUntilFix(
-  onSuccess: (pos: GeoPosition) => void,
-  onGiveUp: () => void,
-  maxMs = 90_000,
-): () => void {
-  if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    onGiveUp();
-    return () => {};
-  }
-
-  let watchId: number | null = null;
-  let timerId: ReturnType<typeof setTimeout> | null = null;
-  let done = false;
-
-  function cleanup() {
-    if (done) return;
-    done = true;
-    if (watchId !== null) {
-      navigator.geolocation.clearWatch(watchId);
-      watchId = null;
-    }
-    if (timerId !== null) {
-      clearTimeout(timerId);
-      timerId = null;
-    }
-  }
-
-  watchId = navigator.geolocation.watchPosition(
-    (pos) => {
-      cleanup();
-      onSuccess(toGeoPosition(pos));
-    },
+  navigator.geolocation.getCurrentPosition(
+    (pos) => onSuccess(toGeoPosition(pos)),
     (err) => {
       if (err.code === err.PERMISSION_DENIED) {
-        cleanup();
-        onGiveUp();
+        onError(userGestureGeolocationErrorMessage(err));
+        return;
       }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => onSuccess(toGeoPosition(pos)),
+        (fallbackErr) => onError(userGestureGeolocationErrorMessage(fallbackErr)),
+        lowAccuracy,
+      );
     },
-    { enableHighAccuracy: true, maximumAge: 0 },
+    highAccuracy,
   );
-
-  timerId = setTimeout(() => {
-    cleanup();
-    onGiveUp();
-  }, maxMs);
-
-  return cleanup;
+  return true;
 }
 
 /**
- * 클릭 직후 동기 호출 — iOS는 getCurrentPosition + watchPosition을 같은 제스처 턴에서 시작.
- * Returns a cancel function.
+ * @deprecated invokeGeolocationOnUserClick 사용. 하위 호환 cancel 함수 반환.
  */
 export function requestGeolocationFromUserGesture(
   onSuccess: (position: GeoPosition) => void,
   onError: (message: string) => void,
-  onWatchStart?: (message: string) => void,
+  _onWatchStart?: (message: string) => void,
 ): () => void {
-  if (typeof window === 'undefined') return () => {};
-
-  if (!window.isSecureContext) {
-    onError('HTTPS 연결에서만 위치를 사용할 수 있습니다.');
-    return () => {};
-  }
-
-  if (!navigator.geolocation) {
-    onError('이 브라우저에서는 위치 서비스를 사용할 수 없습니다.');
-    return () => {};
-  }
-
-  const envMessage = getLocationEnvironmentMessage();
-  if (envMessage) {
-    onError(envMessage);
-    return () => {};
-  }
-
-  const [primary, fallbackOptions] = getUserGestureOptions();
-  let watchCancel: (() => void) | null = null;
-  let settled = false;
-
-  function cancel() {
-    watchCancel?.();
-    watchCancel = null;
-  }
-
-  function settleSuccess(pos: GeoPosition) {
-    if (settled) return;
-    settled = true;
-    cancel();
-    onSuccess(pos);
-  }
-
-  function settleError(message: string) {
-    if (settled) return;
-    settled = true;
-    cancel();
-    onError(message);
-  }
-
-  function handlePrimaryError(err: GeolocationPositionError) {
-    if (settled) return;
-
-    if (err.code === err.PERMISSION_DENIED) {
-      settleError(isIosDevice() ? IOS_LOCATION_DENIED_HELP : geolocationErrorMessage(err));
-      return;
-    }
-
-    if (isIosDevice()) {
-      // watchPosition already running from the same gesture — wait for fix or outer timeout
-      return;
-    }
-
-    tryGetCurrentPosition(fallbackOptions, settleSuccess, (fallbackErr) => {
-      if (settled) return;
-      settled = true;
-      cancel();
-      void resolveGeolocationErrorMessage(fallbackErr).then(onError);
-    });
-  }
-
-  // iOS: watchPosition must start in the same user-gesture turn (not in async callback)
-  if (isIosDevice()) {
-    onWatchStart?.('GPS 신호를 잡고 있어요…');
-    watchCancel = watchPositionUntilFix(
-      settleSuccess,
-      () => {
-        if (settled) return;
-        settleError(
-          'GPS 신호를 받지 못했습니다. Safari에서 위치를 허용한 뒤 「위치 허용하기」를 다시 눌러 주세요.',
-        );
-      },
-      90_000,
-    );
-  }
-
-  tryGetCurrentPosition(primary, settleSuccess, handlePrimaryError);
-
-  return cancel;
+  invokeGeolocationOnUserClick(onSuccess, onError);
+  return () => {};
 }
 
 export function refreshGeolocation(
@@ -323,9 +250,10 @@ export function getLocationEnvironmentMessage(): string | null {
 
 export function isIosLocationDeniedMessage(message: string): boolean {
   return (
+    message.includes('설정 앱') ||
     message.includes('거부') ||
     message.includes('차단') ||
     message.includes('aA') ||
-    message.includes('Safari 설정')
+    message.includes('Safari')
   );
 }

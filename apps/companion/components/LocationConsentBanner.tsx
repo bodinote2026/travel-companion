@@ -1,14 +1,41 @@
 'use client';
 
+import { useState } from 'react';
 import { MapPin, Shield } from 'lucide-react';
+import {
+  invokeGeolocationOnUserClick,
+  type GeoPosition,
+} from '@/lib/geo/browser-geolocation';
 
 type Props = {
-  onAccept: () => void;
+  onGranted: (position: GeoPosition) => void;
   onDecline: () => void;
   declinedBefore?: boolean;
 };
 
-export function LocationConsentBanner({ onAccept, onDecline, declinedBefore = false }: Props) {
+export function LocationConsentBanner({ onGranted, onDecline, declinedBefore = false }: Props) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleAllowClick() {
+    setError(null);
+
+    // 1. React 상태 변경 전 — getCurrentPosition 동기 호출 (iOS Safari 제스처 요건)
+    const started = invokeGeolocationOnUserClick(
+      (position) => {
+        // 2. 성공 후 consent·위치 저장 (부모 콜백)
+        setLoading(false);
+        onGranted(position);
+      },
+      (message) => {
+        setLoading(false);
+        setError(message);
+      },
+    );
+
+    if (started) setLoading(true);
+  }
+
   return (
     <div className="fixed inset-0 z-[100] mx-auto max-w-md bg-black/40">
       <div className="absolute inset-x-0 bottom-20 px-4">
@@ -26,18 +53,23 @@ export function LocationConsentBanner({ onAccept, onDecline, declinedBefore = fa
                   ? '내 주변 동행을 보려면 위치 접근이 필요합니다. 동의 후 브라우저 위치 허용 팝업이 표시됩니다.'
                   : '동행자와의 거리 표시를 위해 화면 사용 중 GPS 위치를 조회합니다. 백그라운드 추적은 하지 않습니다.'}
               </p>
+              {error && (
+                <p className="mt-2 text-xs leading-relaxed text-destructive">{error}</p>
+              )}
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  onClick={onAccept}
-                  className="flex-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+                  onClick={handleAllowClick}
+                  disabled={loading}
+                  className="flex-1 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
                 >
-                  위치 허용하기
+                  {loading ? '요청 중…' : '위치 허용하기'}
                 </button>
                 <button
                   type="button"
                   onClick={onDecline}
-                  className="rounded-xl border border-border px-3 py-2 text-sm text-muted-foreground"
+                  disabled={loading}
+                  className="rounded-xl border border-border px-3 py-2 text-sm text-muted-foreground disabled:opacity-60"
                 >
                   나중에
                 </button>

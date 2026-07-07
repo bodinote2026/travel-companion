@@ -47,7 +47,6 @@ export function HomeClient({ products }: Props) {
     reportError,
     startLoading,
     retryFromUserGesture,
-    watchModeStart,
   } = useGeolocation(mapOrExplore);
 
   const fallbackPosition = useRegionFallback
@@ -89,20 +88,13 @@ export function HomeClient({ products }: Props) {
   const showConsentBanner = consentReady && consented === null && needsLocation;
   const showLocationOverlay = needsLocation && consented !== null;
 
-  function handleLocationSuccess(pos: Parameters<typeof applyPosition>[0]) {
+  function handleConsentGranted(pos: Parameters<typeof applyPosition>[0]) {
     accept();
     applyPosition(pos);
   }
 
   // fallback 배너의 "위치 다시 허용" 버튼 — fallback 상태 리셋 후 GPS 재요청
   function handleRetryGPS() {
-    accept();
-    retryFromUserGesture();
-  }
-
-  /** 앱 내 위치 동의 + iOS Safari 권한 요청 — 반드시 클릭 핸들러 안에서 동기 호출 */
-  function handleConsentAndRequestLocation() {
-    accept();
     retryFromUserGesture();
   }
 
@@ -119,9 +111,8 @@ export function HomeClient({ products }: Props) {
     loadingMessage: geoLoadingMessage,
     error: geoError,
     onStart: startLoading,
-    onSuccess: handleLocationSuccess,
+    onSuccess: handleConsentGranted,
     onError: reportError,
-    onWatchStart: watchModeStart,
   };
 
   return (
@@ -259,10 +250,7 @@ export function HomeClient({ products }: Props) {
       <BottomChrome active={tab} onNavChange={setTab} />
 
       {showConsentBanner && (
-        <LocationConsentBanner
-          onAccept={handleConsentAndRequestLocation}
-          onDecline={decline}
-        />
+        <LocationConsentBanner onGranted={handleConsentGranted} onDecline={decline} />
       )}
 
       <CompanionDetailSheet companion={activeCompanion} onClose={() => setActiveId(null)} />

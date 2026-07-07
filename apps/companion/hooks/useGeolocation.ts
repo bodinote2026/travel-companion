@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   queryGeolocationPermission,
   refreshGeolocation,
-  requestGeolocationFromUserGesture,
+  invokeGeolocationOnUserClick,
   watchGeolocationPermission,
   type GeoPosition,
   type GeolocationPermissionState,
@@ -25,8 +25,6 @@ export function useGeolocation(active: boolean, intervalMs = 90_000) {
   const [useRegionFallback, setUseRegionFallback] = useState(false);
   const loadingRef = useRef(false);
   const failureCountRef = useRef(0);
-  // Cancel function for in-flight requestGeolocationFromUserGesture (may hold watchPosition)
-  const gestureCleanupRef = useRef<(() => void) | null>(null);
 
   const applyPosition = useCallback((next: GeoPosition) => {
     setPosition(next);
@@ -70,26 +68,15 @@ export function useGeolocation(active: boolean, intervalMs = 90_000) {
     loadingRef.current = true;
   }, []);
 
-  // Called by requestGeolocationFromUserGesture when iOS switches to watchPosition mode.
-  // Keeps loading=true but updates the visible message so user knows we're still trying.
-  const watchModeStart = useCallback((message: string) => {
-    setLoadingMessage(message);
-    // loading and loadingRef stay true — we're still in-flight
-  }, []);
-
-  // 사용자 제스처로 명시적 재시도 — fallback 상태·실패 카운터 초기화 후 GPS 재요청
   const retryFromUserGesture = useCallback(() => {
     if (!active) return;
 
-    // Cancel any in-flight watchPosition from a previous gesture
-    gestureCleanupRef.current?.();
-    gestureCleanupRef.current = null;
-
-    gestureCleanupRef.current = requestGeolocationFromUserGesture(
+    const started = invokeGeolocationOnUserClick(
       (next) => applyPosition(next),
       (message) => reportError(message),
-      watchModeStart,
     );
+
+    if (!started) return;
 
     failureCountRef.current = 0;
     loadingRef.current = true;
@@ -97,7 +84,7 @@ export function useGeolocation(active: boolean, intervalMs = 90_000) {
     setLoading(true);
     setError(null);
     setLoadingMessage(null);
-  }, [active, applyPosition, reportError, watchModeStart]);
+  }, [active, applyPosition, reportError]);
 
   const retryWithFeedback = useCallback(
     (options?: { auto?: boolean; force?: boolean }) => {
@@ -121,13 +108,6 @@ export function useGeolocation(active: boolean, intervalMs = 90_000) {
   const retrySilent = useCallback(() => {
     retryWithFeedback({ auto: true, force: true });
   }, [retryWithFeedback]);
-
-  // Cancel in-flight gesture request on unmount
-  useEffect(() => {
-    return () => {
-      gestureCleanupRef.current?.();
-    };
-  }, []);
 
   useEffect(() => {
     if (!active || !position) return;
@@ -204,6 +184,5 @@ export function useGeolocation(active: boolean, intervalMs = 90_000) {
     startLoading,
     retrySilent,
     retryFromUserGesture,
-    watchModeStart,
   };
 }
