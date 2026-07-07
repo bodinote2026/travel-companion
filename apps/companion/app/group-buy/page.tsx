@@ -13,7 +13,7 @@ export default async function GroupBuyPage() {
 
   return (
     <PageShell active="group-buy">
-      <header className="flex items-center gap-3 px-4 pt-12 pb-4">
+      <header className="flex items-center gap-3 px-4 pb-3 pt-12">
         <Link
           href="/"
           aria-label="뒤로"

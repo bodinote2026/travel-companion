@@ -265,7 +265,7 @@ export function ChatRoomList() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2">
                     <span className="truncate font-semibold">{room.peer.name}</span>
-                    <span className="shrink-0 text-[10px] text-muted-foreground">
+                    <span className="shrink-0 text-micro text-muted-foreground">
                       {formatTime(room.last_message_at ?? room.created_at)}
                     </span>
                   </span>

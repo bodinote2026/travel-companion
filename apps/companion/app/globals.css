@@ -9,6 +9,7 @@
   --card-foreground: oklch(0.2 0.02 45);
   --primary: oklch(0.58 0.18 35);
   --primary-foreground: oklch(0.99 0 0);
+  --primary-muted: oklch(0.95 0.04 35);
   --secondary: oklch(0.96 0.01 80);
   --secondary-foreground: oklch(0.3 0.02 45);
   --muted: oklch(0.95 0.01 80);
@@ -17,7 +18,19 @@
   --accent-foreground: oklch(0.35 0.05 45);
   --border: oklch(0.9 0.01 80);
   --destructive: oklch(0.55 0.2 25);
-  --chart-2: oklch(0.72 0.13 60);
+  --destructive-muted: oklch(0.96 0.03 25);
+  --success: oklch(0.55 0.15 150);
+  --success-muted: oklch(0.95 0.04 150);
+  --warning: oklch(0.55 0.12 60);
+  --warning-muted: oklch(0.96 0.03 60);
+  --category-meal: oklch(0.55 0.15 40);
+  --category-meal-muted: oklch(0.95 0.04 40);
+  --category-exercise: oklch(0.50 0.14 230);
+  --category-exercise-muted: oklch(0.95 0.04 230);
+  --category-travel: oklch(0.50 0.14 160);
+  --category-travel-muted: oklch(0.95 0.04 160);
+  --kakao: #FEE500;
+  --kakao-foreground: #191919;
   --radius: 0.75rem;
 }
 
@@ -28,6 +41,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-muted: var(--primary-muted);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -36,11 +50,24 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
-  --color-chart-2: var(--chart-2);
+  --color-destructive-muted: var(--destructive-muted);
+  --color-success: var(--success);
+  --color-success-muted: var(--success-muted);
+  --color-warning: var(--warning);
+  --color-warning-muted: var(--warning-muted);
+  --color-category-meal: var(--category-meal);
+  --color-category-meal-muted: var(--category-meal-muted);
+  --color-category-exercise: var(--category-exercise);
+  --color-category-exercise-muted: var(--category-exercise-muted);
+  --color-category-travel: var(--category-travel);
+  --color-category-travel-muted: var(--category-travel-muted);
+  --color-kakao: var(--kakao);
+  --color-kakao-foreground: var(--kakao-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --text-micro: 0.625rem;
 }
 
 body {

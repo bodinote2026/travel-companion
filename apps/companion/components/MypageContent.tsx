@@ -103,7 +103,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
                 {profile.interest_categories!.map((category) => (
                   <span
                     key={category}
-                    className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary"
+                    className="rounded-full bg-primary-muted px-2.5 py-0.5 text-xs font-semibold text-primary"
                   >
                     {category}
                   </span>
@@ -151,7 +151,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
                   <span
                     className={
                       order.payment_status === 'paid'
-                        ? 'shrink-0 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary'
+                        ? 'shrink-0 rounded-md bg-success-muted px-2 py-0.5 text-xs font-semibold text-success'
                         : 'shrink-0 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground'
                     }
                   >

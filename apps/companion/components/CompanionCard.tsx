@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { User } from 'lucide-react';
 import { categoryLabel } from '@/lib/companions/build-list';
 import type { CompanionListItem } from '@/lib/companions/types';
+import { getCategoryBadgeClass } from '@/lib/design-system';
 import { formatDistance } from '@/lib/geo';
 import { cn } from '@/lib/utils';
 import { TemperatureRing } from './TemperatureRing';
@@ -21,7 +22,7 @@ export function CompanionCard({ companion, active, liveAngle, onClick }: Props) 
       type="button"
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left transition-colors',
+        'flex w-full items-center gap-3 rounded-2xl border bg-card p-4 text-left transition-colors',
         active ? 'border-primary shadow-sm' : 'border-border hover:bg-secondary/50',
       )}
     >
@@ -30,7 +31,7 @@ export function CompanionCard({ companion, active, liveAngle, onClick }: Props) 
           <>
             <TemperatureRing temperature={companion.temperature} size={52} stroke={5} />
             {liveAngle != null && (
-              <span className="absolute -bottom-1 rounded bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+              <span className="absolute -bottom-1 rounded bg-primary px-1 text-micro font-bold text-primary-foreground">
                 {liveAngle.toFixed(0)}°
               </span>
             )}
@@ -64,12 +65,17 @@ export function CompanionCard({ companion, active, liveAngle, onClick }: Props) 
             {companion.name}
             {ageLabel}
           </span>
-          <span className="rounded-md bg-accent px-1.5 py-0.5 text-[10px] font-semibold text-accent-foreground">
+          <span
+            className={cn(
+              'rounded-md px-1.5 py-0.5 text-micro font-semibold',
+              getCategoryBadgeClass(companion.primaryCategory),
+            )}
+          >
             {categoryLabel(companion)}
           </span>
           {companion.activityActive && (
-            <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
-              <span className="size-1.5 rounded-full bg-emerald-500" />
+            <span className="flex items-center gap-1 text-micro font-semibold text-success">
+              <span className="size-1.5 rounded-full bg-success" />
               활동 중
             </span>
           )}

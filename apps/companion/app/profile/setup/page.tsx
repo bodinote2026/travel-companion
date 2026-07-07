@@ -6,7 +6,7 @@ import { PageShell } from '@/components/PageShell';
 export default function ProfileSetupPage() {
   return (
     <PageShell active="profile" hideNav>
-      <header className="px-4 pb-2 pt-12">
+      <header className="px-4 pb-3 pt-12">
         <h1 className="text-lg font-bold">프로필</h1>
         <p className="text-xs text-muted-foreground">자기소개 · 관심 카테고리</p>
       </header>

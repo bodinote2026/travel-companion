@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { categoryLabel } from '@/lib/companions/build-list';
 import type { CompanionListItem } from '@/lib/companions/types';
+import { getCategoryBadgeClass } from '@/lib/design-system';
 import { formatDistance, temperatureLabel } from '@/lib/geo';
 import { DEFAULT_REGION_CODE } from '@/lib/regions';
 import { useUserProfile } from '@/hooks/useUserProfile';
@@ -137,7 +138,7 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
                 <span
                   className={
                     companion.activityActive
-                      ? 'font-medium text-emerald-600'
+                      ? 'font-medium text-success'
                       : undefined
                   }
                 >
@@ -175,13 +176,13 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
 
         {companion.kind === 'mock' && companion.matches != null && companion.responseRate != null && (
           <div className="mx-5 mt-3 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-border bg-card p-3">
+            <div className="rounded-2xl border border-border bg-card p-4">
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Handshake className="size-3.5" /> 동행 성공
               </p>
               <p className="mt-1 text-lg font-bold">{companion.matches}회</p>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-3">
+            <div className="rounded-2xl border border-border bg-card p-4">
               <p className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Zap className="size-3.5" /> 응답률
               </p>
@@ -192,7 +193,7 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
 
         <div className="mx-5 mt-5">
           <h3 className="text-sm font-semibold">
-            <span className="rounded-md bg-accent px-1.5 py-0.5 text-accent-foreground">
+            <span className={`rounded-md px-1.5 py-0.5 text-xs font-semibold ${getCategoryBadgeClass(companion.primaryCategory)}`}>
               {categoryLabel(companion)}
             </span>{' '}
             {companion.headline}

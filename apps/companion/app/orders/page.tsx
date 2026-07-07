@@ -43,7 +43,7 @@ export default async function OrdersPage() {
                 <span
                   className={
                     order.payment_status === 'paid'
-                      ? 'rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary'
+                      ? 'rounded-md bg-success-muted px-2 py-0.5 text-xs font-semibold text-success'
                       : 'rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground'
                   }
                 >

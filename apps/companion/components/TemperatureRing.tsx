@@ -34,7 +34,7 @@ export function TemperatureRing({ temperature, size = 64, stroke = 6 }: Props) {
         y="50%"
         dominantBaseline="middle"
         textAnchor="middle"
-        className="rotate-90 fill-foreground text-[11px] font-bold"
+        className="rotate-90 fill-foreground text-micro font-bold"
         transform={`rotate(90 ${size / 2} ${size / 2})`}
       >
         {temperature.toFixed(1)}°

@@ -103,14 +103,14 @@ export function InquiryForm() {
       </button>
 
       {status === 'done' && (
-        <p className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-sm text-primary">
+        <p className="flex items-center gap-2 rounded-xl bg-success-muted px-3 py-2 text-sm text-success">
           <CheckCircle2 className="size-4 shrink-0" />
           문의가 접수되었습니다.
         </p>
       )}
 
       {status === 'error' && errorMsg && (
-        <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{errorMsg}</p>
+        <p className="rounded-xl bg-destructive-muted px-3 py-2 text-sm text-destructive">{errorMsg}</p>
       )}
     </form>
   );

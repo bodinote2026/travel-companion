@@ -103,9 +103,9 @@ export function perPersonCharge(regularPrice: number, discountRate: number, targ
 }
 
 export function temperatureLabel(temp: number): { color: string; label: string } {
-  if (temp >= 65) return { color: 'var(--chart-2)', label: '따뜻해요' };
+  if (temp >= 65) return { color: 'var(--success)', label: '따뜻해요' };
   if (temp >= 50) return { color: 'var(--primary)', label: '좋아요' };
-  if (temp >= 40) return { color: 'oklch(0.7 0.12 195)', label: '보통이에요' };
+  if (temp >= 40) return { color: 'var(--warning)', label: '보통이에요' };
   return { color: 'var(--muted-foreground)', label: '차가워요' };
 }
 

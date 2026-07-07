@@ -7,7 +7,7 @@ import { PageShell } from '@/components/PageShell';
 export default function LoginPage() {
   return (
     <PageShell active="profile" hideNav>
-      <header className="flex items-center gap-2 px-4 pb-2 pt-12">
+      <header className="flex items-center gap-2 px-4 pb-3 pt-12">
         <Link
           href="/"
           aria-label="홈으로"

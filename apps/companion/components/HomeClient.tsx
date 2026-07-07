@@ -160,32 +160,32 @@ export function HomeClient({ products }: Props) {
               {useRegionFallback && (
                 <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-micro text-muted-foreground">
                       위치 없음 · {region.name} 기준 표시
                     </span>
                     <button
                       type="button"
                       onClick={handleRetryGPS}
                       disabled={geoLoading}
-                      className="shrink-0 text-[11px] font-semibold text-primary disabled:opacity-60"
+                      className="shrink-0 text-micro font-semibold text-primary disabled:opacity-60"
                     >
                       {geoLoading ? '요청 중…' : '위치 다시 허용'}
                     </button>
                   </div>
                   {profile?.id && (
-                    <p className="mt-0.5 text-[10px] text-amber-600">
+                    <p className="mt-0.5 text-micro text-warning">
                       위치 허용 시 동행 찾기에 반영됩니다
                     </p>
                   )}
                 </div>
               )}
               {!profile?.id && position && (
-                <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-1.5 text-center text-[11px] text-amber-700 shadow-sm backdrop-blur-sm">
+                <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-1.5 text-center text-micro text-warning shadow-sm backdrop-blur-sm">
                   로그인하면 내 위치가 동행 찾기에 반영됩니다
                 </div>
               )}
               {profile?.id && position && locationSaveError && (
-                <div className="absolute bottom-3 left-3 right-3 z-40 rounded-lg bg-destructive/10 px-3 py-2 text-center text-[11px] text-destructive shadow-sm backdrop-blur-sm">
+                <div className="absolute bottom-3 left-3 right-3 z-40 rounded-lg bg-destructive-muted px-3 py-2 text-center text-micro text-destructive shadow-sm backdrop-blur-sm">
                   {locationSaveError}
                 </div>
               )}

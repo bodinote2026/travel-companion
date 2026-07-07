@@ -168,7 +168,7 @@ export function CompanionMap({
           return (
             <span
               key={spot.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-card/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm backdrop-blur"
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-card/90 px-2 py-0.5 text-micro font-medium text-foreground shadow-sm backdrop-blur"
               style={{ top: `${pos.top}%`, left: `${pos.left}%` }}
             >
               {spot.name}
@@ -205,13 +205,13 @@ export function CompanionMap({
             >
               <span
                 className={cn(
-                  'relative flex size-8 items-center justify-center rounded-full border-2 border-background text-[11px] font-bold shadow-md',
-                  c.activityActive ? 'bg-emerald-500 text-white' : 'bg-card text-foreground',
+                  'relative flex size-8 items-center justify-center rounded-full border-2 border-background text-micro font-bold shadow-md',
+                  c.activityActive ? 'bg-success text-white' : 'bg-card text-foreground',
                 )}
               >
                 {c.name.slice(0, 1)}
                 {c.activityActive && (
-                  <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-emerald-400" />
+                  <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-success" />
                 )}
               </span>
             </button>
@@ -234,7 +234,7 @@ export function CompanionMap({
             style={{ top: `${pos.top}%`, left: `${pos.left}%` }}
           >
             <span
-              className="block rounded-full border-2 border-background px-2 py-1 text-[10px] font-bold shadow-md"
+              className="block rounded-full border-2 border-background px-2 py-1 text-micro font-bold shadow-md"
               style={{ backgroundColor: tone.color, color: 'white' }}
             >
               {angle.toFixed(1)}°
@@ -253,7 +253,7 @@ export function CompanionMap({
         >
           <Plus className="size-4" />
         </button>
-        <div className="border-t border-border px-2 py-1 text-center text-[10px] font-medium text-muted-foreground">
+        <div className="border-t border-border px-2 py-1 text-center text-micro font-medium text-muted-foreground">
           {zoom.toFixed(1)}x
         </div>
         <button
@@ -271,7 +271,7 @@ export function CompanionMap({
         <button
           type="button"
           onClick={resetView}
-          className="absolute bottom-3 right-3 z-30 rounded-lg border border-border bg-card/95 px-2.5 py-1 text-[10px] font-medium text-foreground shadow-md backdrop-blur"
+          className="absolute bottom-3 right-3 z-30 rounded-lg border border-border bg-card/95 px-2.5 py-1 text-micro font-medium text-foreground shadow-md backdrop-blur"
         >
           전체 보기
         </button>

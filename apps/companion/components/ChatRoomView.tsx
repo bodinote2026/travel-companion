@@ -217,7 +217,7 @@ export function ChatRoomView({ roomId }: Props) {
                     <p className="whitespace-pre-wrap break-words">{msg.body}</p>
                     <p
                       className={cn(
-                        'mt-1 text-[10px]',
+                        'mt-1 text-micro',
                         mine ? 'text-primary-foreground/70' : 'text-muted-foreground',
                       )}
                     >

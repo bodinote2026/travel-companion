@@ -199,7 +199,7 @@ export function ProfileSetupForm({
       )}
 
       {error && (
-        <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+        <p className="rounded-xl bg-destructive-muted px-3 py-2 text-sm text-destructive">{error}</p>
       )}
     </div>
   );

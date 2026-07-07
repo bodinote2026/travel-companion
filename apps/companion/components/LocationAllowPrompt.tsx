@@ -88,7 +88,7 @@ export function LocationAllowPrompt({
           {buttonLabel}
         </button>
         {showIosDeniedHint && (
-          <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+          <p className="mt-2 text-micro leading-relaxed text-muted-foreground">
             {IOS_LOCATION_DENIED_HELP}
           </p>
         )}
@@ -124,7 +124,7 @@ export function LocationAllowPrompt({
         {buttonLabel}
       </button>
       {showIosDeniedHint && (
-        <p className="max-w-xs text-center text-[10px] leading-relaxed text-muted-foreground">
+        <p className="max-w-xs text-center text-micro leading-relaxed text-muted-foreground">
           {IOS_LOCATION_DENIED_HELP}
         </p>
       )}

@@ -94,7 +94,7 @@ export function GroupBuyWidget({ product }: Props) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
-        <span className="rounded-lg bg-primary/10 px-2 py-1 text-sm font-bold text-primary">
+        <span className="rounded-lg bg-primary-muted px-2 py-1 text-sm font-bold text-primary">
           {Math.round(product.discountRate * 100)}% 할인
         </span>
         <span className="flex items-center gap-1 text-sm font-semibold">
@@ -165,7 +165,7 @@ export function GroupBuyWidget({ product }: Props) {
         <p
           className={cn(
             'mt-3 rounded-xl px-3 py-2 text-sm',
-            status === 'paid' ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive',
+            status === 'paid' ? 'bg-success-muted text-success' : 'bg-destructive-muted text-destructive',
           )}
         >
           {message}

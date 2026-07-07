@@ -45,7 +45,7 @@ export function BottomNav({ active, onChange }: Props) {
               <Icon className={cn('size-5', selected && 'text-primary')} />
               <span
                 className={cn(
-                  'text-[10px] font-medium',
+                  'text-micro font-medium',
                   selected ? 'text-primary' : 'text-muted-foreground',
                 )}
               >

@@ -64,7 +64,7 @@ export function LoginForm() {
 
       <a
         href={kakaoLoginUrl}
-        className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#FEE500] text-base font-semibold text-[#191919]"
+        className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-kakao text-base font-semibold text-kakao-foreground"
       >
         <span aria-hidden className="text-lg leading-none">
           💬
@@ -120,7 +120,7 @@ export function LoginForm() {
       </form>
 
       {error && (
-        <p className="rounded-xl bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+        <p className="rounded-xl bg-destructive-muted px-3 py-2 text-sm text-destructive">{error}</p>
       )}
     </div>
   );

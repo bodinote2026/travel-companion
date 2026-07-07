@@ -18,7 +18,7 @@ export function GroupBuyCard({ product, compact }: Props) {
     <Link
       href={`/product/${product.id}`}
       className={cn(
-        'flex gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:bg-secondary/40',
+        'flex gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-secondary/40',
         compact && 'p-2.5',
       )}
     >
@@ -33,11 +33,11 @@ export function GroupBuyCard({ product, compact }: Props) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-primary">
+          <span className="rounded-md bg-primary-muted px-1.5 py-0.5 text-micro font-bold text-primary">
             {Math.round(product.discountRate * 100)}% 할인
           </span>
           {isComplete && (
-            <span className="text-[10px] font-semibold text-muted-foreground">모집 완료</span>
+            <span className="text-micro font-semibold text-muted-foreground">모집 완료</span>
           )}
         </div>
         <p className="mt-1 line-clamp-2 text-sm font-semibold text-foreground">{product.name}</p>
