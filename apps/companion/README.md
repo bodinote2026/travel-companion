@@ -23,6 +23,7 @@ npm run dev
 | Git Repository | `bodinote2026/travel-companion` |
 | Root Directory | `apps/companion` |
 | Production Branch | `main` |
+| Build Command | `npm run build` (기본값, `apps/companion/vercel.json` 참고) |
 
 환경 변수는 `.env.local.example` 참고 (Airtable, PG 결제 `PAYMENT_*`, `AUTH_SESSION_SECRET`).
 
