@@ -1,7 +1,24 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Claude Code
-.claude/worktrees/
+# Claude Code / AI agent artifacts (not part of this repo)
+.claude/
+AGENTS.md
+CLAUDE.md
+
+# Legacy monorepo paths (web/mobile/shared — not used in companion-only repo)
+apps/web/
+apps/mobile/
+packages/
+docs/
+todo/
+public/
+apps/companion/scripts/
+
+# Root config from other projects
+.env.local.example
+.github/
+.npmrc
+package-lock.json
 
 # dependencies
 node_modules
@@ -19,8 +36,6 @@ node_modules
 # next.js
 /.next/
 /out/
-apps/web/.next/
-apps/web/out/
 apps/companion/.next/
 apps/companion/out/
 
@@ -50,12 +65,4 @@ next-env.d.ts
 backup/
 
 pass.txt
-test-*.ts
 
-# Playwright
-test-results/
-playwright-report/
-tests/e2e/screenshots/
-apps/web/tests/e2e/screenshots/
-apps/web/playwright-report/
-apps/web/test-results/
