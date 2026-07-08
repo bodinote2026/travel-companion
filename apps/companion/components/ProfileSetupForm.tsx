@@ -143,7 +143,7 @@ export function ProfileSetupForm({
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            placeholder="예) 묵호에서 맛집 탐방과 등산을 좋아해요."
+            placeholder="예) 맛집 탐방과 등산을 좋아해요."
             rows={4}
             maxLength={300}
             className="mt-1.5 w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm leading-relaxed"

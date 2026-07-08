@@ -7,7 +7,7 @@ export const mukhoRegion: RegionConfig = {
   name: '묵호',
   tagline: '동해 바다와 함께하는 동행 · 공동구매',
   bannerTitle: '동행 · 함께할 사람을 찾다',
-  bannerSubtitle: '묵호 · 내 주변 5km',
+  bannerSubtitle: '내 주변 5km',
   mapCenter: { lat: 37.559, lng: 129.116 },
   searchRadiusKm: 5,
   spots: [

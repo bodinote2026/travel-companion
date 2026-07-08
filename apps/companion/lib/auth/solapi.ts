@@ -22,6 +22,6 @@ export async function sendOtpSms(phone: string, code: string): Promise<void> {
   await messageService.send({
     to,
     from,
-    text: `[묵호동행] 인증번호는 ${code} 입니다. ${minutes}분 내에 입력해주세요.`,
+    text: `[동행] 인증번호는 ${code} 입니다. ${minutes}분 내에 입력해주세요.`,
   });
 }

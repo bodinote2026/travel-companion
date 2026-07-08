@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { Loader2, LogOut, Pencil, Phone, User } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { formatPrice } from '@/lib/geo';
-import { getRegion } from '@/lib/regions';
 import type { OrderRecord } from '@/lib/db/orders';
 
 type Props = {
@@ -18,8 +17,6 @@ export function MypageContent({ initialOrders = [] }: Props) {
   const { profile, ready, loading, logout } = useUserProfile();
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders);
   const [loadingOrders, setLoadingOrders] = useState(false);
-
-  const region = getRegion();
 
   useEffect(() => {
     if (!ready || !profile) return;
@@ -90,7 +87,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
               <Phone className="size-3.5" />
               {profile.phone}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">지역 · {region.name}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">활동 지역</p>
           </div>
         </div>
         {(profile.bio || (profile.interest_categories?.length ?? 0) > 0) && (

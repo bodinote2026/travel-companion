@@ -172,7 +172,7 @@ export function HomeClient({ products }: Props) {
                 <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-micro text-muted-foreground">
-                      위치 없음 · {region.name} 기준 표시
+                      위치 없음 · 지역 기준 표시
                     </span>
                     <button
                       type="button"
