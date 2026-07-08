@@ -23,12 +23,12 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <main className={`mx-auto min-h-screen max-w-md bg-background ${bottomChromePaddingClass(true)}`}>
-      <div className="relative h-64 w-full bg-muted">
+      <div className="relative h-56 w-full bg-neutral-100">
         <Image
           src={imageUrl}
           alt={product.name}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes="448px"
           priority
         />
