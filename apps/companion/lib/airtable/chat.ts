@@ -1,7 +1,7 @@
 import type { ChatMessageRow, ChatRoomRow, ChatRoomWithPeer } from '@/lib/chat/types';
 import { createRecord, escapeAirtableFormula, getRecord, listRecords, updateRecord } from './client';
 import { requireAirtableConfig } from './config';
-import { getUserById, toProfileRow } from './users';
+import { getUserById, toProfileRow, userDisplayName } from './users';
 
 type ChatRoomFields = {
   Region: string;
@@ -139,7 +139,7 @@ export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer
       ...room,
       peer: {
         id: peerUser.id,
-        name: peerUser.name,
+        name: userDisplayName(peerUser),
         avatar_url: peerUser.avatarUrl,
         companion_seed_id: peerUser.companionSeedId,
       },
