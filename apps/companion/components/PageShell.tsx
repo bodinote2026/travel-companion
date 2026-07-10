@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 type Props = {
   children: React.ReactNode;
-  active: NavTab;
+  active?: NavTab;
   hideNav?: boolean;
 };
 

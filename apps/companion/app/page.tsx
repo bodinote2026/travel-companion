@@ -1,7 +1,6 @@
-import { HomeClient } from '@/components/HomeClient';
-import { listProducts } from '@/lib/db/products';
+import { redirect } from 'next/navigation';
 
-export default async function HomePage() {
-  const products = await listProducts();
-  return <HomeClient products={products} />;
+/** 메인 첫 화면 = 공동구매 */
+export default function HomePage() {
+  redirect('/group-buy');
 }

@@ -1,0 +1,124 @@
+import {
+  createRecord,
+  escapeAirtableFormula,
+  getRecord,
+  listRecords,
+} from './client';
+import { requireAirtableConfig } from './config';
+
+export type GatheringStatus = 'open' | 'closed';
+
+export type AirtableGatheringFields = {
+  Title?: string;
+  Description?: string;
+  Region?: string;
+  'Author ID'?: string;
+  'Author Name'?: string;
+  'Target Count'?: number;
+  'Current Count'?: number;
+  'Gathering Date'?: string;
+  Status?: GatheringStatus;
+};
+
+export type GatheringRecord = {
+  id: string;
+  title: string;
+  description: string;
+  region: string;
+  author_id: string;
+  author_name: string;
+  target_count: number;
+  current_count: number;
+  gathering_date: string | null;
+  status: GatheringStatus;
+  created_at: string;
+};
+
+function parseNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && !Number.isNaN(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? fallback : parsed;
+  }
+  return fallback;
+}
+
+function mapGathering(record: {
+  id: string;
+  createdTime?: string;
+  fields: AirtableGatheringFields;
+}): GatheringRecord {
+  return {
+    id: record.id,
+    title: record.fields.Title?.trim() || '',
+    description: record.fields.Description?.trim() || '',
+    region: record.fields.Region?.trim() || '',
+    author_id: record.fields['Author ID']?.trim() || '',
+    author_name: record.fields['Author Name']?.trim() || '',
+    target_count: parseNumber(record.fields['Target Count'], 1),
+    current_count: parseNumber(record.fields['Current Count'], 1),
+    gathering_date: record.fields['Gathering Date']?.trim() || null,
+    status: record.fields.Status === 'closed' ? 'closed' : 'open',
+    created_at: record.createdTime ?? new Date().toISOString(),
+  };
+}
+
+export async function listGatherings(): Promise<GatheringRecord[]> {
+  const config = requireAirtableConfig();
+  const records = await listRecords<AirtableGatheringFields>(config.gatheringsTable);
+
+  return records
+    .map(mapGathering)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
+export async function getGatheringById(id: string): Promise<GatheringRecord | null> {
+  const config = requireAirtableConfig();
+  try {
+    const record = await getRecord<AirtableGatheringFields>(config.gatheringsTable, id);
+    return mapGathering(record);
+  } catch {
+    return null;
+  }
+}
+
+export async function createGathering(input: {
+  title: string;
+  description: string;
+  region: string;
+  authorId: string;
+  authorName: string;
+  targetCount: number;
+  gatheringDate?: string | null;
+}): Promise<GatheringRecord> {
+  const config = requireAirtableConfig();
+  const fields: AirtableGatheringFields = {
+    Title: input.title.trim(),
+    Description: input.description.trim(),
+    Region: input.region.trim(),
+    'Author ID': input.authorId,
+    'Author Name': input.authorName.trim(),
+    'Target Count': input.targetCount,
+    'Current Count': 1,
+    Status: 'open',
+  };
+  if (input.gatheringDate) {
+    fields['Gathering Date'] = input.gatheringDate;
+  }
+
+  const created = await createRecord<AirtableGatheringFields>(
+    config.gatheringsTable,
+    fields,
+    { typecast: true },
+  );
+  return mapGathering(created);
+}
+
+export async function findGatheringsByAuthor(authorId: string): Promise<GatheringRecord[]> {
+  const config = requireAirtableConfig();
+  const formula = `{Author ID}="${escapeAirtableFormula(authorId)}"`;
+  const records = await listRecords<AirtableGatheringFields>(config.gatheringsTable, {
+    filterByFormula: formula,
+  });
+  return records.map(mapGathering);
+}

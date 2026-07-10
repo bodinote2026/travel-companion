@@ -19,11 +19,13 @@ import { CompanionCard } from '@/components/CompanionCard';
 import { CompanionDetailSheet } from '@/components/CompanionDetailSheet';
 import { GroupBuySection } from '@/components/GroupBuySection';
 import { BottomChrome } from '@/components/BottomChrome';
-import type { NavTab } from '@/components/BottomNav';
 import { LocationAllowPrompt } from '@/components/LocationAllowPrompt';
 import { LocationConsentBanner } from '@/components/LocationConsentBanner';
 
 const region = getRegion();
+
+/** 레거시 지도/탐색 홈 (라우트에서 미사용 — 코드 보존) */
+type LegacyHomeTab = 'map' | 'explore';
 
 type Props = {
   products: RegionProduct[];
@@ -32,7 +34,7 @@ type Props = {
 export function HomeClient({ products }: Props) {
   const { accept, decline, consented, ready: consentReady } = useLocationConsent();
   const { profile } = useUserProfile();
-  const [tab, setTab] = useState<NavTab>('map');
+  const [tab] = useState<LegacyHomeTab>('map');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -247,7 +249,7 @@ export function HomeClient({ products }: Props) {
         )}
       </div>
 
-      <BottomChrome active={tab} onNavChange={setTab} />
+      <BottomChrome active="group-buy" />
 
       {showConsentBanner && (
         <LocationConsentBanner onGranted={handleConsentGranted} onDecline={decline} />

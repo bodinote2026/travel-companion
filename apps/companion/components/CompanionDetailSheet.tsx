@@ -1,14 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import {
   Handshake,
   Heart,
-  Loader2,
   MapPin,
-  MessageCircle,
   User,
   X,
   Zap,
@@ -17,7 +15,6 @@ import { categoryLabel } from '@/lib/companions/build-list';
 import type { CompanionListItem } from '@/lib/companions/types';
 import { getCategoryBadgeClass } from '@/lib/design-system';
 import { formatDistance, temperatureLabel } from '@/lib/geo';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import { TemperatureRing } from './TemperatureRing';
 
 type Props = {
@@ -27,8 +24,6 @@ type Props = {
 
 export function CompanionDetailSheet({ companion, onClose }: Props) {
   const router = useRouter();
-  const { profile, ready } = useUserProfile();
-  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     if (!companion) return;
@@ -36,46 +31,6 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [companion, onClose]);
-
-  async function handleChatStart() {
-    if (!companion) return;
-
-    if (!profile) {
-      const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-      router.push(`/login?returnUrl=${returnUrl}`);
-      return;
-    }
-
-    setStarting(true);
-    try {
-      const body =
-        companion.kind === 'real' && companion.peerProfileId
-          ? {
-              myProfileId: profile.id,
-              peerProfileId: companion.peerProfileId,
-              ...(profile.region ? { region: profile.region } : {}),
-            }
-          : {
-              myProfileId: profile.id,
-              companionSeedId: companion.companionSeedId ?? companion.id,
-              ...(profile.region ? { region: profile.region } : {}),
-            };
-
-      const res = await fetch('/api/chat/rooms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? '채팅방 생성 실패');
-      onClose();
-      router.push(`/chat/${data.room.id}`);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : '채팅을 시작할 수 없습니다.');
-    } finally {
-      setStarting(false);
-    }
-  }
 
   if (!companion) return null;
 
@@ -221,20 +176,17 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
           >
             <Heart className="size-5" />
           </button>
+          {/* 1:1 채팅 CTA 제거 — 동행 모집 게시판으로 유도 (채팅 코드는 보존) */}
           <button
             type="button"
-            disabled={starting || !ready}
-            onClick={handleChatStart}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
+            onClick={() => {
+              onClose();
+              router.push('/gatherings');
+            }}
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground"
           >
-            {starting ? (
-              <Loader2 className="size-5 animate-spin" />
-            ) : (
-              <>
-                <MessageCircle className="size-5" />
-                {companion.kind === 'real' ? '채팅하기' : '동행 신청하기'}
-              </>
-            )}
+            <Handshake className="size-5" />
+            동행 모집 보기
           </button>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ChevronLeft, Receipt } from 'lucide-react';
+import { Receipt } from 'lucide-react';
 import { listAllProducts } from '@/lib/db/products';
 import { GroupBuyProductList } from '@/components/GroupBuyProductList';
 import { PageShell } from '@/components/PageShell';
@@ -10,13 +10,6 @@ export default async function GroupBuyPage() {
   return (
     <PageShell active="group-buy">
       <header className="flex items-center gap-3 px-4 pb-3 pt-12">
-        <Link
-          href="/"
-          aria-label="뒤로"
-          className="flex size-10 items-center justify-center rounded-full border border-border bg-card"
-        >
-          <ChevronLeft className="size-5" />
-        </Link>
         <div className="flex-1">
           <h1 className="text-lg font-bold">공동구매</h1>
           <p className="text-xs text-muted-foreground">함께 모이면 더 저렴하게</p>

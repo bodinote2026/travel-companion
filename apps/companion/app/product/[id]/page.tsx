@@ -3,10 +3,12 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, Store } from 'lucide-react';
 import { BottomChrome } from '@/components/BottomChrome';
-import { bottomChromePaddingClass } from '@/lib/bottom-chrome';
-import { getProductById } from '@/lib/db/products';
+import { CommentSection } from '@/components/CommentSection';
 import { GroupBuyWidget } from '@/components/GroupBuyWidget';
+import { bottomChromePaddingClass } from '@/lib/bottom-chrome';
+import { listComments } from '@/lib/db/comments';
 import { listParticipants } from '@/lib/db/orders';
+import { getProductById } from '@/lib/db/products';
 import { resolveProductImageUrl } from '@/lib/products/format';
 
 type Props = {
@@ -18,7 +20,10 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProductById(id);
   if (!product) notFound();
 
-  const participants = await listParticipants(id);
+  const [participants, comments] = await Promise.all([
+    listParticipants(id),
+    listComments('product', id),
+  ]);
   const imageUrl = resolveProductImageUrl(product.imageUrl);
 
   return (
@@ -75,6 +80,14 @@ export default async function ProductPage({ params }: Props) {
           </ul>
         </section>
       )}
+
+      <CommentSection
+        targetType="product"
+        targetId={product.id}
+        initialComments={comments}
+        loginReturnUrl={`/product/${product.id}`}
+      />
+
       <BottomChrome hideNav />
     </main>
   );

@@ -68,23 +68,36 @@ export async function GET() {
     );
   }
 
-  const [users, otp, products, orders, participants, chatRooms, chatMembers, chatMessages] =
-    await Promise.all([
-      checkTable(config.usersTable),
-      checkTable(config.otpTable),
-      checkTable(config.productsTable, { view: config.productsView }),
-      checkTable(config.ordersTable),
-      checkTable(config.participantsTable),
-      checkTable(config.chatRoomsTable),
-      checkTable(config.chatRoomMembersTable),
-      checkTable(config.chatMessagesTable),
-    ]);
+  const [
+    users,
+    otp,
+    products,
+    orders,
+    participants,
+    chatRooms,
+    chatMembers,
+    chatMessages,
+    gatherings,
+    comments,
+  ] = await Promise.all([
+    checkTable(config.usersTable),
+    checkTable(config.otpTable),
+    checkTable(config.productsTable, { view: config.productsView }),
+    checkTable(config.ordersTable),
+    checkTable(config.participantsTable),
+    checkTable(config.chatRoomsTable),
+    checkTable(config.chatRoomMembersTable),
+    checkTable(config.chatMessagesTable),
+    checkTable(config.gatheringsTable),
+    checkTable(config.commentsTable),
+  ]);
 
   const commerceOk = products.ok && orders.ok && participants.ok;
   const chatOk = chatRooms.ok && chatMembers.ok && chatMessages.ok;
+  const boardOk = gatherings.ok && comments.ok;
 
   return NextResponse.json({
-    ok: users.ok && commerceOk && chatOk,
+    ok: users.ok && commerceOk && chatOk && boardOk,
     config: {
       baseId: config.baseId,
       usersTable: config.usersTable,
@@ -96,6 +109,8 @@ export async function GET() {
       chatRoomsTable: config.chatRoomsTable,
       chatRoomMembersTable: config.chatRoomMembersTable,
       chatMessagesTable: config.chatMessagesTable,
+      gatheringsTable: config.gatheringsTable,
+      commentsTable: config.commentsTable,
     },
     checks: {
       users,
@@ -106,6 +121,8 @@ export async function GET() {
       chatRooms,
       chatMembers,
       chatMessages,
+      gatherings,
+      comments,
     },
   });
 }

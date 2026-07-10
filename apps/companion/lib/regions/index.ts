@@ -35,6 +35,7 @@ export function getRegion(code: string = DEFAULT_REGION_CODE): RegionConfig {
 
 /** 알 수 없는 코드면 코드 문자열 그대로 반환 */
 export function getRegionDisplayName(code: string): string {
+  if (code === 'national') return '전국';
   return REGIONS[code]?.name ?? code;
 }
 
@@ -49,9 +50,14 @@ export function getProductById(productId: string, regionCode = DEFAULT_REGION_CO
 export { mukhoRegion, seoulRegion };
 export {
   DEFAULT_PRODUCT_REGION_TAB,
+  DEFAULT_REGION_TAB,
+  GATHERING_REGION_OPTIONS,
   NATIONAL_PRODUCT_REGION,
+  NATIONAL_REGION_CODE,
   PRODUCT_REGION_TABS,
+  REGION_TABS,
+  filterByRegionTab,
   filterProductsByRegionTab,
 } from './product-tabs';
-export type { ProductRegionTabId } from './product-tabs';
+export type { ProductRegionTabId, RegionTabId } from './product-tabs';
 export type * from './types';

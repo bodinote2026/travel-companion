@@ -1,11 +1,11 @@
 'use client';
 
-import { Compass, Map, MessageCircle, ShoppingBag, User } from 'lucide-react';
+import { ShoppingBag, User, UsersRound } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-export type NavTab = 'map' | 'explore' | 'group-buy' | 'chat' | 'profile';
+export type NavTab = 'gatherings' | 'group-buy' | 'profile';
 
 type Props = {
   active?: NavTab;
@@ -17,20 +17,16 @@ type Props = {
 const TABS: {
   id: NavTab;
   label: string;
-  icon: typeof Map;
-  href?: string;
-  homeOnly?: boolean;
+  icon: typeof ShoppingBag;
+  href: string;
 }[] = [
-  { id: 'map', label: '지도', icon: Map, homeOnly: true },
-  { id: 'explore', label: '탐색', icon: Compass, homeOnly: true },
+  { id: 'gatherings', label: '동행 모집', icon: UsersRound, href: '/gatherings' },
   { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/group-buy' },
-  { id: 'chat', label: '채팅', icon: MessageCircle, href: '/chat' },
-  { id: 'profile', label: '내프로필', icon: User, href: '/mypage' },
+  { id: 'profile', label: '내 프로필', icon: User, href: '/mypage' },
 ];
 
-export function BottomNav({ active, onChange, embedded }: Props) {
+export function BottomNav({ active, embedded }: Props) {
   const pathname = usePathname();
-  const isHome = pathname === '/';
 
   return (
     <nav
@@ -41,15 +37,13 @@ export function BottomNav({ active, onChange, embedded }: Props) {
       )}
     >
       <div className="flex items-center justify-around">
-        {TABS.map(({ id, label, icon: Icon, href, homeOnly }) => {
+        {TABS.map(({ id, label, icon: Icon, href }) => {
           const selected =
-            isHome && homeOnly
-              ? active === id
-              : href
-                ? pathname === href || pathname.startsWith(`${href}/`)
-                : active === id;
-          const content = (
-            <>
+            active === id ||
+            pathname === href ||
+            pathname.startsWith(`${href}/`);
+          return (
+            <Link key={id} href={href} className="flex flex-col items-center gap-0.5 px-2 py-1">
               <Icon className={cn('size-5', selected && 'text-primary')} />
               <span
                 className={cn(
@@ -59,47 +53,7 @@ export function BottomNav({ active, onChange, embedded }: Props) {
               >
                 {label}
               </span>
-            </>
-          );
-
-          if (homeOnly) {
-            if (isHome) {
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => onChange?.(id)}
-                  className="flex flex-col items-center gap-0.5 px-2 py-1"
-                >
-                  {content}
-                </button>
-              );
-            }
-
-            return (
-              <Link key={id} href="/" className="flex flex-col items-center gap-0.5 px-2 py-1">
-                {content}
-              </Link>
-            );
-          }
-
-          if (href) {
-            return (
-              <Link key={id} href={href} className="flex flex-col items-center gap-0.5 px-2 py-1">
-                {content}
-              </Link>
-            );
-          }
-
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onChange?.(id)}
-              className="flex flex-col items-center gap-0.5 px-2 py-1"
-            >
-              {content}
-            </button>
+            </Link>
           );
         })}
       </div>

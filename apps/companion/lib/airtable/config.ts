@@ -10,6 +10,8 @@ export type AirtableConfig = {
   chatRoomsTable: string;
   chatRoomMembersTable: string;
   chatMessagesTable: string;
+  gatheringsTable: string;
+  commentsTable: string;
 };
 
 export function getAirtableConfig(): AirtableConfig | null {
@@ -30,6 +32,8 @@ export function getAirtableConfig(): AirtableConfig | null {
     chatRoomMembersTable:
       cleanEnv(process.env.AIRTABLE_CHAT_ROOM_MEMBERS_TABLE) || 'Chat_Room_Members',
     chatMessagesTable: cleanEnv(process.env.AIRTABLE_CHAT_MESSAGES_TABLE) || 'Chat_Messages',
+    gatheringsTable: cleanEnv(process.env.AIRTABLE_GATHERINGS_TABLE) || 'Gatherings',
+    commentsTable: cleanEnv(process.env.AIRTABLE_COMMENTS_TABLE) || 'Comments',
   };
 }
 

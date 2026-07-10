@@ -88,11 +88,17 @@ export async function listRecords<T>(
 export async function createRecord<T extends Record<string, unknown>>(
   table: string,
   fields: T,
+  options?: { typecast?: boolean },
 ): Promise<AirtableRecord<T>> {
   const config = requireAirtableConfig();
+  const payload: { records: { fields: T }[]; typecast?: boolean } = {
+    records: [{ fields }],
+  };
+  if (options?.typecast) payload.typecast = true;
+
   const data = await airtableFetch<{ records: AirtableRecord<T>[] }>(config, table, {
     method: 'POST',
-    body: JSON.stringify({ records: [{ fields }] }),
+    body: JSON.stringify(payload),
   });
   return data.records[0];
 }
