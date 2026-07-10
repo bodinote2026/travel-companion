@@ -1,11 +1,11 @@
 'use client';
 
-import { ShoppingBag, User, UsersRound } from 'lucide-react';
+import { Map, MessageCircle, Search, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
-export type NavTab = 'gatherings' | 'group-buy' | 'profile';
+export type NavTab = 'map' | 'explore' | 'group-buy' | 'chat' | 'profile';
 
 type Props = {
   active?: NavTab;
@@ -20,13 +20,23 @@ const TABS: {
   icon: typeof ShoppingBag;
   href: string;
 }[] = [
-  { id: 'gatherings', label: '동행 모집', icon: UsersRound, href: '/gatherings' },
+  { id: 'map', label: '지도', icon: Map, href: '/map' },
+  { id: 'explore', label: '탐색', icon: Search, href: '/gatherings' },
   { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/' },
+  { id: 'chat', label: '채팅', icon: MessageCircle, href: '/chat' },
   { id: 'profile', label: '내 프로필', icon: User, href: '/mypage' },
 ];
 
 function isTabSelected(id: NavTab, href: string, pathname: string, active?: NavTab): boolean {
   if (active === id) return true;
+
+  if (id === 'map') {
+    return pathname === '/map' || pathname.startsWith('/map/');
+  }
+
+  if (id === 'explore') {
+    return pathname === '/gatherings' || pathname.startsWith('/gatherings/');
+  }
 
   if (id === 'group-buy') {
     return (
@@ -35,6 +45,10 @@ function isTabSelected(id: NavTab, href: string, pathname: string, active?: NavT
       pathname.startsWith('/product/') ||
       pathname.startsWith('/orders')
     );
+  }
+
+  if (id === 'chat') {
+    return pathname === '/chat' || pathname.startsWith('/chat/');
   }
 
   if (id === 'profile') {
@@ -55,7 +69,7 @@ export function BottomNav({ active, embedded }: Props) {
           : 'fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border bg-background/95 px-1 pb-4 pt-2 backdrop-blur',
       )}
     >
-      <div className="grid grid-cols-3 items-end">
+      <div className="grid grid-cols-5 items-end">
         {TABS.map(({ id, label, icon: Icon, href }) => {
           const selected = isTabSelected(id, href, pathname, active);
 
@@ -85,7 +99,7 @@ export function BottomNav({ active, embedded }: Props) {
             <Link
               key={id}
               href={href}
-              className="flex flex-col items-center justify-end gap-0.5 px-1 py-1"
+              className="flex flex-col items-center justify-end gap-0.5 px-0.5 py-1"
             >
               <Icon
                 className={cn('size-5', selected ? 'text-primary' : 'text-muted-foreground')}

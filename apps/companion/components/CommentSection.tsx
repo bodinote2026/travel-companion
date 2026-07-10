@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2, MessageSquare } from 'lucide-react';
+import { AuthorChatAvatar } from '@/components/AuthorChatAvatar';
 import type { CommentRecord, CommentTargetType } from '@/lib/db/comments';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
@@ -103,7 +104,13 @@ export function CommentSection({
               className="rounded-xl border border-border bg-card px-4 py-3"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold">{comment.author_name}</span>
+                <AuthorChatAvatar
+                  authorId={comment.author_id}
+                  authorName={comment.author_name}
+                  size="sm"
+                  showName
+                  nameClassName="text-sm font-semibold"
+                />
                 <span className="text-xs text-muted-foreground">
                   {formatCommentTime(comment.created_at)}
                 </span>

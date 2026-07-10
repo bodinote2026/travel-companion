@@ -9,7 +9,7 @@ export default async function GatheringsPage() {
   const gatherings = await listGatherings();
 
   return (
-    <PageShell active="gatherings">
+    <PageShell active="explore">
       <AppHeader
         variant="brand"
         action={
@@ -24,7 +24,7 @@ export default async function GatheringsPage() {
       />
 
       <div className="mx-4 mb-1 overflow-hidden rounded-[1.25rem] border border-primary/20 bg-primary-muted/60 px-4 py-3">
-        <p className="text-sm font-bold text-foreground">동행 모집</p>
+        <p className="text-sm font-bold text-foreground">탐색 · 동행 모집</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           함께할 사람을 모집하고, 댓글로 일정을 맞춰 보세요.
         </p>

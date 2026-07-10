@@ -2,7 +2,7 @@
 
 import { Calendar, MapPin, Users } from 'lucide-react';
 import Link from 'next/link';
-import { InitialAvatar } from '@/components/InitialAvatar';
+import { AuthorChatAvatar } from '@/components/AuthorChatAvatar';
 import type { GatheringRecord } from '@/lib/db/gatherings';
 import { getRegionDisplayName } from '@/lib/regions';
 import { cn } from '@/lib/utils';
@@ -55,11 +55,15 @@ export function GatheringCard({ gathering }: Props) {
       </p>
 
       <div className="mt-3.5 flex items-center gap-2">
-        <InitialAvatar name={gathering.author_name} size="sm" />
-        <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
-          {gathering.author_name}
-        </span>
-        <div className="flex shrink-0 items-center gap-2.5 text-xs text-muted-foreground">
+        <AuthorChatAvatar
+          authorId={gathering.author_id}
+          authorName={gathering.author_name}
+          size="sm"
+          showName
+          className="min-w-0 flex-1"
+          nameClassName="text-xs font-medium text-foreground"
+        />
+        <div className="ml-auto flex shrink-0 items-center gap-2.5 text-xs text-muted-foreground">
           {dateLabel && (
             <span className="flex items-center gap-1">
               <Calendar className="size-3.5" />

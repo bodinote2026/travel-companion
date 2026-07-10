@@ -2,11 +2,12 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import {
   Handshake,
   Heart,
+  Loader2,
   MapPin,
+  MessageCircle,
   User,
   X,
   Zap,
@@ -15,6 +16,7 @@ import { categoryLabel } from '@/lib/companions/build-list';
 import type { CompanionListItem } from '@/lib/companions/types';
 import { getCategoryBadgeClass } from '@/lib/design-system';
 import { formatDistance, temperatureLabel } from '@/lib/geo';
+import { useStartChat } from '@/hooks/useStartChat';
 import { TemperatureRing } from './TemperatureRing';
 
 type Props = {
@@ -23,7 +25,7 @@ type Props = {
 };
 
 export function CompanionDetailSheet({ companion, onClose }: Props) {
-  const router = useRouter();
+  const { startChat, startingId, profileId } = useStartChat();
 
   useEffect(() => {
     if (!companion) return;
@@ -36,6 +38,21 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
 
   const hasTemperature = companion.temperature != null;
   const tone = hasTemperature ? temperatureLabel(companion.temperature!) : null;
+  const peerId = companion.peerProfileId;
+  const seedId = companion.companionSeedId;
+  const canChat =
+    (!!peerId && peerId !== profileId) || (!!seedId && companion.kind === 'mock');
+  const busy =
+    startingId != null && (startingId === peerId || startingId === seedId);
+
+  async function handleStartChat() {
+    if (!canChat) return;
+    const ok = await startChat({
+      peerProfileId: peerId,
+      companionSeedId: companion.kind === 'mock' ? seedId : undefined,
+    });
+    if (ok) onClose();
+  }
 
   return (
     <div className="absolute inset-0 z-40 flex flex-col justify-end">
@@ -147,7 +164,9 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
 
         <div className="mx-5 mt-5">
           <h3 className="text-sm font-semibold">
-            <span className={`rounded-md px-1.5 py-0.5 text-xs font-semibold ${getCategoryBadgeClass(companion.primaryCategory)}`}>
+            <span
+              className={`rounded-md px-1.5 py-0.5 text-xs font-semibold ${getCategoryBadgeClass(companion.primaryCategory)}`}
+            >
               {categoryLabel(companion)}
             </span>{' '}
             {companion.headline}
@@ -176,17 +195,18 @@ export function CompanionDetailSheet({ companion, onClose }: Props) {
           >
             <Heart className="size-5" />
           </button>
-          {/* 1:1 채팅 CTA 제거 — 동행 모집 게시판으로 유도 (채팅 코드는 보존) */}
           <button
             type="button"
-            onClick={() => {
-              onClose();
-              router.push('/gatherings');
-            }}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground"
+            disabled={!canChat || busy}
+            onClick={handleStartChat}
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
           >
-            <Handshake className="size-5" />
-            동행 모집 보기
+            {busy ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <MessageCircle className="size-5" />
+            )}
+            {canChat ? '채팅 신청하기' : '채팅 불가'}
           </button>
         </div>
       </div>

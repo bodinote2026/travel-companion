@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Calendar, MapPin, Users } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
+import { AuthorChatAvatar } from '@/components/AuthorChatAvatar';
 import { CommentSection } from '@/components/CommentSection';
 import { PageShell } from '@/components/PageShell';
 import { listComments } from '@/lib/db/comments';
@@ -32,7 +33,7 @@ export default async function GatheringDetailPage({ params }: Props) {
   const dateLabel = formatGatheringDate(gathering.gathering_date);
 
   return (
-    <PageShell active="gatherings" hideNav>
+    <PageShell active="explore" hideNav>
       <AppHeader title="모집글" backHref="/gatherings" />
 
       <article className="px-5 pb-2">
@@ -45,7 +46,15 @@ export default async function GatheringDetailPage({ params }: Props) {
           )}
         </div>
         <h2 className="mt-2 text-xl font-bold">{gathering.title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{gathering.author_name}</p>
+        <div className="mt-2">
+          <AuthorChatAvatar
+            authorId={gathering.author_id}
+            authorName={gathering.author_name}
+            size="md"
+            showName
+            nameClassName="text-sm text-muted-foreground"
+          />
+        </div>
 
         <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground">
           {gathering.description}

@@ -24,9 +24,7 @@ import { LocationConsentBanner } from '@/components/LocationConsentBanner';
 
 const region = getRegion();
 
-/** 레거시 지도/탐색 홈 (라우트에서 미사용 — 코드 보존) */
-type LegacyHomeTab = 'map' | 'explore';
-
+/** 위치 기반 동행 지도 화면 */
 type Props = {
   products: RegionProduct[];
 };
@@ -34,11 +32,9 @@ type Props = {
 export function HomeClient({ products }: Props) {
   const { accept, decline, consented, ready: consentReady } = useLocationConsent();
   const { profile } = useUserProfile();
-  const [tab] = useState<LegacyHomeTab>('map');
   const [category, setCategory] = useState<CategoryFilter>('all');
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const mapOrExplore = tab === 'map' || tab === 'explore';
   const {
     position,
     error: geoError,
@@ -49,14 +45,14 @@ export function HomeClient({ products }: Props) {
     reportError,
     startLoading,
     retryFromUserGesture,
-  } = useGeolocation(mapOrExplore);
+  } = useGeolocation(true);
 
   const fallbackPosition = useRegionFallback
     ? { lat: region.mapCenter.lat, lng: region.mapCenter.lng, accuracy: 9999 }
     : null;
   const displayPosition = position ?? fallbackPosition;
 
-  const nearbyEnabled = mapOrExplore && !!profile?.id && !!position;
+  const nearbyEnabled = !!profile?.id && !!position;
   const { users: nearbyUsers, refresh: refreshNearby } = useNearbyUsers(nearbyEnabled);
   const { saveError: locationSaveError } = useLocationReporter(
     position,
@@ -86,7 +82,7 @@ export function HomeClient({ products }: Props) {
       ? isNearRegionCenter(displayPosition.lat, displayPosition.lng, region.mapCenter)
       : true;
   // 지도 전체 오버레이: fallback 전(초기 상태)에만 표시. fallback 중에는 배너+버튼으로 처리
-  const needsLocation = mapOrExplore && !position && !useRegionFallback;
+  const needsLocation = !position && !useRegionFallback;
   const showConsentBanner = consentReady && consented === null && needsLocation;
   const showLocationOverlay = needsLocation && consented !== null;
 
@@ -150,106 +146,83 @@ export function HomeClient({ products }: Props) {
         </div>
       </div>
 
-      {mapOrExplore && <CategoryFilterBar active={category} onChange={setCategory} />}
+      <CategoryFilterBar active={category} onChange={setCategory} />
 
-      {tab === 'map' && <GroupBuySection products={products} variant="home" />}
+      {products.length > 0 && <GroupBuySection products={products} variant="home" />}
 
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        {tab === 'map' && (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="relative h-64 shrink-0">
-              <CompanionMap
-                companions={companions}
-                spots={region.spots}
-                showSpots={showRegionSpots}
-                centerLat={mapCenter.lat}
-                centerLng={mapCenter.lng}
-                radiusKm={region.searchRadiusKm}
-                userLat={displayPosition?.lat}
-                userLng={displayPosition?.lng}
-                activeId={activeId}
-                onSelect={setActiveId}
-              />
-              {useRegionFallback && (
-                <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-micro text-muted-foreground">
-                      위치 없음 · 지역 기준 표시
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRetryGPS}
-                      disabled={geoLoading}
-                      className="shrink-0 text-micro font-semibold text-primary disabled:opacity-60"
-                    >
-                      {geoLoading ? '요청 중…' : '위치 다시 허용'}
-                    </button>
-                  </div>
-                  {profile?.id && (
-                    <p className="mt-0.5 text-micro text-warning">
-                      위치 허용 시 동행 찾기에 반영됩니다
-                    </p>
-                  )}
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="relative h-64 shrink-0">
+            <CompanionMap
+              companions={companions}
+              spots={region.spots}
+              showSpots={showRegionSpots}
+              centerLat={mapCenter.lat}
+              centerLng={mapCenter.lng}
+              radiusKm={region.searchRadiusKm}
+              userLat={displayPosition?.lat}
+              userLng={displayPosition?.lng}
+              activeId={activeId}
+              onSelect={setActiveId}
+            />
+            {useRegionFallback && (
+              <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-micro text-muted-foreground">
+                    위치 없음 · 지역 기준 표시
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRetryGPS}
+                    disabled={geoLoading}
+                    className="shrink-0 text-micro font-semibold text-primary disabled:opacity-60"
+                  >
+                    {geoLoading ? '요청 중…' : '위치 다시 허용'}
+                  </button>
                 </div>
-              )}
-              {!profile?.id && position && (
-                <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-1.5 text-center text-micro text-warning shadow-sm backdrop-blur-sm">
-                  로그인하면 내 위치가 동행 찾기에 반영됩니다
-                </div>
-              )}
-              {profile?.id && position && locationSaveError && (
-                <div className="absolute bottom-3 left-3 right-3 z-40 rounded-lg bg-destructive-muted px-3 py-2 text-center text-micro text-destructive shadow-sm backdrop-blur-sm">
-                  {locationSaveError}
-                </div>
-              )}
-              {showLocationOverlay && <LocationAllowPrompt {...locationPromptProps} />}
-            </div>
-
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-3xl border-t border-border bg-background pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.12)]">
-              <div className="flex shrink-0 items-center justify-between px-5 pb-2">
-                <p className="text-sm font-semibold">내 주변 동행 {companions.length}명</p>
-                <span className="text-xs text-muted-foreground">가까운 순</span>
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-36 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex flex-col gap-3">
-                  {companions.map((c) => (
-                    <CompanionCard
-                      key={c.id}
-                      companion={c}
-                      active={c.id === activeId}
-                      liveAngle={liveAngle(c.id, c.lat, c.lng)}
-                      onClick={() => setActiveId(c.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {tab === 'explore' && (
-          <div className="h-full overflow-y-auto px-4 pb-36 pt-1">
-            {!position && (
-              <div className="mb-3">
-                <LocationAllowPrompt {...locationPromptProps} compact />
+                {profile?.id && (
+                  <p className="mt-0.5 text-micro text-warning">
+                    위치 허용 시 동행 찾기에 반영됩니다
+                  </p>
+                )}
               </div>
             )}
-            <div className="flex flex-col gap-3">
-              {companions.map((c) => (
-                <CompanionCard
-                  key={c.id}
-                  companion={c}
-                  active={c.id === activeId}
-                  liveAngle={liveAngle(c.id, c.lat, c.lng)}
-                  onClick={() => setActiveId(c.id)}
-                />
-              ))}
+            {!profile?.id && position && (
+              <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-1.5 text-center text-micro text-warning shadow-sm backdrop-blur-sm">
+                로그인하면 내 위치가 동행 찾기에 반영됩니다
+              </div>
+            )}
+            {profile?.id && position && locationSaveError && (
+              <div className="absolute bottom-3 left-3 right-3 z-40 rounded-lg bg-destructive-muted px-3 py-2 text-center text-micro text-destructive shadow-sm backdrop-blur-sm">
+                {locationSaveError}
+              </div>
+            )}
+            {showLocationOverlay && <LocationAllowPrompt {...locationPromptProps} />}
+          </div>
+
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-3xl border-t border-border bg-background pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.12)]">
+            <div className="flex shrink-0 items-center justify-between px-5 pb-2">
+              <p className="text-sm font-semibold">내 주변 동행 {companions.length}명</p>
+              <span className="text-xs text-muted-foreground">가까운 순</span>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-36 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex flex-col gap-3">
+                {companions.map((c) => (
+                  <CompanionCard
+                    key={c.id}
+                    companion={c}
+                    active={c.id === activeId}
+                    liveAngle={liveAngle(c.id, c.lat, c.lng)}
+                    onClick={() => setActiveId(c.id)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
-      <BottomChrome active="group-buy" />
+      <BottomChrome active="map" />
 
       {showConsentBanner && (
         <LocationConsentBanner onGranted={handleConsentGranted} onDecline={decline} />
