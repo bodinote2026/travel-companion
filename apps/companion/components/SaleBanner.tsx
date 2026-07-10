@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -23,24 +22,22 @@ export function SaleBanner({ href = SALE_BANNER_HREF, className }: Props) {
     <Link
       href={href}
       aria-label="세일 배너"
-      className={cn(
-        'relative block w-full overflow-hidden bg-primary-muted',
-        'aspect-[3/1]',
-        className,
-      )}
+      className={cn('block w-full overflow-hidden bg-primary-muted', className)}
     >
       {failed ? (
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary to-primary/70 px-6 text-center">
+        <div
+          className="flex w-full items-center justify-center bg-gradient-to-br from-primary to-primary/70 px-6"
+          style={{ aspectRatio: '3 / 1', minHeight: 96 }}
+        >
           <p className="text-sm font-bold text-primary-foreground">공동구매 세일</p>
         </div>
       ) : (
-        <Image
+        // eslint-disable-next-line @next/next/no-img-element -- public 정적 배너는 img가 안정적
+        <img
           src={SALE_BANNER_SRC}
           alt="세일 배너"
-          fill
-          priority
-          className="object-cover"
-          sizes="(max-width: 448px) 100vw, 448px"
+          className="block w-full object-cover"
+          style={{ aspectRatio: '3 / 1', minHeight: 96 }}
           onError={() => setFailed(true)}
         />
       )}
