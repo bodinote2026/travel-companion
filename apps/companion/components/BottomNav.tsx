@@ -21,9 +21,28 @@ const TABS: {
   href: string;
 }[] = [
   { id: 'gatherings', label: '동행 모집', icon: UsersRound, href: '/gatherings' },
-  { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/group-buy' },
+  { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/' },
   { id: 'profile', label: '내 프로필', icon: User, href: '/mypage' },
 ];
+
+function isTabSelected(id: NavTab, href: string, pathname: string, active?: NavTab): boolean {
+  if (active === id) return true;
+
+  if (id === 'group-buy') {
+    return (
+      pathname === '/' ||
+      pathname === '/group-buy' ||
+      pathname.startsWith('/product/') ||
+      pathname.startsWith('/orders')
+    );
+  }
+
+  if (id === 'profile') {
+    return pathname.startsWith('/mypage') || pathname.startsWith('/profile');
+  }
+
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function BottomNav({ active, embedded }: Props) {
   const pathname = usePathname();
@@ -38,10 +57,7 @@ export function BottomNav({ active, embedded }: Props) {
     >
       <div className="flex items-center justify-around">
         {TABS.map(({ id, label, icon: Icon, href }) => {
-          const selected =
-            active === id ||
-            pathname === href ||
-            pathname.startsWith(`${href}/`);
+          const selected = isTabSelected(id, href, pathname, active);
           return (
             <Link key={id} href={href} className="flex flex-col items-center gap-0.5 px-2 py-1">
               <Icon className={cn('size-5', selected && 'text-primary')} />

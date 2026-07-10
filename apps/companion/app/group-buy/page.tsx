@@ -1,36 +1,6 @@
-import Link from 'next/link';
-import { Receipt } from 'lucide-react';
-import { listAllProducts } from '@/lib/db/products';
-import { GroupBuyProductList } from '@/components/GroupBuyProductList';
-import { PageShell } from '@/components/PageShell';
+import { redirect } from 'next/navigation';
 
-export default async function GroupBuyPage() {
-  const products = await listAllProducts();
-
-  return (
-    <PageShell active="group-buy">
-      <header className="flex items-center gap-3 px-4 pb-3 pt-12">
-        <div className="flex-1">
-          <h1 className="text-lg font-bold">공동구매</h1>
-          <p className="text-xs text-muted-foreground">함께 모이면 더 저렴하게</p>
-        </div>
-        <Link
-          href="/orders"
-          className="flex size-10 items-center justify-center rounded-full border border-border bg-card"
-          aria-label="주문 내역"
-        >
-          <Receipt className="size-5" />
-        </Link>
-      </header>
-
-      <div className="mx-4 mb-4 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary-muted via-background to-primary/10 px-4 py-2">
-        <p className="text-sm font-bold text-foreground">목표 인원 모집 · 할인 자동 적용</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          함께 모이면 더 저렴하게, 달성 시 이용권이 발급돼요.
-        </p>
-      </div>
-
-      <GroupBuyProductList products={products} />
-    </PageShell>
-  );
+/** 하위 호환 — 공동구매 메인은 `/` */
+export default function GroupBuyPage() {
+  redirect('/');
 }

@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Calendar, ChevronLeft, MapPin, Users } from 'lucide-react';
+import { Calendar, MapPin, Users } from 'lucide-react';
+import { AppHeader } from '@/components/AppHeader';
 import { CommentSection } from '@/components/CommentSection';
 import { PageShell } from '@/components/PageShell';
 import { listComments } from '@/lib/db/comments';
@@ -33,18 +33,7 @@ export default async function GatheringDetailPage({ params }: Props) {
 
   return (
     <PageShell active="gatherings" hideNav>
-      <header className="flex items-center gap-3 px-4 pb-3 pt-12">
-        <Link
-          href="/gatherings"
-          aria-label="뒤로"
-          className="flex size-10 items-center justify-center rounded-full border border-border bg-card"
-        >
-          <ChevronLeft className="size-5" />
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-lg font-bold">모집글</h1>
-        </div>
-      </header>
+      <AppHeader title="모집글" backHref="/gatherings" />
 
       <article className="px-5 pb-2">
         <div className="flex items-center gap-2">

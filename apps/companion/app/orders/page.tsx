@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { AppHeader } from '@/components/AppHeader';
 import { BottomChrome } from '@/components/BottomChrome';
 import { bottomChromePaddingClass } from '@/lib/bottom-chrome';
 import { listOrders } from '@/lib/db/orders';
@@ -10,19 +9,11 @@ export default async function OrdersPage() {
 
   return (
     <main className={`mx-auto min-h-screen max-w-md bg-background ${bottomChromePaddingClass(true)}`}>
-      <header className="flex items-center gap-3 px-4 pt-12 pb-4">
-        <Link
-          href="/group-buy"
-          aria-label="뒤로"
-          className="flex size-10 items-center justify-center rounded-full border border-border bg-card"
-        >
-          <ChevronLeft className="size-5" />
-        </Link>
-        <div>
-          <h1 className="text-lg font-bold">참여 / 주문 현황</h1>
-          <p className="text-xs text-muted-foreground">발급된 이용권 · 결제 내역</p>
-        </div>
-      </header>
+      <AppHeader
+        title="참여 / 주문 현황"
+        subtitle="발급된 이용권 · 결제 내역"
+        backHref="/"
+      />
 
       <div className="flex flex-col gap-3 px-4">
         {orders.length === 0 ? (

@@ -36,7 +36,7 @@ export function GroupBuySection({ products, variant = 'page' }: Props) {
           </div>
         )}
         <Link
-          href="/group-buy"
+          href="/"
           className="flex items-center gap-0.5 text-xs font-semibold text-primary"
         >
           {variant === 'home' ? '더보기' : '전체 보기'}

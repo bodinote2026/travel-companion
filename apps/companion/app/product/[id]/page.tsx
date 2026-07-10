@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: Props) {
           priority
         />
         <Link
-          href="/group-buy"
+          href="/"
           aria-label="뒤로"
           className="absolute left-4 top-12 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
         >
