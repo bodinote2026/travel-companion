@@ -27,6 +27,9 @@ export type RegionCompanion = {
 
 export type GroupBuyStatus = 'open' | 'success' | 'closed';
 
+/** payment: PG 결제 / kakao_channel: 외부 카카오채널 신청 */
+export type ProductActionType = 'payment' | 'kakao_channel';
+
 export type RegionProduct = {
   id: string;
   region: string;
@@ -42,6 +45,8 @@ export type RegionProduct = {
   targetCount: number;
   currentCount: number;
   groupBuyStatus: GroupBuyStatus;
+  actionType: ProductActionType;
+  externalLink: string | null;
 };
 
 export type RegionConfig = {

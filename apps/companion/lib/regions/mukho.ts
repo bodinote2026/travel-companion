@@ -85,6 +85,8 @@ export const mukhoRegion: RegionConfig = {
       targetCount: 4,
       currentCount: 1,
       groupBuyStatus: 'open',
+      actionType: 'payment',
+      externalLink: null,
     },
     {
       id: 'ca84cb14-564e-445b-98b4-b439db7f6a55',
@@ -101,6 +103,8 @@ export const mukhoRegion: RegionConfig = {
       targetCount: 6,
       currentCount: 3,
       groupBuyStatus: 'open',
+      actionType: 'payment',
+      externalLink: null,
     },
     {
       id: '703c8a96-2322-4cf6-bd5d-c7846f7b2f7a',
@@ -117,6 +121,8 @@ export const mukhoRegion: RegionConfig = {
       targetCount: 5,
       currentCount: 5,
       groupBuyStatus: 'success',
+      actionType: 'payment',
+      externalLink: null,
     },
   ],
 };

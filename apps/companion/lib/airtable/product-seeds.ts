@@ -1,4 +1,4 @@
-import type { GroupBuyStatus, RegionProduct } from '@/lib/regions/types';
+import type { GroupBuyStatus, ProductActionType, RegionProduct } from '@/lib/regions/types';
 import { DEFAULT_REGION_CODE } from '@/lib/regions';
 import { PRODUCT_PLACEHOLDER_IMAGE } from '@/lib/products/format';
 
@@ -17,6 +17,8 @@ export type AirtableProductFields = {
   'Target Count': number;
   'Current Count': number;
   'Group Buy Status': GroupBuyStatus;
+  'Action Type'?: ProductActionType;
+  'External Link'?: string;
 };
 
 export const MUKHO_PRODUCT_SEEDS: Omit<RegionProduct, 'region'>[] = [
@@ -34,6 +36,8 @@ export const MUKHO_PRODUCT_SEEDS: Omit<RegionProduct, 'region'>[] = [
     targetCount: 4,
     currentCount: 1,
     groupBuyStatus: 'open',
+    actionType: 'payment',
+    externalLink: null,
   },
   {
     id: 'ca84cb14-564e-445b-98b4-b439db7f6a55',
@@ -49,6 +53,8 @@ export const MUKHO_PRODUCT_SEEDS: Omit<RegionProduct, 'region'>[] = [
     targetCount: 6,
     currentCount: 3,
     groupBuyStatus: 'open',
+    actionType: 'payment',
+    externalLink: null,
   },
   {
     id: '703c8a96-2322-4cf6-bd5d-c7846f7b2f7a',
@@ -64,6 +70,8 @@ export const MUKHO_PRODUCT_SEEDS: Omit<RegionProduct, 'region'>[] = [
     targetCount: 5,
     currentCount: 5,
     groupBuyStatus: 'success',
+    actionType: 'payment',
+    externalLink: null,
   },
 ];
 
@@ -85,6 +93,8 @@ export function regionProductToAirtableFields(
     'Target Count': product.targetCount,
     'Current Count': product.currentCount,
     'Group Buy Status': product.groupBuyStatus,
+    'Action Type': product.actionType,
+    'External Link': product.externalLink ?? undefined,
   };
 }
 

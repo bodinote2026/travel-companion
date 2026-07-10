@@ -1,6 +1,6 @@
 import { DEFAULT_REGION_CODE } from '@/lib/regions';
 import { isRegionFilterEnabled } from '@/lib/region-filter';
-import type { GroupBuyStatus, RegionProduct } from '@/lib/regions/types';
+import type { GroupBuyStatus, ProductActionType, RegionProduct } from '@/lib/regions/types';
 import { createRecord, escapeAirtableFormula, listRecords, updateRecord } from './client';
 import { requireAirtableConfig } from './config';
 import {
@@ -11,6 +11,23 @@ import {
   type AirtableProductFields,
   mukhoSeedToAirtableFields,
 } from './product-seeds';
+
+function parseActionType(value: unknown): ProductActionType {
+  return value === 'kakao_channel' ? 'kakao_channel' : 'payment';
+}
+
+function parseExternalLink(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
 
 function mapProduct(record: { id: string; fields: AirtableProductFields }): RegionProduct {
   const fields = record.fields;
@@ -29,6 +46,8 @@ function mapProduct(record: { id: string; fields: AirtableProductFields }): Regi
     targetCount: Number(fields['Target Count'] ?? 0),
     currentCount: Number(fields['Current Count'] ?? 0),
     groupBuyStatus: (fields['Group Buy Status'] ?? 'open') as GroupBuyStatus,
+    actionType: parseActionType(fields['Action Type']),
+    externalLink: parseExternalLink(fields['External Link']),
   };
 }
 

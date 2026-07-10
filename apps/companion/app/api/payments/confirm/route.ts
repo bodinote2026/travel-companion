@@ -99,6 +99,12 @@ export async function PUT(request: Request) {
     if (!product) {
       return NextResponse.json({ error: '상품을 찾을 수 없습니다.' }, { status: 404 });
     }
+    if (product.actionType === 'kakao_channel') {
+      return NextResponse.json(
+        { error: '이 상품은 카카오채널에서 신청해 주세요.' },
+        { status: 400 },
+      );
+    }
     if (product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount) {
       return NextResponse.json({ error: '모집이 완료된 상품입니다.' }, { status: 400 });
     }
