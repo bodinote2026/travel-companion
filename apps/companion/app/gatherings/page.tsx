@@ -11,18 +11,24 @@ export default async function GatheringsPage() {
   return (
     <PageShell active="gatherings">
       <AppHeader
-        title="동행 모집"
-        subtitle="함께할 사람을 모집해 보세요"
+        variant="brand"
         action={
           <Link
             href="/gatherings/new"
-            className="flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary"
+            className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
             aria-label="모집글 작성"
           >
             <Plus className="size-5" />
           </Link>
         }
       />
+
+      <div className="mx-4 mb-1 overflow-hidden rounded-[1.25rem] border border-primary/20 bg-primary-muted/60 px-4 py-3">
+        <p className="text-sm font-bold text-foreground">동행 모집</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          함께할 사람을 모집하고, 댓글로 일정을 맞춰 보세요.
+        </p>
+      </div>
 
       <GatheringList gatherings={gatherings} />
     </PageShell>

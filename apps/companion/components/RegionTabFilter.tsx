@@ -17,7 +17,7 @@ export function RegionTabFilter({
   onChange,
 }: Props) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex items-center gap-2.5 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {REGION_TABS.map(({ id, label }) => {
         const selected = active === id;
         return (
@@ -26,10 +26,10 @@ export function RegionTabFilter({
             type="button"
             onClick={() => onChange(id)}
             className={cn(
-              'flex shrink-0 items-center rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors',
+              'flex shrink-0 items-center rounded-full px-4 py-2 text-sm font-semibold transition-colors',
               selected
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-card text-foreground hover:bg-secondary',
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'border border-border bg-card text-muted-foreground hover:bg-secondary',
             )}
           >
             {label}

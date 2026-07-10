@@ -153,11 +153,11 @@ export function ProfileSetupForm({
                   type="button"
                   onClick={() => setRegion(option.code)}
                   className={cn(
-                    'rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors',
-                    selected
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border bg-card text-foreground hover:bg-secondary',
-                  )}
+                  'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+                  selected
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'border border-border bg-card text-muted-foreground hover:bg-secondary',
+                )}
                 >
                   {option.name}
                 </button>
@@ -207,10 +207,10 @@ export function ProfileSetupForm({
                   type="button"
                   onClick={() => toggleCategory(category)}
                   className={cn(
-                    'flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors',
+                    'flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-colors',
                     selected
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border bg-card text-foreground hover:bg-secondary',
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'border border-border bg-card text-muted-foreground hover:bg-secondary',
                   )}
                 >
                   <Icon className="size-4" />

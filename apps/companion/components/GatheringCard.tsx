@@ -1,19 +1,20 @@
 'use client';
 
-import { Users } from 'lucide-react';
+import { Calendar, MapPin, Users } from 'lucide-react';
+import Link from 'next/link';
+import { InitialAvatar } from '@/components/InitialAvatar';
 import type { GatheringRecord } from '@/lib/db/gatherings';
 import { getRegionDisplayName } from '@/lib/regions';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 
 function formatGatheringDate(value: string | null): string | null {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value.slice(0, 10);
   return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
     month: 'short',
     day: 'numeric',
+    weekday: 'short',
   });
 }
 
@@ -29,26 +30,47 @@ export function GatheringCard({ gathering }: Props) {
     <Link
       href={`/gatherings/${gathering.id}`}
       className={cn(
-        'block rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-secondary/40',
+        'block rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)] transition-colors hover:bg-secondary/30',
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="line-clamp-2 text-sm font-semibold text-foreground">{gathering.title}</p>
-        <span className="shrink-0 rounded-md bg-primary-muted px-1.5 py-0.5 text-micro font-bold text-primary">
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary-muted px-2.5 py-0.5 text-xs font-semibold text-primary">
+          <span aria-hidden>🤝</span>
+          동행
+        </span>
+        <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+          <MapPin className="size-3" />
           {getRegionDisplayName(gathering.region)}
         </span>
+        {closed && (
+          <span className="ml-auto text-xs font-semibold text-muted-foreground">마감</span>
+        )}
       </div>
+
+      <p className="mt-2.5 line-clamp-2 text-[15px] font-bold leading-snug text-foreground">
+        {gathering.title}
+      </p>
       <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
         {gathering.description}
       </p>
-      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1 font-medium text-primary">
-          <Users className="size-3.5" />
-          {gathering.current_count}/{gathering.target_count}명
-          {closed ? ' · 마감' : ''}
+
+      <div className="mt-3.5 flex items-center gap-2">
+        <InitialAvatar name={gathering.author_name} size="sm" />
+        <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+          {gathering.author_name}
         </span>
-        {dateLabel && <span>{dateLabel}</span>}
-        <span className="ml-auto font-medium text-foreground">{gathering.author_name}</span>
+        <div className="flex shrink-0 items-center gap-2.5 text-xs text-muted-foreground">
+          {dateLabel && (
+            <span className="flex items-center gap-1">
+              <Calendar className="size-3.5" />
+              {dateLabel}
+            </span>
+          )}
+          <span className="flex items-center gap-1 font-medium text-primary">
+            <Users className="size-3.5" />
+            {gathering.current_count}/{gathering.target_count}
+          </span>
+        </div>
       </div>
     </Link>
   );

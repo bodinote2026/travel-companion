@@ -3,11 +3,26 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Loader2, LogOut, Pencil, Phone, User } from 'lucide-react';
+import {
+  ChevronRight,
+  FileText,
+  Loader2,
+  LogOut,
+  Pencil,
+  Phone,
+  ShoppingBag,
+} from 'lucide-react';
+import { InitialAvatar } from '@/components/InitialAvatar';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { formatPrice } from '@/lib/geo';
 import type { OrderRecord } from '@/lib/db/orders';
 import { getRegionDisplayName } from '@/lib/regions';
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  식사: '🍴',
+  운동: '🏃',
+  여행: '✈️',
+};
 
 type Props = {
   initialOrders?: OrderRecord[];
@@ -18,6 +33,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
   const { profile, ready, loading, logout } = useUserProfile();
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [bizOpen, setBizOpen] = useState(false);
 
   useEffect(() => {
     if (!ready || !profile) return;
@@ -55,44 +71,38 @@ export function MypageContent({ initialOrders = [] }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-5 px-4 pb-4 pt-2">
-      <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="flex flex-col gap-4 px-4 pb-4 pt-1">
+      <div className="rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)]">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-xs font-medium text-primary">내 정보</p>
-          <div className="flex items-center gap-1">
-            <Link
-              href="/profile/setup?returnUrl=%2Fmypage&edit=1"
-              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-            >
-              <Pencil className="size-3.5" />
-              프로필 수정
-            </Link>
-            <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loading}
-            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary disabled:opacity-60"
+          <div className="flex min-w-0 items-center gap-3">
+            <InitialAvatar name={profile.name} size="lg" />
+            <div className="min-w-0">
+              <p className="truncate text-lg font-bold">
+                {profile.name}
+                {profile.age != null ? (
+                  <span className="ml-1 text-sm font-medium text-muted-foreground">
+                    · 만 {profile.age}세
+                  </span>
+                ) : null}
+              </p>
+              <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                <Phone className="size-3.5" />
+                {profile.phone}
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                활동 지역 · {getRegionDisplayName(profile.region)}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/profile/setup?returnUrl=%2Fmypage&edit=1"
+            className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-primary"
           >
-            {loading ? <Loader2 className="size-3.5 animate-spin" /> : <LogOut className="size-3.5" />}
-            로그아웃
-          </button>
-          </div>
+            <Pencil className="size-3.5" />
+            프로필 편집
+          </Link>
         </div>
-        <div className="mt-3 flex items-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <User className="size-6" />
-          </span>
-          <div>
-            <p className="text-lg font-bold">{profile.name}{profile.age != null ? ` · 만 ${profile.age}세` : ''}</p>
-            <p className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Phone className="size-3.5" />
-              {profile.phone}
-            </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              활동 지역 · {getRegionDisplayName(profile.region)}
-            </p>
-          </div>
-        </div>
+
         {(profile.bio || (profile.interest_categories?.length ?? 0) > 0) && (
           <div className="mt-4 space-y-2 border-t border-border pt-4">
             {profile.bio && (
@@ -105,6 +115,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
                     key={category}
                     className="rounded-full bg-primary-muted px-2.5 py-0.5 text-xs font-semibold text-primary"
                   >
+                    {CATEGORY_EMOJI[category] ? `${CATEGORY_EMOJI[category]} ` : ''}
                     {category}
                   </span>
                 ))}
@@ -122,11 +133,65 @@ export function MypageContent({ initialOrders = [] }: Props) {
         )}
       </div>
 
+      <div className="overflow-hidden rounded-[1.25rem] border border-border/80 bg-card shadow-[var(--shadow-card)]">
+        <Link
+          href="/orders"
+          className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-secondary/40"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary-muted text-primary">
+            <ShoppingBag className="size-4" />
+          </span>
+          <span className="flex-1 text-sm font-medium">내 공동구매</span>
+          {orders.length > 0 && (
+            <span className="flex size-5 items-center justify-center rounded-full bg-primary text-micro font-bold text-primary-foreground">
+              {orders.length > 9 ? '9+' : orders.length}
+            </span>
+          )}
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </Link>
+        <div className="mx-4 border-t border-border" />
+        <button
+          type="button"
+          onClick={() => setBizOpen((open) => !open)}
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/40"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <FileText className="size-4" />
+          </span>
+          <span className="flex-1 text-sm font-medium">사업자 정보</span>
+          <ChevronRight
+            className={`size-4 text-muted-foreground transition-transform ${bizOpen ? 'rotate-90' : ''}`}
+          />
+        </button>
+        {bizOpen && (
+          <div className="space-y-0.5 border-t border-border bg-secondary/30 px-4 py-3 text-micro leading-relaxed text-muted-foreground">
+            <p>상호명: 앤유코리아 | 사업자등록번호: 662-05-01404 | 대표: 최문석</p>
+            <p>소재지주소: 서울 마포구 새창로 11 (도화동)</p>
+          </div>
+        )}
+        <div className="mx-4 border-t border-border" />
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={loading}
+          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/40 disabled:opacity-60"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <LogOut className="size-4" />
+            )}
+          </span>
+          <span className="flex-1 text-sm font-medium">로그아웃</span>
+        </button>
+      </div>
+
       <section>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between px-0.5">
           <h2 className="text-sm font-bold">공동구매 참여 내역</h2>
           <Link href="/orders" className="text-xs font-medium text-primary">
-            전체 주문 보기
+            전체 보기
           </Link>
         </div>
 
@@ -135,7 +200,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : orders.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-card py-10 text-center text-sm text-muted-foreground">
+          <p className="rounded-[1.25rem] border border-border/80 bg-card py-10 text-center text-sm text-muted-foreground shadow-[var(--shadow-card)]">
             참여한 공동구매가 없습니다.
             <br />
             <Link href="/" className="mt-1 inline-block text-primary">
@@ -143,9 +208,12 @@ export function MypageContent({ initialOrders = [] }: Props) {
             </Link>
           </p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {orders.map((order) => (
-              <div key={order.id} className="rounded-2xl border border-border bg-card p-4">
+              <div
+                key={order.id}
+                className="rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)]"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-semibold">{order.product_name}</p>
                   <span

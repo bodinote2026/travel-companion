@@ -13,18 +13,23 @@ type Props = {
 
 export function GroupBuyCard({ product, compact }: Props) {
   const charge = perPersonCharge(product.discountedPrice, product.targetCount);
-  const isComplete = product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount;
+  const isComplete =
+    product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount;
   const imageUrl = resolveProductImageUrl(product.imageUrl);
+  const progress =
+    product.targetCount > 0
+      ? Math.min(100, Math.round((product.currentCount / product.targetCount) * 100))
+      : 0;
 
   return (
     <Link
       href={`/product/${product.id}`}
       className={cn(
-        'flex gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:bg-secondary/40',
-        compact && 'p-2.5',
+        'flex gap-3 rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)] transition-colors hover:bg-secondary/30',
+        compact && 'p-3',
       )}
     >
-      <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-muted">
+      <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl bg-muted">
         <Image
           src={imageUrl}
           alt={product.name}
@@ -42,15 +47,23 @@ export function GroupBuyCard({ product, compact }: Props) {
             <span className="text-micro font-semibold text-muted-foreground">모집 완료</span>
           )}
         </div>
-        <p className="mt-1 line-clamp-2 text-sm font-semibold text-foreground">{product.name}</p>
+        <p className="mt-1.5 line-clamp-2 text-sm font-semibold text-foreground">{product.name}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           {formatPrice(charge)}원 / 1인 청구 · 총 {formatPrice(product.discountedPrice)}원
         </p>
-        <p className="mt-1 flex items-center gap-1 text-xs font-medium text-primary">
-          <Users className="size-3.5" />
-          {product.currentCount} / {product.targetCount}명 모집
-          <ChevronRight className="ml-auto size-4 text-muted-foreground" />
-        </p>
+        <div className="mt-2.5 flex items-center gap-2">
+          <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary transition-[width]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-primary">
+            <Users className="size-3.5" />
+            {product.currentCount} / {product.targetCount}명
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        </div>
       </div>
     </Link>
   );

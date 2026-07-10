@@ -51,16 +51,46 @@ export function BottomNav({ active, embedded }: Props) {
     <nav
       className={cn(
         embedded
-          ? 'px-2 pb-5 pt-1'
-          : 'fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border bg-background/95 px-2 pb-5 pt-2 backdrop-blur',
+          ? 'px-2 pb-4 pt-1'
+          : 'fixed inset-x-0 bottom-0 z-30 mx-auto max-w-md border-t border-border bg-background/95 px-2 pb-4 pt-2 backdrop-blur',
       )}
     >
-      <div className="flex items-center justify-around">
+      <div className="flex items-end justify-around">
         {TABS.map(({ id, label, icon: Icon, href }) => {
           const selected = isTabSelected(id, href, pathname, active);
+
+          if (id === 'group-buy') {
+            return (
+              <Link
+                key={id}
+                href={href}
+                className="relative -mt-5 flex w-[4.5rem] flex-col items-center"
+              >
+                <span className="flex size-[3.25rem] items-center justify-center rounded-full bg-foreground shadow-[0_6px_16px_rgba(0,0,0,0.22)]">
+                  <Icon className="size-6 text-background" strokeWidth={2} />
+                </span>
+                <span
+                  className={cn(
+                    'mt-1 text-micro font-semibold',
+                    selected ? 'text-primary' : 'text-muted-foreground',
+                  )}
+                >
+                  {label}
+                </span>
+              </Link>
+            );
+          }
+
           return (
-            <Link key={id} href={href} className="flex flex-col items-center gap-0.5 px-2 py-1">
-              <Icon className={cn('size-5', selected && 'text-primary')} />
+            <Link
+              key={id}
+              href={href}
+              className="flex w-[4.5rem] flex-col items-center gap-0.5 px-1 py-1"
+            >
+              <Icon
+                className={cn('size-5', selected ? 'text-primary' : 'text-muted-foreground')}
+                strokeWidth={selected ? 2.25 : 1.75}
+              />
               <span
                 className={cn(
                   'text-micro font-medium',

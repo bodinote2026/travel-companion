@@ -19,7 +19,7 @@ type Props = {
 
 export function CategoryFilter({ active, onChange }: Props) {
   return (
-    <div className="flex items-center gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex items-center gap-2.5 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {CATEGORY_OPTIONS.map(({ id, label }) => {
         const Icon = ICONS[id];
         const selected = active === id;
@@ -29,10 +29,10 @@ export function CategoryFilter({ active, onChange }: Props) {
             type="button"
             onClick={() => onChange(id)}
             className={cn(
-              'flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm font-semibold transition-colors',
+              'flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-colors',
               selected
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-card text-foreground hover:bg-secondary',
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'border border-border bg-card text-muted-foreground hover:bg-secondary',
             )}
           >
             <Icon className="size-4" />
