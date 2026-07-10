@@ -293,6 +293,7 @@ export async function updateUserProfile(
     age?: number | null;
     region?: string;
     name?: string;
+    nickname?: string;
     phone?: string;
   },
 ): Promise<AirtableUser> {
@@ -316,6 +317,9 @@ export async function updateUserProfile(
   }
   if (input.name !== undefined) {
     fields.Name = input.name.trim();
+  }
+  if (input.nickname !== undefined) {
+    fields.Nickname = input.nickname.trim();
   }
   if (input.phone !== undefined) {
     fields.Phone = normalizePhone(input.phone);

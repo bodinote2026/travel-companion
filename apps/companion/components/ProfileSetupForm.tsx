@@ -48,6 +48,7 @@ function displayPhone(phone?: string | null): string {
 type Props = {
   returnUrl: string;
   initialName?: string | null;
+  initialNickname?: string | null;
   initialPhone?: string | null;
   initialBio?: string | null;
   initialCategories?: string[];
@@ -61,6 +62,7 @@ type Props = {
 export function ProfileSetupForm({
   returnUrl,
   initialName = '',
+  initialNickname = '',
   initialPhone = '',
   initialBio = '',
   initialCategories = [],
@@ -72,6 +74,7 @@ export function ProfileSetupForm({
 }: Props) {
   const router = useRouter();
   const [name, setName] = useState(initialName?.trim() ?? '');
+  const [nickname, setNickname] = useState(initialNickname?.trim() ?? '');
   const [phone, setPhone] = useState(displayPhone(initialPhone));
   const [bio, setBio] = useState(initialBio ?? '');
   const [age, setAge] = useState(initialAge != null ? String(initialAge) : '');
@@ -94,6 +97,7 @@ export function ProfileSetupForm({
   async function saveProfile(profileCompleted: boolean, includeAge: boolean) {
     const payload: Record<string, unknown> = {
       name: name.trim(),
+      nickname: nickname.trim(),
       phone: normalizePhone(phone),
       bio: bio.trim() || null,
       interest_categories: categories,
@@ -114,7 +118,8 @@ export function ProfileSetupForm({
   }
 
   function validateRequiredIdentity(): string | null {
-    if (!name.trim()) return '이름을 입력해주세요.';
+    if (!name.trim()) return '실명을 입력해주세요.';
+    if (!nickname.trim()) return '별명을 입력해주세요.';
     if (!isValidProfilePhone(phone)) {
       return '전화번호는 숫자만 10~11자리로 입력해주세요.';
     }
@@ -187,7 +192,25 @@ export function ProfileSetupForm({
             maxLength={40}
             className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
           />
-          <span className="mt-1 block text-xs text-muted-foreground">실명을 입력해주세요</span>
+          <span className="mt-1 block text-xs text-muted-foreground">
+            실명을 입력해주세요. 다른 사용자에게는 보이지 않아요.
+          </span>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium">별명</span>
+          <input
+            type="text"
+            autoComplete="nickname"
+            placeholder="카카오 닉네임"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            maxLength={40}
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">
+            채팅·동행·커뮤니티에 표시되는 이름이에요.
+          </span>
         </label>
 
         <label className="block">

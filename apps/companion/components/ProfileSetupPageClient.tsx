@@ -49,6 +49,7 @@ export function ProfileSetupPageClient() {
     <ProfileSetupForm
       returnUrl={returnUrl}
       initialName={profile.name}
+      initialNickname={profile.nickname}
       initialPhone={profile.phone}
       initialBio={profile.bio}
       initialCategories={profile.interest_categories}
@@ -58,8 +59,8 @@ export function ProfileSetupPageClient() {
       title={fromMypage ? '프로필 수정' : '프로필 작성'}
       subtitle={
         fromMypage
-          ? '이름, 연락처, 활동 지역과 소개를 수정할 수 있어요.'
-          : '실명과 연락처를 입력하고, 동행자에게 나를 소개해 보세요.'
+          ? '실명, 별명, 연락처, 활동 지역과 소개를 수정할 수 있어요.'
+          : '실명과 별명, 연락처를 입력하고, 동행자에게 나를 소개해 보세요.'
       }
     />
   );

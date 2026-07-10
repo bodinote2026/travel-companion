@@ -45,15 +45,17 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { bio, interest_categories, profile_completed, age, region, name, phone } = body as {
-      bio?: string | null;
-      interest_categories?: unknown;
-      profile_completed?: boolean;
-      age?: number | null;
-      region?: string;
-      name?: string;
-      phone?: string;
-    };
+    const { bio, interest_categories, profile_completed, age, region, name, nickname, phone } =
+      body as {
+        bio?: string | null;
+        interest_categories?: unknown;
+        profile_completed?: boolean;
+        age?: number | null;
+        region?: string;
+        name?: string;
+        nickname?: string;
+        phone?: string;
+      };
 
     if (age !== undefined && age !== null) {
       if (!Number.isInteger(age) || age < 14 || age > 99) {
@@ -71,7 +73,14 @@ export async function PATCH(request: Request) {
     if (name !== undefined) {
       const trimmed = typeof name === 'string' ? name.trim() : '';
       if (!trimmed) {
-        return NextResponse.json({ error: '이름을 입력해주세요.' }, { status: 400 });
+        return NextResponse.json({ error: '실명을 입력해주세요.' }, { status: 400 });
+      }
+    }
+
+    if (nickname !== undefined) {
+      const trimmed = typeof nickname === 'string' ? nickname.trim() : '';
+      if (!trimmed) {
+        return NextResponse.json({ error: '별명을 입력해주세요.' }, { status: 400 });
       }
     }
 
@@ -94,6 +103,7 @@ export async function PATCH(request: Request) {
       age: age !== undefined ? age : undefined,
       region: region !== undefined ? region.trim() : undefined,
       name: name !== undefined ? name.trim() : undefined,
+      nickname: nickname !== undefined ? nickname.trim() : undefined,
       phone: phone !== undefined ? phone : undefined,
     });
 
