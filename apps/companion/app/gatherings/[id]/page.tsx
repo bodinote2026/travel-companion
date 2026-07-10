@@ -50,6 +50,7 @@ export default async function GatheringDetailPage({ params }: Props) {
           <AuthorChatAvatar
             authorId={gathering.author_id}
             authorName={gathering.author_name}
+            authorAvatarUrl={gathering.author_avatar_url}
             size="md"
             showName
             nameClassName="text-sm text-muted-foreground"

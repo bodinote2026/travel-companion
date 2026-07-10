@@ -205,11 +205,16 @@ export function CompanionMap({
             >
               <span
                 className={cn(
-                  'relative flex size-8 items-center justify-center rounded-full border-2 border-background text-micro font-bold shadow-md',
+                  'relative flex size-8 items-center justify-center overflow-hidden rounded-full border-2 border-background text-micro font-bold shadow-md',
                   c.activityActive ? 'bg-success text-white' : 'bg-card text-foreground',
                 )}
               >
-                {c.name.slice(0, 1)}
+                {c.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- 지도 핀 소형 아바타
+                  <img src={c.avatar} alt="" className="size-full object-cover" />
+                ) : (
+                  c.name.slice(0, 1)
+                )}
                 {c.activityActive && (
                   <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full border border-background bg-success" />
                 )}

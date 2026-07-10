@@ -4,6 +4,7 @@ import {
   listRecords,
 } from './client';
 import { requireAirtableConfig } from './config';
+import { resolveAuthorAvatars } from '@/lib/users/avatars';
 
 export type CommentTargetType = 'gathering' | 'product';
 
@@ -21,6 +22,7 @@ export type CommentRecord = {
   target_id: string;
   author_id: string;
   author_name: string;
+  author_avatar_url: string | null;
   body: string;
   created_at: string;
 };
@@ -36,6 +38,7 @@ function mapComment(record: {
     target_id: record.fields['Target ID']?.trim() || '',
     author_id: record.fields['Author ID']?.trim() || '',
     author_name: record.fields['Author Name']?.trim() || '',
+    author_avatar_url: null,
     body: record.fields.Body?.trim() || '',
     created_at: record.createdTime ?? new Date().toISOString(),
   };
@@ -51,9 +54,15 @@ export async function listComments(
     filterByFormula: formula,
   });
 
-  return records
+  const comments = records
     .map(mapComment)
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+  const avatars = await resolveAuthorAvatars(comments.map((c) => c.author_id));
+  return comments.map((c) => ({
+    ...c,
+    author_avatar_url: avatars.get(c.author_id) ?? null,
+  }));
 }
 
 export async function createComment(input: {
@@ -75,5 +84,10 @@ export async function createComment(input: {
     },
     { typecast: true },
   );
-  return mapComment(created);
+  const comment = mapComment(created);
+  const avatars = await resolveAuthorAvatars([comment.author_id]);
+  return {
+    ...comment,
+    author_avatar_url: avatars.get(comment.author_id) ?? null,
+  };
 }

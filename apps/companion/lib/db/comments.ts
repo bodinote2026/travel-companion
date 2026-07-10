@@ -44,6 +44,7 @@ export async function createComment(input: {
     target_id: input.targetId,
     author_id: input.authorId,
     author_name: input.authorName.trim(),
+    author_avatar_url: null,
     body: input.body.trim(),
     created_at: new Date().toISOString(),
   };

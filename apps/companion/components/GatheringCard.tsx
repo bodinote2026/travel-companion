@@ -58,6 +58,7 @@ export function GatheringCard({ gathering }: Props) {
         <AuthorChatAvatar
           authorId={gathering.author_id}
           authorName={gathering.author_name}
+          authorAvatarUrl={gathering.author_avatar_url}
           size="sm"
           showName
           className="min-w-0 flex-1"

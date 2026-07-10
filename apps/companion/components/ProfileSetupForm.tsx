@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Dumbbell, Loader2, Plane, Utensils } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Camera, Dumbbell, Loader2, Plane, Utensils } from 'lucide-react';
+import { UserAvatar } from '@/components/UserAvatar';
 import {
   INTEREST_CATEGORIES,
   type InterestCategory,
@@ -54,6 +55,7 @@ type Props = {
   initialCategories?: string[];
   initialAge?: number | null;
   initialRegion?: string | null;
+  initialAvatarUrl?: string | null;
   showSkip?: boolean;
   title?: string;
   subtitle?: string;
@@ -68,17 +70,21 @@ export function ProfileSetupForm({
   initialCategories = [],
   initialAge = null,
   initialRegion = null,
+  initialAvatarUrl = null,
   showSkip = true,
   title = '프로필 작성',
   subtitle = '동행자에게 나를 소개해 보세요.',
 }: Props) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName?.trim() ?? '');
   const [nickname, setNickname] = useState(initialNickname?.trim() ?? '');
   const [phone, setPhone] = useState(displayPhone(initialPhone));
   const [bio, setBio] = useState(initialBio ?? '');
   const [age, setAge] = useState(initialAge != null ? String(initialAge) : '');
   const [region, setRegion] = useState(resolveInitialRegion(initialRegion));
+  const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl?.trim() || '');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [categories, setCategories] = useState<InterestCategory[]>(
     initialCategories.filter((c): c is InterestCategory =>
       (INTEREST_CATEGORIES as readonly string[]).includes(c),
@@ -92,6 +98,30 @@ export function ProfileSetupForm({
     setCategories((prev) =>
       prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     );
+  }
+
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setError('');
+    setUploadingAvatar(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? '사진 업로드 실패');
+      setAvatarUrl(typeof data.url === 'string' ? data.url : '');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '사진 업로드에 실패했습니다.');
+    } finally {
+      setUploadingAvatar(false);
+    }
   }
 
   async function saveProfile(profileCompleted: boolean, includeAge: boolean) {
@@ -171,7 +201,7 @@ export function ProfileSetupForm({
     }
   }
 
-  const busy = loading || skipping;
+  const busy = loading || skipping || uploadingAvatar;
 
   return (
     <div className="flex flex-col gap-5 px-4 pb-4 pt-2">
@@ -181,6 +211,37 @@ export function ProfileSetupForm({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col items-center gap-3">
+          <UserAvatar
+            name={nickname || name || '사용자'}
+            avatarUrl={avatarUrl}
+            size="lg"
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            className="hidden"
+            onChange={handleAvatarChange}
+          />
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => fileInputRef.current?.click()}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground disabled:opacity-70"
+          >
+            {uploadingAvatar ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Camera className="size-3.5" />
+            )}
+            {avatarUrl ? '프로필 사진 변경' : '프로필 사진 추가'}
+          </button>
+          <p className="text-center text-xs text-muted-foreground">
+            jpg, png, webp · 최대 5MB
+          </p>
+        </div>
+
         <label className="block">
           <span className="text-sm font-medium">이름</span>
           <input

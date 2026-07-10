@@ -14,6 +14,7 @@ export type NearbyUserDto = {
   age: number | null;
   bio: string | null;
   interest_categories: string[];
+  avatar_url: string | null;
   latitude: number;
   longitude: number;
   location_updated_at: string;
@@ -77,7 +78,7 @@ export function realUserToListItem(
     age: user.age,
     categories,
     primaryCategory: cat,
-    avatar: null,
+    avatar: user.avatar_url,
     temperature: null,
     headline,
     bio: bio || headline,

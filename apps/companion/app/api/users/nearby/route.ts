@@ -17,6 +17,7 @@ export async function GET() {
         age: u.age,
         bio: u.bio,
         interest_categories: u.interestCategories,
+        avatar_url: u.avatarUrl,
         latitude: u.latitude,
         longitude: u.longitude,
         location_updated_at: u.locationUpdatedAt,

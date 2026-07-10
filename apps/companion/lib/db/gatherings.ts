@@ -47,6 +47,7 @@ export async function createGathering(input: {
     region: input.region.trim(),
     author_id: input.authorId,
     author_name: input.authorName.trim(),
+    author_avatar_url: null,
     target_count: input.targetCount,
     current_count: 1,
     gathering_date: input.gatheringDate?.trim() || null,

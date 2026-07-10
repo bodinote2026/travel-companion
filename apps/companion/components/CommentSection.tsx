@@ -107,6 +107,7 @@ export function CommentSection({
                 <AuthorChatAvatar
                   authorId={comment.author_id}
                   authorName={comment.author_name}
+                  authorAvatarUrl={comment.author_avatar_url}
                   size="sm"
                   showName
                   nameClassName="text-sm font-semibold"

@@ -261,13 +261,10 @@ export async function upsertKakaoUser(input: {
 
   const existing = await findUserByKakaoId(kakaoId);
   if (existing) {
-    // Nickname은 카카오 최신값으로 갱신, Name(실명)은 절대 덮어쓰지 않음
+    // Nickname은 카카오 최신값으로 갱신, Name·Avatar URL은 덮어쓰지 않음
     const fields: Partial<AirtableUserFields> = {};
     if (existing.nickname !== nickname) {
       fields.Nickname = nickname;
-    }
-    if (input.avatarUrl && existing.avatarUrl !== input.avatarUrl) {
-      fields['Avatar URL'] = input.avatarUrl;
     }
     if (Object.keys(fields).length === 0) return existing;
     const updated = await updateRecord<AirtableUserFields>(config.usersTable, existing.id, fields);
@@ -295,6 +292,7 @@ export async function updateUserProfile(
     name?: string;
     nickname?: string;
     phone?: string;
+    avatarUrl?: string | null;
   },
 ): Promise<AirtableUser> {
   const config = requireAirtableConfig();
@@ -323,6 +321,9 @@ export async function updateUserProfile(
   }
   if (input.phone !== undefined) {
     fields.Phone = normalizePhone(input.phone);
+  }
+  if (input.avatarUrl !== undefined) {
+    fields['Avatar URL'] = input.avatarUrl?.trim() || undefined;
   }
 
   const updated = await updateRecord<AirtableUserFields>(config.usersTable, userId, fields);

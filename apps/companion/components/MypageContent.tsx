@@ -11,7 +11,7 @@ import {
   Phone,
   ShoppingBag,
 } from 'lucide-react';
-import { InitialAvatar } from '@/components/InitialAvatar';
+import { UserAvatar } from '@/components/UserAvatar';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { formatPrice } from '@/lib/geo';
 import type { OrderRecord } from '@/lib/db/orders';
@@ -73,7 +73,11 @@ export function MypageContent({ initialOrders = [] }: Props) {
       <div className="rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)]">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-3">
-            <InitialAvatar name={profile.nickname || '사용자'} size="lg" />
+            <UserAvatar
+              name={profile.nickname || '사용자'}
+              avatarUrl={profile.avatar_url}
+              size="lg"
+            />
             <div className="min-w-0">
               <p className="truncate text-lg font-bold">
                 {profile.nickname || '사용자'}

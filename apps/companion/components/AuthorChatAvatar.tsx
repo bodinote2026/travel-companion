@@ -1,13 +1,14 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
-import { InitialAvatar } from '@/components/InitialAvatar';
+import { UserAvatar } from '@/components/UserAvatar';
 import { useStartChat } from '@/hooks/useStartChat';
 import { cn } from '@/lib/utils';
 
 type Props = {
   authorId?: string | null;
   authorName: string;
+  authorAvatarUrl?: string | null;
   companionSeedId?: string | null;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -20,6 +21,7 @@ type Props = {
 export function AuthorChatAvatar({
   authorId,
   authorName,
+  authorAvatarUrl,
   companionSeedId,
   size = 'sm',
   className,
@@ -45,7 +47,7 @@ export function AuthorChatAvatar({
 
   const avatar = (
     <span className="relative inline-flex">
-      <InitialAvatar name={authorName} size={size} />
+      <UserAvatar name={authorName} avatarUrl={authorAvatarUrl} size={size} />
       {busy && (
         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-background/70">
           <Loader2 className="size-3.5 animate-spin text-primary" />
