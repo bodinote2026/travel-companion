@@ -7,7 +7,7 @@ import { PageShell } from '@/components/PageShell';
 export default function ProfileSetupPage() {
   return (
     <PageShell active="profile" hideNav>
-      <AppHeader title="프로필" subtitle="자기소개 · 관심 카테고리" />
+      <AppHeader title="프로필" subtitle="실명 · 연락처 · 자기소개" />
       <Suspense
         fallback={
           <div className="flex justify-center py-20">

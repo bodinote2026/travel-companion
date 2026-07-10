@@ -12,6 +12,7 @@ import {
   isKnownRegionCode,
   REGION_OPTIONS,
 } from '@/lib/regions';
+import { normalizePhone } from '@/lib/user-profile';
 import { cn } from '@/lib/utils';
 
 const CATEGORY_META: Record<
@@ -33,8 +34,21 @@ function resolveInitialRegion(code?: string | null): string {
   return DEFAULT_REGION_CODE;
 }
 
+function isValidProfilePhone(phone: string): boolean {
+  return /^\d{10,11}$/.test(normalizePhone(phone));
+}
+
+/** seed: 접두 가상번호는 미입력으로 취급 */
+function displayPhone(phone?: string | null): string {
+  const raw = phone?.trim() ?? '';
+  if (!raw || raw.startsWith('seed:')) return '';
+  return normalizePhone(raw);
+}
+
 type Props = {
   returnUrl: string;
+  initialName?: string | null;
+  initialPhone?: string | null;
   initialBio?: string | null;
   initialCategories?: string[];
   initialAge?: number | null;
@@ -46,6 +60,8 @@ type Props = {
 
 export function ProfileSetupForm({
   returnUrl,
+  initialName = '',
+  initialPhone = '',
   initialBio = '',
   initialCategories = [],
   initialAge = null,
@@ -55,6 +71,8 @@ export function ProfileSetupForm({
   subtitle = '동행자에게 나를 소개해 보세요.',
 }: Props) {
   const router = useRouter();
+  const [name, setName] = useState(initialName?.trim() ?? '');
+  const [phone, setPhone] = useState(displayPhone(initialPhone));
   const [bio, setBio] = useState(initialBio ?? '');
   const [age, setAge] = useState(initialAge != null ? String(initialAge) : '');
   const [region, setRegion] = useState(resolveInitialRegion(initialRegion));
@@ -75,6 +93,8 @@ export function ProfileSetupForm({
 
   async function saveProfile(profileCompleted: boolean, includeAge: boolean) {
     const payload: Record<string, unknown> = {
+      name: name.trim(),
+      phone: normalizePhone(phone),
       bio: bio.trim() || null,
       interest_categories: categories,
       profile_completed: profileCompleted,
@@ -93,11 +113,21 @@ export function ProfileSetupForm({
     return data.user;
   }
 
+  function validateRequiredIdentity(): string | null {
+    if (!name.trim()) return '이름을 입력해주세요.';
+    if (!isValidProfilePhone(phone)) {
+      return '전화번호는 숫자만 10~11자리로 입력해주세요.';
+    }
+    if (!isKnownRegionCode(region)) return '활동 지역을 선택해주세요.';
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!isKnownRegionCode(region)) {
-      setError('활동 지역을 선택해주세요.');
+    const identityError = validateRequiredIdentity();
+    if (identityError) {
+      setError(identityError);
       return;
     }
     const ageNum = Number(age);
@@ -119,6 +149,11 @@ export function ProfileSetupForm({
 
   async function handleSkip() {
     setError('');
+    const identityError = validateRequiredIdentity();
+    if (identityError) {
+      setError(identityError);
+      return;
+    }
     setSkipping(true);
     try {
       await saveProfile(true, false);
@@ -141,6 +176,36 @@ export function ProfileSetupForm({
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <label className="block">
+          <span className="text-sm font-medium">이름</span>
+          <input
+            type="text"
+            autoComplete="name"
+            placeholder="홍길동"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={40}
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">실명을 입력해주세요</span>
+        </label>
+
+        <label className="block">
+          <span className="text-sm font-medium">전화번호</span>
+          <input
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            placeholder="01012345678"
+            value={phone}
+            onChange={(e) => setPhone(normalizePhone(e.target.value).slice(0, 11))}
+            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+          />
+          <span className="mt-1 block text-xs text-muted-foreground">
+            숫자만 10~11자리로 입력해 주세요.
+          </span>
+        </label>
+
         <fieldset>
           <legend className="text-sm font-medium">활동 지역</legend>
           <p className="mt-0.5 text-xs text-muted-foreground">하나만 선택</p>
@@ -153,11 +218,11 @@ export function ProfileSetupForm({
                   type="button"
                   onClick={() => setRegion(option.code)}
                   className={cn(
-                  'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
-                  selected
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'border border-border bg-card text-muted-foreground hover:bg-secondary',
-                )}
+                    'rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+                    selected
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'border border-border bg-card text-muted-foreground hover:bg-secondary',
+                  )}
                 >
                   {option.name}
                 </button>

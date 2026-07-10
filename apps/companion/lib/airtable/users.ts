@@ -236,8 +236,8 @@ export async function upsertKakaoUser(input: {
 
   const existing = await findUserByKakaoId(kakaoId);
   if (existing) {
+    // 프로필에서 설정한 실명을 카카오 닉네임으로 덮어쓰지 않음
     const fields: Partial<AirtableUserFields> = {};
-    if (existing.name !== name) fields.Name = name;
     if (input.avatarUrl && existing.avatarUrl !== input.avatarUrl) {
       fields['Avatar URL'] = input.avatarUrl;
     }
@@ -264,6 +264,8 @@ export async function updateUserProfile(
     profileCompleted?: boolean;
     age?: number | null;
     region?: string;
+    name?: string;
+    phone?: string;
   },
 ): Promise<AirtableUser> {
   const config = requireAirtableConfig();
@@ -283,6 +285,12 @@ export async function updateUserProfile(
   }
   if (input.region !== undefined) {
     fields.Region = resolveRegionForStorage(input.region);
+  }
+  if (input.name !== undefined) {
+    fields.Name = input.name.trim();
+  }
+  if (input.phone !== undefined) {
+    fields.Phone = normalizePhone(input.phone);
   }
 
   const updated = await updateRecord<AirtableUserFields>(config.usersTable, userId, fields);

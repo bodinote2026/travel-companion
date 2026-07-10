@@ -8,6 +8,12 @@ import {
 import { normalizeInterestCategories } from '@/lib/profile/constants';
 import { airtableUserToUserProfile } from '@/lib/profile/transform';
 import { isKnownRegionCode } from '@/lib/regions';
+import { normalizePhone } from '@/lib/user-profile';
+
+function isValidProfilePhone(phone: string): boolean {
+  const digits = normalizePhone(phone);
+  return /^\d{10,11}$/.test(digits);
+}
 
 export async function GET() {
   const session = await getSessionUser();
@@ -39,12 +45,14 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { bio, interest_categories, profile_completed, age, region } = body as {
+    const { bio, interest_categories, profile_completed, age, region, name, phone } = body as {
       bio?: string | null;
       interest_categories?: unknown;
       profile_completed?: boolean;
       age?: number | null;
       region?: string;
+      name?: string;
+      phone?: string;
     };
 
     if (age !== undefined && age !== null) {
@@ -60,6 +68,22 @@ export async function PATCH(request: Request) {
       }
     }
 
+    if (name !== undefined) {
+      const trimmed = typeof name === 'string' ? name.trim() : '';
+      if (!trimmed) {
+        return NextResponse.json({ error: '이름을 입력해주세요.' }, { status: 400 });
+      }
+    }
+
+    if (phone !== undefined) {
+      if (typeof phone !== 'string' || !isValidProfilePhone(phone)) {
+        return NextResponse.json(
+          { error: '전화번호는 숫자만 10~11자리로 입력해주세요.' },
+          { status: 400 },
+        );
+      }
+    }
+
     const user = await updateUserProfile(session.id, {
       bio: bio !== undefined ? (bio?.trim() || null) : undefined,
       interestCategories:
@@ -69,12 +93,18 @@ export async function PATCH(request: Request) {
       profileCompleted: profile_completed,
       age: age !== undefined ? age : undefined,
       region: region !== undefined ? region.trim() : undefined,
+      name: name !== undefined ? name.trim() : undefined,
+      phone: phone !== undefined ? phone : undefined,
     });
 
     const response = NextResponse.json({ user: airtableUserToUserProfile(user) });
 
-    // Region이 세션 JWT에도 있으므로 변경 시 쿠키 갱신
-    if (region !== undefined && user.region !== session.region) {
+    const sessionChanged =
+      (region !== undefined && user.region !== session.region) ||
+      (name !== undefined && user.name !== session.name) ||
+      (phone !== undefined && user.phone !== session.phone);
+
+    if (sessionChanged) {
       const token = await createSessionToken({
         id: user.id,
         phone: user.phone,

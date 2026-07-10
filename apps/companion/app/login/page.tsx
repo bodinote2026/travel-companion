@@ -9,7 +9,7 @@ export default function LoginPage() {
     <PageShell hideNav>
       <AppHeader
         title="로그인"
-        subtitle="이름 · 연락처 또는 카카오 로그인"
+        subtitle="카카오로 간편하게 시작하세요"
         backHref="/"
         backLabel="홈으로"
       />

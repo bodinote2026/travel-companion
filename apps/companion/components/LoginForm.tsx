@@ -9,6 +9,9 @@ function safeReturnUrl(url: string | null): string {
   return url;
 }
 
+/** 이름+전화번호 간편 로그인 UI (보존 — 현재 미사용) */
+const SHOW_PHONE_LOGIN = false;
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -26,6 +29,7 @@ export function LoginForm() {
 
   const kakaoLoginUrl = `/api/auth/kakao?returnUrl=${encodeURIComponent(returnUrl)}`;
 
+  /** @deprecated 카카오 전용 온보딩 — SHOW_PHONE_LOGIN 켤 때만 사용 */
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError('');
@@ -57,7 +61,7 @@ export function LoginForm() {
   return (
     <div className="flex flex-col gap-5 px-4 pb-4 pt-2">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        이름과 연락처만 입력하면 바로 이용할 수 있어요. (별도 비밀번호 없음)
+        카카오로 로그인하면 바로 시작할 수 있어요.
       </p>
 
       <a
@@ -70,52 +74,56 @@ export function LoginForm() {
         카카오로 로그인하기
       </a>
 
-      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="h-px flex-1 bg-border" />
-        또는
-        <span className="h-px flex-1 bg-border" />
-      </div>
+      {SHOW_PHONE_LOGIN && (
+        <>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            또는
+            <span className="h-px flex-1 bg-border" />
+          </div>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-4">
-        <label className="block">
-          <span className="flex items-center gap-1.5 text-sm font-medium">
-            <User className="size-4 text-primary" />
-            이름
-          </span>
-          <input
-            type="text"
-            autoComplete="name"
-            placeholder="홍길동"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-            required
-          />
-        </label>
-        <label className="block">
-          <span className="flex items-center gap-1.5 text-sm font-medium">
-            <Phone className="size-4 text-primary" />
-            연락처
-          </span>
-          <input
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="01012345678"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
-            required
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading || !name.trim() || !phone.trim()}
-          className="flex h-12 items-center justify-center rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
-        >
-          {loading ? <Loader2 className="size-5 animate-spin" /> : '시작하기'}
-        </button>
-      </form>
+          <form onSubmit={handleLogin} className="flex flex-col gap-4">
+            <label className="block">
+              <span className="flex items-center gap-1.5 text-sm font-medium">
+                <User className="size-4 text-primary" />
+                이름
+              </span>
+              <input
+                type="text"
+                autoComplete="name"
+                placeholder="홍길동"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className="flex items-center gap-1.5 text-sm font-medium">
+                <Phone className="size-4 text-primary" />
+                연락처
+              </span>
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="01012345678"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+                required
+              />
+            </label>
+            <button
+              type="submit"
+              disabled={loading || !name.trim() || !phone.trim()}
+              className="flex h-12 items-center justify-center rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
+            >
+              {loading ? <Loader2 className="size-5 animate-spin" /> : '시작하기'}
+            </button>
+          </form>
+        </>
+      )}
 
       {error && (
         <p className="rounded-xl bg-destructive-muted px-3 py-2 text-sm text-destructive">{error}</p>
