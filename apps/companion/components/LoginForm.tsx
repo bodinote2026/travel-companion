@@ -12,6 +12,10 @@ function safeReturnUrl(url: string | null): string {
 /** 이름+전화번호 간편 로그인 UI (보존 — 현재 미사용) */
 const SHOW_PHONE_LOGIN = false;
 
+/** 카카오 공식 로그인 버튼 (medium_narrow) */
+const KAKAO_LOGIN_BTN_SRC =
+  'https://res.cloudinary.com/djnwbzh6a/image/upload/v1783483402/kakao_login_medium_narrow_naylke.png';
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,6 +26,7 @@ export function LoginForm() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [kakaoImgFailed, setKakaoImgFailed] = useState(false);
 
   useEffect(() => {
     if (oauthError) setError(oauthError);
@@ -66,12 +71,31 @@ export function LoginForm() {
 
       <a
         href={kakaoLoginUrl}
-        className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-kakao text-base font-semibold text-kakao-foreground"
+        aria-label="카카오로 로그인하기"
+        className={
+          kakaoImgFailed
+            ? 'flex h-12 items-center justify-center gap-2 rounded-2xl bg-kakao text-base font-semibold text-kakao-foreground'
+            : 'mx-auto flex w-full max-w-[183px] items-center justify-center'
+        }
       >
-        <span aria-hidden className="text-lg leading-none">
-          💬
-        </span>
-        카카오로 로그인하기
+        {kakaoImgFailed ? (
+          <>
+            <span aria-hidden className="text-lg leading-none">
+              💬
+            </span>
+            카카오로 로그인하기
+          </>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- 외부 공식 버튼 에셋
+          <img
+            src={KAKAO_LOGIN_BTN_SRC}
+            alt="카카오로 로그인하기"
+            width={183}
+            height={45}
+            className="h-auto w-full"
+            onError={() => setKakaoImgFailed(true)}
+          />
+        )}
       </a>
 
       {SHOW_PHONE_LOGIN && (
