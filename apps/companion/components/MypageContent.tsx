@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ChevronRight,
-  FileText,
   Loader2,
   LogOut,
   Pencil,
@@ -33,7 +32,6 @@ export function MypageContent({ initialOrders = [] }: Props) {
   const { profile, ready, loading, logout } = useUserProfile();
   const [orders, setOrders] = useState<OrderRecord[]>(initialOrders);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [bizOpen, setBizOpen] = useState(false);
 
   useEffect(() => {
     if (!ready || !profile) return;
@@ -149,26 +147,6 @@ export function MypageContent({ initialOrders = [] }: Props) {
           )}
           <ChevronRight className="size-4 text-muted-foreground" />
         </Link>
-        <div className="mx-4 border-t border-border" />
-        <button
-          type="button"
-          onClick={() => setBizOpen((open) => !open)}
-          className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-secondary/40"
-        >
-          <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <FileText className="size-4" />
-          </span>
-          <span className="flex-1 text-sm font-medium">사업자 정보</span>
-          <ChevronRight
-            className={`size-4 text-muted-foreground transition-transform ${bizOpen ? 'rotate-90' : ''}`}
-          />
-        </button>
-        {bizOpen && (
-          <div className="space-y-0.5 border-t border-border bg-secondary/30 px-4 py-3 text-micro leading-relaxed text-muted-foreground">
-            <p>상호명: 앤유코리아 | 사업자등록번호: 662-05-01404 | 대표: 최문석</p>
-            <p>소재지주소: 서울 마포구 새창로 11 (도화동)</p>
-          </div>
-        )}
         <div className="mx-4 border-t border-border" />
         <button
           type="button"
