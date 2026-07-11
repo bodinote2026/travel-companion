@@ -2,29 +2,27 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Bell, Search } from 'lucide-react';
+import { Bell, MapPin, Search } from 'lucide-react';
 import { getRegion } from '@/lib/regions';
 import type { CategoryFilter, RegionProduct } from '@/lib/regions/types';
 import { buildCompanionList } from '@/lib/companions/build-list';
-import { bearingDegrees } from '@/lib/geo';
-import { getMapViewCenter, isNearRegionCenter } from '@/lib/geo/map-view';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useLocationConsent } from '@/hooks/useLocationConsent';
 import { useLocationReporter } from '@/hooks/useLocationReporter';
 import { useNearbyUsers } from '@/hooks/useNearbyUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { CategoryFilter as CategoryFilterBar } from '@/components/CategoryFilter';
-import { CompanionMap } from '@/components/CompanionMap';
 import { CompanionCard } from '@/components/CompanionCard';
 import { CompanionDetailSheet } from '@/components/CompanionDetailSheet';
 import { GroupBuySection } from '@/components/GroupBuySection';
 import { BottomChrome } from '@/components/BottomChrome';
 import { LocationAllowPrompt } from '@/components/LocationAllowPrompt';
 import { LocationConsentBanner } from '@/components/LocationConsentBanner';
+import { bottomChromePaddingClass } from '@/lib/bottom-chrome';
 
 const region = getRegion();
 
-/** 위치 기반 동행 지도 화면 */
+/** 위치 기반 동행 찾기 화면 (지도는 추후 카카오맵 연동) */
 type Props = {
   products: RegionProduct[];
 };
@@ -76,12 +74,6 @@ export function HomeClient({ products }: Props) {
 
   const activeCompanion = companions.find((c) => c.id === activeId) ?? null;
 
-  const mapCenter = getMapViewCenter(displayPosition?.lat, displayPosition?.lng, region.mapCenter);
-  const showRegionSpots =
-    displayPosition != null
-      ? isNearRegionCenter(displayPosition.lat, displayPosition.lng, region.mapCenter)
-      : true;
-  // 지도 전체 오버레이: fallback 전(초기 상태)에만 표시. fallback 중에는 배너+버튼으로 처리
   const needsLocation = !position && !useRegionFallback;
   const showConsentBanner = consentReady && consented === null && needsLocation;
   const showLocationOverlay = needsLocation && consented !== null;
@@ -91,19 +83,10 @@ export function HomeClient({ products }: Props) {
     applyPosition(pos);
   }
 
-  // fallback 배너의 "위치 다시 허용" 버튼 — fallback 상태 리셋 후 GPS 재요청
   function handleRetryGPS() {
     retryFromUserGesture();
   }
 
-  function liveAngle(companionId: string, lat: number, lng: number) {
-    if (displayPosition == null) return undefined;
-    const item = companions.find((c) => c.id === companionId);
-    if (item?.kind !== 'mock') return undefined;
-    return bearingDegrees(displayPosition.lat, displayPosition.lng, lat, lng);
-  }
-
-  // LocationAllowPrompt 용: onStart는 상태만 초기화 (GPS는 LocationAllowPrompt 내부에서 호출)
   const locationPromptProps = {
     loading: geoLoading,
     loadingMessage: geoLoadingMessage,
@@ -114,32 +97,42 @@ export function HomeClient({ products }: Props) {
   };
 
   return (
-    <main className="relative mx-auto flex h-[100dvh] max-w-md flex-col overflow-hidden bg-background">
-      <header className="z-30 flex items-center gap-3 px-5 pb-1 pt-12">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
-          <Image
-            src="/logo.png"
-            alt="동행"
-            width={36}
-            height={36}
-            className="size-9 shrink-0 object-contain"
-            priority
-          />
-          <h1 className="truncate text-lg font-bold leading-tight tracking-tight">
-            함께할 사람을 찾다
-          </h1>
+    <main
+      className={`relative mx-auto min-h-[100dvh] max-w-md bg-background ${bottomChromePaddingClass()}`}
+    >
+      <header className="px-5 pb-1 pt-12">
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1 text-xs font-semibold text-primary">
+              <MapPin className="size-3.5" />
+              {region.name} · 내 주변 {region.searchRadiusKm}km
+            </p>
+            <div className="mt-1 flex items-center gap-2.5">
+              <Image
+                src="/logo.png"
+                alt="동행"
+                width={36}
+                height={36}
+                className="size-9 shrink-0 object-contain"
+                priority
+              />
+              <h1 className="truncate text-xl font-bold leading-tight tracking-tight">
+                동행 찾기
+              </h1>
+            </div>
+          </div>
+          <button
+            type="button"
+            aria-label="알림"
+            className="relative mt-1 flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card"
+          >
+            <Bell className="size-5" />
+            <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary" />
+          </button>
         </div>
-        <button
-          type="button"
-          aria-label="알림"
-          className="relative flex size-10 items-center justify-center rounded-full border border-border bg-card"
-        >
-          <Bell className="size-5" />
-          <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary" />
-        </button>
       </header>
 
-      <div className="z-30 px-5 pb-1 pt-2">
+      <div className="px-5 pb-1 pt-3">
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3.5 py-2.5 text-sm text-muted-foreground">
           <Search className="size-4" />
           어떤 동행을 찾고 있나요?
@@ -150,77 +143,76 @@ export function HomeClient({ products }: Props) {
 
       {products.length > 0 && <GroupBuySection products={products} variant="home" />}
 
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-        <div className="flex min-h-0 flex-1 flex-col">
-          <div className="relative h-64 shrink-0">
-            <CompanionMap
-              companions={companions}
-              spots={region.spots}
-              showSpots={showRegionSpots}
-              centerLat={mapCenter.lat}
-              centerLng={mapCenter.lng}
-              radiusKm={region.searchRadiusKm}
-              userLat={displayPosition?.lat}
-              userLng={displayPosition?.lng}
-              activeId={activeId}
-              onSelect={setActiveId}
-            />
-            {useRegionFallback && (
-              <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-micro text-muted-foreground">
-                    위치 없음 · 지역 기준 표시
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleRetryGPS}
-                    disabled={geoLoading}
-                    className="shrink-0 text-micro font-semibold text-primary disabled:opacity-60"
-                  >
-                    {geoLoading ? '요청 중…' : '위치 다시 허용'}
-                  </button>
-                </div>
-                {profile?.id && (
-                  <p className="mt-0.5 text-micro text-warning">
-                    위치 허용 시 동행 찾기에 반영됩니다
-                  </p>
-                )}
-              </div>
-            )}
-            {!profile?.id && position && (
-              <div className="absolute left-3 right-3 top-3 z-40 rounded-lg bg-background/90 px-3 py-1.5 text-center text-micro text-warning shadow-sm backdrop-blur-sm">
-                로그인하면 내 위치가 동행 찾기에 반영됩니다
-              </div>
-            )}
-            {profile?.id && position && locationSaveError && (
-              <div className="absolute bottom-3 left-3 right-3 z-40 rounded-lg bg-destructive-muted px-3 py-2 text-center text-micro text-destructive shadow-sm backdrop-blur-sm">
-                {locationSaveError}
-              </div>
-            )}
-            {showLocationOverlay && <LocationAllowPrompt {...locationPromptProps} />}
-          </div>
-
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-t-3xl border-t border-border bg-background pt-3 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.12)]">
-            <div className="flex shrink-0 items-center justify-between px-5 pb-2">
-              <p className="text-sm font-semibold">내 주변 동행 {companions.length}명</p>
-              <span className="text-xs text-muted-foreground">가까운 순</span>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-36 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex flex-col gap-3">
-                {companions.map((c) => (
-                  <CompanionCard
-                    key={c.id}
-                    companion={c}
-                    active={c.id === activeId}
-                    liveAngle={liveAngle(c.id, c.lat, c.lng)}
-                    onClick={() => setActiveId(c.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+      <section className="relative mx-4 mt-1 overflow-hidden rounded-[1.25rem] border border-border bg-secondary/40">
+        <div className="flex h-48 flex-col items-center justify-center gap-2 px-6 text-center">
+          <MapPin className="size-8 text-muted-foreground/50" />
+          <p className="text-sm font-semibold text-muted-foreground">지도 준비중입니다</p>
+          <p className="text-xs text-muted-foreground/80">
+            곧 카카오맵으로 주변 동행을 볼 수 있어요
+          </p>
         </div>
-      </div>
+
+        {useRegionFallback && (
+          <div className="absolute left-3 right-3 top-3 z-10 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-micro text-muted-foreground">
+                위치 없음 · 지역 기준 표시
+              </span>
+              <button
+                type="button"
+                onClick={handleRetryGPS}
+                disabled={geoLoading}
+                className="shrink-0 text-micro font-semibold text-primary disabled:opacity-60"
+              >
+                {geoLoading ? '요청 중…' : '위치 다시 허용'}
+              </button>
+            </div>
+            {profile?.id && (
+              <p className="mt-0.5 text-micro text-warning">
+                위치 허용 시 동행 찾기에 반영됩니다
+              </p>
+            )}
+          </div>
+        )}
+        {!profile?.id && position && (
+          <div className="absolute left-3 right-3 top-3 z-10 rounded-lg bg-background/90 px-3 py-1.5 text-center text-micro text-warning shadow-sm backdrop-blur-sm">
+            로그인하면 내 위치가 동행 찾기에 반영됩니다
+          </div>
+        )}
+        {profile?.id && position && locationSaveError && (
+          <div className="absolute bottom-3 left-3 right-3 z-10 rounded-lg bg-destructive-muted px-3 py-2 text-center text-micro text-destructive shadow-sm backdrop-blur-sm">
+            {locationSaveError}
+          </div>
+        )}
+        {showLocationOverlay && (
+          <div className="absolute inset-0 z-10 flex items-center bg-background/90 p-3 backdrop-blur-[2px]">
+            <LocationAllowPrompt {...locationPromptProps} compact />
+          </div>
+        )}
+      </section>
+
+      <section className="mt-4">
+        <div className="flex items-center justify-between px-5 pb-2">
+          <p className="text-sm font-semibold">내 주변 동행 {companions.length}명</p>
+          <span className="text-xs text-muted-foreground">가까운 순</span>
+        </div>
+        <div className="flex flex-col gap-3 px-4">
+          {companions.length === 0 ? (
+            <p className="rounded-[1.25rem] border border-border bg-card py-10 text-center text-sm text-muted-foreground">
+              주변에 표시할 동행이 없습니다.
+            </p>
+          ) : (
+            companions.map((c) => (
+              <CompanionCard
+                key={c.id}
+                companion={c}
+                active={c.id === activeId}
+                onClick={() => setActiveId(c.id)}
+              />
+            ))
+          )}
+        </div>
+      </section>
 
       <BottomChrome active="map" />
 
