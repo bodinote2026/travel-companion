@@ -37,6 +37,15 @@ async function findExistingRoomMemory(profileA: string, profileB: string): Promi
   return null;
 }
 
+function findRejoinableRoomMemory(myProfileId: string, peerProfileId: string): ChatRoomRow | null {
+  for (const room of memoryRooms) {
+    const members = memoryMembers.filter((m) => m.room_id === room.id).map((m) => m.profile_id);
+    if (members.includes(myProfileId)) continue;
+    if (members.length === 1 && members[0] === peerProfileId) return room;
+  }
+  return null;
+}
+
 export async function getOrCreateChatRoom(input: {
   myProfileId: string;
   peerProfileId?: string;
@@ -58,6 +67,16 @@ export async function getOrCreateChatRoom(input: {
   const existing = await findExistingRoomMemory(input.myProfileId, peerId);
   if (existing) return existing;
 
+  const rejoinable = findRejoinableRoomMemory(input.myProfileId, peerId);
+  if (rejoinable) {
+    memoryMembers.push({
+      room_id: rejoinable.id,
+      profile_id: input.myProfileId,
+      last_read_at: new Date().toISOString(),
+    });
+    return rejoinable;
+  }
+
   const now = new Date().toISOString();
   const room: ChatRoomRow = {
     id: crypto.randomUUID(),
@@ -69,6 +88,17 @@ export async function getOrCreateChatRoom(input: {
   memoryMembers.push({ room_id: room.id, profile_id: input.myProfileId, last_read_at: now });
   memoryMembers.push({ room_id: room.id, profile_id: peerId, last_read_at: null });
   return room;
+}
+
+export async function leaveChatRoom(roomId: string, profileId: string): Promise<void> {
+  if (getAirtableConfig()) {
+    return airtableChat.leaveChatRoom(roomId, profileId);
+  }
+  const index = memoryMembers.findIndex(
+    (m) => m.room_id === roomId && m.profile_id === profileId,
+  );
+  if (index < 0) throw new Error('채팅방 멤버가 아닙니다.');
+  memoryMembers.splice(index, 1);
 }
 
 export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer[]> {

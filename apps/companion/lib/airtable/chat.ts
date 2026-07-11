@@ -1,5 +1,12 @@
 import type { ChatMessageRow, ChatRoomRow, ChatRoomWithPeer } from '@/lib/chat/types';
-import { createRecord, escapeAirtableFormula, getRecord, listRecords, updateRecord } from './client';
+import {
+  createRecord,
+  deleteRecord,
+  escapeAirtableFormula,
+  getRecord,
+  listRecords,
+  updateRecord,
+} from './client';
 import { requireAirtableConfig } from './config';
 import { getUserById, toProfileRow, userDisplayName } from './users';
 
@@ -81,6 +88,35 @@ async function findExistingRoom(profileA: string, profileB: string): Promise<Cha
   return null;
 }
 
+/**
+ * 내가 나간 뒤 상대만 남은 1:1 방 — 재입장 시 기존 메시지 유지.
+ */
+async function findRejoinableRoom(
+  myProfileId: string,
+  peerProfileId: string,
+): Promise<ChatRoomRow | null> {
+  const config = requireAirtableConfig();
+  const peerMemberships = await listRecords<ChatRoomMemberFields>(config.chatRoomMembersTable, {
+    filterByFormula: `{User ID}="${escapeAirtableFormula(peerProfileId)}"`,
+  });
+
+  for (const membership of peerMemberships) {
+    const roomId = membership.fields['Room ID'];
+    const roomMembers = await listRecords<ChatRoomMemberFields>(config.chatRoomMembersTable, {
+      filterByFormula: `{Room ID}="${escapeAirtableFormula(roomId)}"`,
+    });
+    const userIds = roomMembers.map((m) => m.fields['User ID']);
+    if (userIds.includes(myProfileId)) continue;
+    // 상대만 멤버로 남은 방 (= 내가 나간 1:1)
+    if (userIds.length === 1 && userIds[0] === peerProfileId) {
+      const roomRecord = await getRecord<ChatRoomFields>(config.chatRoomsTable, roomId);
+      return mapRoom(roomRecord);
+    }
+  }
+
+  return null;
+}
+
 async function getMembership(
   roomId: string,
   userId: string,
@@ -114,6 +150,22 @@ export async function getOrCreateChatRoom(input: {
   const existing = await findExistingRoom(input.myProfileId, peerId);
   if (existing) return existing;
 
+  const rejoinable = await findRejoinableRoom(input.myProfileId, peerId);
+  if (rejoinable) {
+    const config = requireAirtableConfig();
+    const now = new Date().toISOString();
+    await createRecord<ChatRoomMemberFields>(
+      config.chatRoomMembersTable,
+      {
+        'Room ID': rejoinable.id,
+        'User ID': input.myProfileId,
+        'Last Read At': now,
+      },
+      { typecast: true },
+    );
+    return rejoinable;
+  }
+
   const config = requireAirtableConfig();
   const created = await createRecord<ChatRoomFields>(config.chatRoomsTable, {
     Region: input.region,
@@ -132,6 +184,15 @@ export async function getOrCreateChatRoom(input: {
   });
 
   return room;
+}
+
+export async function leaveChatRoom(roomId: string, profileId: string): Promise<void> {
+  const membership = await getMembership(roomId, profileId);
+  if (!membership) {
+    throw new Error('채팅방 멤버가 아닙니다.');
+  }
+  const config = requireAirtableConfig();
+  await deleteRecord(config.chatRoomMembersTable, membership.id);
 }
 
 export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer[]> {

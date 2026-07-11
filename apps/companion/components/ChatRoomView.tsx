@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Send } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Loader2, LogOut, Send } from 'lucide-react';
 import { PeerProfileSheet } from '@/components/PeerProfileSheet';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { CHAT_POLL_INTERVAL_MS, type ChatMessageRow } from '@/lib/chat/types';
@@ -18,6 +19,7 @@ function formatMessageTime(iso: string) {
 }
 
 export function ChatRoomView({ roomId }: Props) {
+  const router = useRouter();
   const { profile, ready } = useUserProfile();
   const [messages, setMessages] = useState<ChatMessageRow[]>([]);
   const [peerId, setPeerId] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export function ChatRoomView({ roomId }: Props) {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const latestMessageAtRef = useRef<string | null>(null);
 
@@ -157,6 +160,25 @@ export function ChatRoomView({ roomId }: Props) {
     }
   }
 
+  async function handleLeave() {
+    if (!profile?.id || leaving) return;
+    if (!window.confirm('대화방을 나가시겠어요?')) return;
+
+    setLeaving(true);
+    try {
+      const res = await fetch(`/api/chat/rooms?roomId=${encodeURIComponent(roomId)}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? '나가기 실패');
+      router.replace('/chat');
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '대화방 나가기에 실패했습니다.');
+      setLeaving(false);
+    }
+  }
+
   if (!ready) {
     return (
       <div className="flex justify-center py-20">
@@ -178,11 +200,11 @@ export function ChatRoomView({ roomId }: Props) {
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] flex-col">
-      <header className="flex items-center gap-3 border-b border-border px-4 pb-3 pt-12">
+      <header className="flex items-center gap-2 border-b border-border px-4 pb-3 pt-12">
         <Link
           href="/chat"
           aria-label="뒤로"
-          className="flex size-9 items-center justify-center rounded-full bg-secondary"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary"
         >
           <ArrowLeft className="size-4" />
         </Link>
@@ -205,6 +227,20 @@ export function ChatRoomView({ roomId }: Props) {
             <span className="block truncate text-base font-bold">{peerName || '대화'}</span>
             <span className="block text-xs text-muted-foreground">1:1 동행 채팅</span>
           </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleLeave()}
+          disabled={leaving}
+          className="inline-flex shrink-0 items-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-70"
+          aria-label="대화방 나가기"
+        >
+          {leaving ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <LogOut className="size-3.5" />
+          )}
+          나가기
         </button>
       </header>
 
