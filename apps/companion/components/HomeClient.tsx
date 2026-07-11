@@ -103,13 +103,7 @@ export function HomeClient({ products }: Props) {
       <header className="px-5 pb-1 pt-12">
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1 text-xs font-semibold text-primary">
-              <MapPin className="size-3.5" />
-              {hasLocation
-                ? `${region.name} · 내 주변 ${region.searchRadiusKm}km`
-                : `${region.name} · 위치 확인 필요`}
-            </p>
-            <div className="mt-1 flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5">
               <Image
                 src="/logo.png"
                 alt="동행"
@@ -126,7 +120,7 @@ export function HomeClient({ products }: Props) {
           <button
             type="button"
             aria-label="알림"
-            className="relative mt-1 flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card"
+            className="relative flex size-10 shrink-0 items-center justify-center rounded-full border border-border bg-card"
           >
             <Bell className="size-5" />
             <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary" />
