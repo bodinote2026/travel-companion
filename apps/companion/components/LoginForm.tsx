@@ -12,9 +12,9 @@ function safeReturnUrl(url: string | null): string {
 /** 이름+전화번호 간편 로그인 UI (보존 — 현재 미사용) */
 const SHOW_PHONE_LOGIN = false;
 
-/** 카카오 공식 로그인 버튼 (medium_narrow) */
+/** 카카오 공식 로그인 버튼 (large_wide) */
 const KAKAO_LOGIN_BTN_SRC =
-  'https://res.cloudinary.com/djnwbzh6a/image/upload/v1783483402/kakao_login_medium_narrow_naylke.png';
+  'https://res.cloudinary.com/djnwbzh6a/image/upload/v1783744947/kakao_login_large_wide_kjp88p.png';
 
 export function LoginForm() {
   const router = useRouter();
@@ -74,8 +74,8 @@ export function LoginForm() {
         aria-label="카카오로 로그인하기"
         className={
           kakaoImgFailed
-            ? 'flex h-12 items-center justify-center gap-2 rounded-2xl bg-kakao text-base font-semibold text-kakao-foreground'
-            : 'mx-auto flex w-full max-w-[183px] items-center justify-center'
+            ? 'flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-kakao text-base font-semibold text-kakao-foreground'
+            : 'flex w-full items-center justify-center'
         }
       >
         {kakaoImgFailed ? (
@@ -90,9 +90,9 @@ export function LoginForm() {
           <img
             src={KAKAO_LOGIN_BTN_SRC}
             alt="카카오로 로그인하기"
-            width={183}
-            height={45}
-            className="h-auto w-full"
+            width={600}
+            height={90}
+            className="h-auto w-full object-contain"
             onError={() => setKakaoImgFailed(true)}
           />
         )}
