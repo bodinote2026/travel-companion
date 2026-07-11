@@ -9,10 +9,17 @@ import { cn } from '@/lib/utils';
 type Props = {
   companion: CompanionListItem;
   active?: boolean;
+  /** false면 거리 대신 지역명만 표시 (위치 미확인 시) */
+  showDistance?: boolean;
   onClick: () => void;
 };
 
-export function CompanionCard({ companion, active, onClick }: Props) {
+export function CompanionCard({
+  companion,
+  active,
+  showDistance = true,
+  onClick,
+}: Props) {
   const ageLabel = companion.age != null ? ` · ${companion.age}` : '';
   const bioLine = companion.bio?.trim() || companion.headline;
   const categoryTags =
@@ -74,7 +81,9 @@ export function CompanionCard({ companion, active, onClick }: Props) {
         <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="size-3 shrink-0" />
           <span className="truncate">
-            {companion.area} · {formatDistance(companion.distanceKm)}
+            {showDistance
+              ? `${companion.area} · ${formatDistance(companion.distanceKm)}`
+              : companion.area}
             {companion.activityLabel && !companion.activityActive
               ? ` · ${companion.activityLabel}`
               : ''}

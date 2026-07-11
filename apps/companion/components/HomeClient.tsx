@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
-import { Bell, MapPin, Search } from 'lucide-react';
+import { Bell, Loader2, MapPin, Search } from 'lucide-react';
 import { getRegion } from '@/lib/regions';
 import type { CategoryFilter, RegionProduct } from '@/lib/regions/types';
 import { buildCompanionList } from '@/lib/companions/build-list';
@@ -45,12 +45,9 @@ export function HomeClient({ products }: Props) {
     retryFromUserGesture,
   } = useGeolocation(true);
 
-  const fallbackPosition = useRegionFallback
-    ? { lat: region.mapCenter.lat, lng: region.mapCenter.lng, accuracy: 9999 }
-    : null;
-  const displayPosition = position ?? fallbackPosition;
+  const hasLocation = position != null;
 
-  const nearbyEnabled = !!profile?.id && !!position;
+  const nearbyEnabled = !!profile?.id && hasLocation;
   const { users: nearbyUsers, refresh: refreshNearby } = useNearbyUsers(nearbyEnabled);
   const { saveError: locationSaveError } = useLocationReporter(
     position,
@@ -66,17 +63,20 @@ export function HomeClient({ products }: Props) {
         spots: region.spots,
         category,
         radiusKm: region.searchRadiusKm,
-        userLat: displayPosition?.lat,
-        userLng: displayPosition?.lng,
+        // 실제 GPS가 있을 때만 거리 계산·반경 필터 적용
+        userLat: position?.lat,
+        userLng: position?.lng,
       }),
-    [category, displayPosition, nearbyUsers],
+    [category, position, nearbyUsers],
   );
 
   const activeCompanion = companions.find((c) => c.id === activeId) ?? null;
 
-  const needsLocation = !position && !useRegionFallback;
+  const needsLocation = !hasLocation && !useRegionFallback;
   const showConsentBanner = consentReady && consented === null && needsLocation;
   const showLocationOverlay = needsLocation && consented !== null;
+  const locationFailed = !hasLocation && (useRegionFallback || !!geoError);
+  const locationPending = !hasLocation && geoLoading && !locationFailed;
 
   function handleConsentGranted(pos: Parameters<typeof applyPosition>[0]) {
     accept();
@@ -105,7 +105,9 @@ export function HomeClient({ products }: Props) {
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1 text-xs font-semibold text-primary">
               <MapPin className="size-3.5" />
-              {region.name} · 내 주변 {region.searchRadiusKm}km
+              {hasLocation
+                ? `${region.name} · 내 주변 ${region.searchRadiusKm}km`
+                : `${region.name} · 위치 확인 필요`}
             </p>
             <div className="mt-1 flex items-center gap-2.5">
               <Image
@@ -144,42 +146,46 @@ export function HomeClient({ products }: Props) {
       {products.length > 0 && <GroupBuySection products={products} variant="home" />}
 
       <section className="relative mx-4 mt-1 overflow-hidden rounded-[1.25rem] border border-border bg-secondary/40">
-        <div className="flex h-48 flex-col items-center justify-center gap-2 px-6 text-center">
-          <MapPin className="size-8 text-muted-foreground/50" />
-          <p className="text-sm font-semibold text-muted-foreground">지도 준비중입니다</p>
-          <p className="text-xs text-muted-foreground/80">
-            곧 카카오맵으로 주변 동행을 볼 수 있어요
-          </p>
-        </div>
-
-        {useRegionFallback && (
-          <div className="absolute left-3 right-3 top-3 z-10 rounded-lg bg-background/90 px-3 py-2 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-micro text-muted-foreground">
-                위치 없음 · 지역 기준 표시
-              </span>
-              <button
-                type="button"
-                onClick={handleRetryGPS}
-                disabled={geoLoading}
-                className="shrink-0 text-micro font-semibold text-primary disabled:opacity-60"
-              >
-                {geoLoading ? '요청 중…' : '위치 다시 허용'}
-              </button>
-            </div>
-            {profile?.id && (
-              <p className="mt-0.5 text-micro text-warning">
-                위치 허용 시 동행 찾기에 반영됩니다
-              </p>
-            )}
+        {locationPending ? (
+          <div className="flex h-48 flex-col items-center justify-center gap-3 px-6 text-center">
+            <Loader2 className="size-8 animate-spin text-primary" />
+            <p className="text-sm font-semibold text-foreground">
+              {geoLoadingMessage || '위치를 확인하는 중…'}
+            </p>
+            <p className="text-xs text-muted-foreground">잠시만 기다려 주세요</p>
+          </div>
+        ) : locationFailed || (!hasLocation && !showLocationOverlay) ? (
+          <div className="flex h-48 flex-col items-center justify-center gap-2 px-6 text-center">
+            <MapPin className="size-8 text-muted-foreground/50" />
+            <p className="text-sm font-semibold text-muted-foreground">지도 준비중입니다</p>
+            <p className="text-xs leading-relaxed text-muted-foreground/80">
+              위치 권한을 허용하면 내 주변 동행을 확인할 수 있어요
+            </p>
+            <button
+              type="button"
+              onClick={handleRetryGPS}
+              disabled={geoLoading}
+              className="mt-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {geoLoading ? '요청 중…' : '위치 다시 요청하기'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex h-48 flex-col items-center justify-center gap-2 px-6 text-center">
+            <MapPin className="size-8 text-muted-foreground/50" />
+            <p className="text-sm font-semibold text-muted-foreground">지도 준비중입니다</p>
+            <p className="text-xs text-muted-foreground/80">
+              곧 카카오맵으로 주변 동행을 볼 수 있어요
+            </p>
           </div>
         )}
-        {!profile?.id && position && (
+
+        {!profile?.id && hasLocation && (
           <div className="absolute left-3 right-3 top-3 z-10 rounded-lg bg-background/90 px-3 py-1.5 text-center text-micro text-warning shadow-sm backdrop-blur-sm">
             로그인하면 내 위치가 동행 찾기에 반영됩니다
           </div>
         )}
-        {profile?.id && position && locationSaveError && (
+        {profile?.id && hasLocation && locationSaveError && (
           <div className="absolute bottom-3 left-3 right-3 z-10 rounded-lg bg-destructive-muted px-3 py-2 text-center text-micro text-destructive shadow-sm backdrop-blur-sm">
             {locationSaveError}
           </div>
@@ -193,13 +199,19 @@ export function HomeClient({ products }: Props) {
 
       <section className="mt-4">
         <div className="flex items-center justify-between px-5 pb-2">
-          <p className="text-sm font-semibold">내 주변 동행 {companions.length}명</p>
-          <span className="text-xs text-muted-foreground">가까운 순</span>
+          <p className="text-sm font-semibold">
+            {hasLocation ? `내 주변 동행 ${companions.length}명` : `동행 ${companions.length}명`}
+          </p>
+          <span className="text-xs text-muted-foreground">
+            {hasLocation ? '가까운 순' : '지역 기준'}
+          </span>
         </div>
         <div className="flex flex-col gap-3 px-4">
           {companions.length === 0 ? (
             <p className="rounded-[1.25rem] border border-border bg-card py-10 text-center text-sm text-muted-foreground">
-              주변에 표시할 동행이 없습니다.
+              {hasLocation
+                ? '주변에 표시할 동행이 없습니다.'
+                : '표시할 동행이 없습니다. 위치를 허용하면 주변 동행을 볼 수 있어요.'}
             </p>
           ) : (
             companions.map((c) => (
@@ -207,6 +219,7 @@ export function HomeClient({ products }: Props) {
                 key={c.id}
                 companion={c}
                 active={c.id === activeId}
+                showDistance={hasLocation}
                 onClick={() => setActiveId(c.id)}
               />
             ))
