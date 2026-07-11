@@ -161,7 +161,9 @@ function UserProfileSheetContent({ person, onClose, chatActive = false }: Conten
       !!person.companionSeedId?.trim());
   const busyKey = person.userId || person.companionSeedId || '';
   const busy = startingId != null && startingId === busyKey;
-  const canViewGatherings = !!person.userId;
+  // 실유저 ID 또는 지도 mock seed — 둘 다 참여 동행 보기 가능
+  const canViewGatherings =
+    !!person.userId || !!person.companionSeedId?.trim();
   const showChatAction = canChat || chatActive;
 
   const [view, setView] = useState<SheetView>('profile');
@@ -190,16 +192,17 @@ function UserProfileSheetContent({ person, onClose, chatActive = false }: Conten
   }
 
   async function openGatherings() {
-    if (!person.userId) return;
+    if (!person.userId && !person.companionSeedId?.trim()) return;
     setView('gatherings');
     setGatheringsError('');
     if (gatherings != null) return;
 
     setGatheringsLoading(true);
     try {
-      const res = await fetch(
-        `/api/users/${encodeURIComponent(person.userId)}/gatherings`,
-      );
+      const url = person.userId
+        ? `/api/users/${encodeURIComponent(person.userId)}/gatherings`
+        : `/api/companions/${encodeURIComponent(person.companionSeedId!)}/gatherings`;
+      const res = await fetch(url);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? '참여 동행 조회 실패');
       setGatherings(data.gatherings ?? []);
