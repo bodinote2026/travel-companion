@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getRequestOrigin } from '@/lib/app-url';
 import { completeOrderAfterPayment } from '@/lib/payments/complete-order';
 import { getPaymentProvider } from '@/lib/payments/provider';
 
@@ -98,9 +99,7 @@ async function parseReturnPayload(request: Request): Promise<Record<string, stri
 }
 
 function getAppOrigin(request: Request): string {
-  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
-  if (configured) return configured;
-  return new URL(request.url).origin;
+  return getRequestOrigin(request);
 }
 
 function redirectWithSuccess(request: Request, productId: string) {

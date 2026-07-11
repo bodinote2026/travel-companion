@@ -1,4 +1,5 @@
 import type { PaymentEnv, PaymentProviderId } from './types';
+import { DEFAULT_APP_ORIGIN } from '@/lib/app-url';
 
 export type PaymentConfig = {
   provider: PaymentProviderId;
@@ -49,10 +50,13 @@ export function getPaymentConfig(): PaymentConfig {
   const publicClientId =
     process.env.NEXT_PUBLIC_PAYMENT_CLIENT_ID?.trim() || clientId;
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3001').replace(
-    /\/$/,
-    '',
-  );
+  const appUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL ? DEFAULT_APP_ORIGIN : 'http://localhost:3001')
+  ).replace(/\/$/, '');
+
+  // Vercel 배포 URL이 env에 남아 있으면 공개 도메인으로 교정
+  const publicAppUrl = /vercel\.app/i.test(appUrl) ? DEFAULT_APP_ORIGIN : appUrl;
 
   return {
     provider,
@@ -60,7 +64,7 @@ export function getPaymentConfig(): PaymentConfig {
     clientId,
     secretKey,
     publicClientId,
-    appUrl,
+    appUrl: publicAppUrl,
     apiBaseUrl: defaultApiBaseUrl(provider, env),
     merchantId: process.env.PAYMENT_MERCHANT_ID?.trim() ?? '',
     signKey: process.env.PAYMENT_SIGN_KEY?.trim() ?? '',

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getRequestOrigin } from '@/lib/app-url';
 import { createKakaoOAuthState, safeReturnUrl } from '@/lib/auth/kakao-oauth-state';
 import { getKakaoRedirectUri, getKakaoRestApiKey, isKakaoLoginConfigured } from '@/lib/auth/kakao-config';
 
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const returnUrl = safeReturnUrl(searchParams.get('returnUrl'));
-  const origin = new URL(request.url).origin;
+  const origin = getRequestOrigin(request);
   const redirectUri = getKakaoRedirectUri(origin);
   const state = await createKakaoOAuthState(returnUrl);
 

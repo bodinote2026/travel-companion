@@ -1,3 +1,5 @@
+import { DEFAULT_APP_ORIGIN, resolveAppOrigin } from '@/lib/app-url';
+
 export function getKakaoRestApiKey(): string {
   const key = process.env.KAKAO_REST_API_KEY?.trim();
   if (!key) {
@@ -11,19 +13,28 @@ export function getKakaoClientSecret(): string | undefined {
   return secret || undefined;
 }
 
-/** 카카오디벨로퍼스에 등록한 Redirect URI와 정확히 일치해야 함 */
+/**
+ * 카카오디벨로퍼스에 등록한 Redirect URI와 일치해야 함.
+ * 우선순위: KAKAO_REDIRECT_URI(vercel.app 제외 가능) → 요청 origin → NEXT_PUBLIC_APP_URL → donghaeng.me
+ */
 export function getKakaoRedirectUri(origin?: string): string {
   const configured = process.env.KAKAO_REDIRECT_URI?.trim();
-  if (configured) return configured;
+  const appOrigin = resolveAppOrigin(origin);
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
-  if (appUrl) return `${appUrl}/api/auth/kakao/callback`;
+  if (configured) {
+    const normalized = configured.replace(/\/$/, '');
+    // 잘못 vercel 배포 URL로 고정된 경우, 공개 도메인으로 교체
+    if (/vercel\.app/i.test(normalized)) {
+      return `${appOrigin}/api/auth/kakao/callback`;
+    }
+    return normalized;
+  }
 
-  if (origin) return `${origin.replace(/\/$/, '')}/api/auth/kakao/callback`;
-
-  return 'https://travel-companion-companion-black.vercel.app/api/auth/kakao/callback';
+  return `${appOrigin}/api/auth/kakao/callback`;
 }
 
 export function isKakaoLoginConfigured(): boolean {
   return Boolean(process.env.KAKAO_REST_API_KEY?.trim());
 }
+
+export { DEFAULT_APP_ORIGIN };

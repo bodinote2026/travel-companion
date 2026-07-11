@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getUserById } from '@/lib/airtable/users';
+import { getRequestOrigin } from '@/lib/app-url';
 import { completeKakaoLogin } from '@/lib/auth/complete-login';
 import { exchangeKakaoCodeForToken, fetchKakaoUserProfile } from '@/lib/auth/kakao-client';
 import { getKakaoRedirectUri } from '@/lib/auth/kakao-config';
@@ -8,7 +9,7 @@ import { createSessionToken, setSessionCookie } from '@/lib/auth/session';
 import { defaultRegionCode } from '@/lib/region-filter';
 
 function redirectToLogin(request: Request, message: string, returnUrl = '/') {
-  const origin = new URL(request.url).origin;
+  const origin = getRequestOrigin(request);
   const url = new URL('/login', origin);
   url.searchParams.set('returnUrl', safeReturnUrl(returnUrl));
   url.searchParams.set('error', message);
@@ -42,7 +43,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const origin = new URL(request.url).origin;
+    const origin = getRequestOrigin(request);
     const redirectUri = getKakaoRedirectUri(origin);
     const accessToken = await exchangeKakaoCodeForToken(code, redirectUri);
     const profile = await fetchKakaoUserProfile(accessToken);
@@ -58,6 +59,7 @@ export async function GET(request: Request) {
     const user = await getUserById(sessionUser.id);
     const profileCompleted = user?.profileCompleted ?? false;
 
+    // 상대 경로만 사용 — 현재 요청 origin(donghaeng.me) 유지
     const destination = profileCompleted
       ? safeReturnUrl(returnUrl)
       : `/profile/setup?returnUrl=${encodeURIComponent(safeReturnUrl(returnUrl))}`;
