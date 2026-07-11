@@ -105,13 +105,13 @@ export function GroupBuyWidget({ product }: Props) {
             <span className="line-through">{formatPrice(product.regularPrice)}원</span>
           </div>
           <div className="flex justify-between font-semibold">
-            <span>공동구매가</span>
+            <span>얼리버드 할인가</span>
             <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
           </div>
         </div>
 
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          동행찾기에서 묵호 시그널 모집글을 확인하고 신청해보세요
+          묵호 시그널 동행 모집글을 확인하고 신청해보세요
         </p>
         <Link
           href="/gatherings"
