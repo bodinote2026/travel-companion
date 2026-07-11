@@ -288,3 +288,27 @@ export async function cancelGatheringApplication(input: {
 
   return { gathering: updated };
 }
+
+/** 동행지기가 신청자를 취소(강퇴) */
+export async function removeGatheringParticipantByHost(input: {
+  gatheringId: string;
+  hostUserId: string;
+  participantUserId: string;
+}): Promise<CancelGatheringResult> {
+  const gathering = await getGatheringById(input.gatheringId);
+
+  if (!gathering) {
+    throw new ApplyGatheringError('모집글을 찾을 수 없습니다.', 404);
+  }
+  if (gathering.author_id !== input.hostUserId) {
+    throw new ApplyGatheringError('동행지기만 참여자를 취소할 수 있습니다.', 403);
+  }
+  if (input.participantUserId === gathering.author_id) {
+    throw new ApplyGatheringError('동행지기는 취소할 수 없습니다.', 400);
+  }
+
+  return cancelGatheringApplication({
+    gatheringId: input.gatheringId,
+    userId: input.participantUserId,
+  });
+}

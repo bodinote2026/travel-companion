@@ -125,7 +125,11 @@ export default async function GatheringDetailPage({ params }: Props) {
         )}
       </article>
 
-      <GatheringParticipants members={members} />
+      <GatheringParticipants
+        gatheringId={gathering.id}
+        members={members}
+        canManage={isAuthor}
+      />
 
       <CommentSection
         targetType="gathering"
