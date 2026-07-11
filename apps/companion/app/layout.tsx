@@ -13,12 +13,35 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://donghaeng.me'),
   title: '동행 · 함께할 사람을 찾다',
   description:
     '실시간 동행 매칭과 공동구매. 식사, 운동, 여행 동행을 함께 즐겨보세요.',
   icons: {
     icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
     apple: '/apple-icon.png',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    url: 'https://donghaeng.me',
+    siteName: '동행',
+    title: '동행 - 함께할 사람을 찾다',
+    description:
+      '실시간 동행 매칭과 공동구매. 식사, 운동, 여행 동행을 함께 즐겨보세요.',
+    images: [
+      {
+        url: 'https://donghaeng.me/logo.png',
+        alt: '동행',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: '동행 - 함께할 사람을 찾다',
+    description:
+      '실시간 동행 매칭과 공동구매. 식사, 운동, 여행 동행을 함께 즐겨보세요.',
+    images: ['https://donghaeng.me/logo.png'],
   },
 };
 
