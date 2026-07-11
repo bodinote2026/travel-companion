@@ -273,7 +273,14 @@ export function ChatRoomList() {
                 </button>
                 <Link href={`/chat/${room.id}`} className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2">
-                    <span className="truncate font-semibold">{room.peer.name}</span>
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate font-semibold">{room.peer.name}</span>
+                      {(room.unread_count ?? 0) > 0 && (
+                        <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-white">
+                          {(room.unread_count ?? 0) > 99 ? '99+' : room.unread_count}
+                        </span>
+                      )}
+                    </span>
                     <span className="shrink-0 text-micro text-muted-foreground">
                       {formatTime(room.last_message_at ?? room.created_at)}
                     </span>
@@ -282,6 +289,7 @@ export function ChatRoomList() {
                     className={cn(
                       'mt-0.5 block truncate text-sm',
                       room.last_message ? 'text-muted-foreground' : 'text-muted-foreground/60',
+                      (room.unread_count ?? 0) > 0 && 'font-semibold text-foreground',
                     )}
                   >
                     {room.last_message ?? '대화를 시작해보세요'}

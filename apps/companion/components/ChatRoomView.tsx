@@ -23,6 +23,7 @@ export function ChatRoomView({ roomId }: Props) {
   const [peerId, setPeerId] = useState<string | null>(null);
   const [peerName, setPeerName] = useState('');
   const [peerAvatar, setPeerAvatar] = useState<string | null>(null);
+  const [peerLastReadAt, setPeerLastReadAt] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -66,6 +67,9 @@ export function ChatRoomView({ roomId }: Props) {
           const last = data.messages[data.messages.length - 1] as ChatMessageRow | undefined;
           if (last) latestMessageAtRef.current = last.created_at;
         }
+        if (data.peer_last_read_at !== undefined) {
+          setPeerLastReadAt(data.peer_last_read_at);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -104,8 +108,13 @@ export function ChatRoomView({ roomId }: Props) {
       try {
         const res = await fetch(`/api/chat/messages?${params.toString()}`);
         const data = await res.json();
-        if (cancelled || !data.messages?.length) return;
-        mergeMessages(data.messages);
+        if (cancelled) return;
+        if (data.peer_last_read_at !== undefined) {
+          setPeerLastReadAt(data.peer_last_read_at);
+        }
+        if (data.messages?.length) {
+          mergeMessages(data.messages);
+        }
       } catch {
         // 폴링 실패는 다음 주기에 재시도
       }
@@ -212,28 +221,41 @@ export function ChatRoomView({ roomId }: Props) {
           <ul className="flex flex-col gap-2">
             {messages.map((msg) => {
               const mine = msg.sender_id === profile.id;
+              const peerReadMs = peerLastReadAt
+                ? new Date(peerLastReadAt).getTime()
+                : 0;
+              const unreadByPeer =
+                mine && new Date(msg.created_at).getTime() > peerReadMs;
+
               return (
                 <li
                   key={msg.id}
                   className={cn('flex', mine ? 'justify-end' : 'justify-start')}
                 >
-                  <div
-                    className={cn(
-                      'max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm',
-                      mine
-                        ? 'rounded-br-md bg-primary text-primary-foreground'
-                        : 'rounded-bl-md border border-border bg-card',
-                    )}
-                  >
-                    <p className="whitespace-pre-wrap break-words">{msg.body}</p>
-                    <p
+                  <div className={cn('flex max-w-[80%] items-end gap-1', mine && 'flex-row-reverse')}>
+                    <div
                       className={cn(
-                        'mt-1 text-micro',
-                        mine ? 'text-primary-foreground/70' : 'text-muted-foreground',
+                        'rounded-2xl px-3.5 py-2.5 text-sm',
+                        mine
+                          ? 'rounded-br-md bg-primary text-primary-foreground'
+                          : 'rounded-bl-md border border-border bg-card',
                       )}
                     >
-                      {formatMessageTime(msg.created_at)}
-                    </p>
+                      <p className="whitespace-pre-wrap break-words">{msg.body}</p>
+                      <p
+                        className={cn(
+                          'mt-1 text-micro',
+                          mine ? 'text-primary-foreground/70' : 'text-muted-foreground',
+                        )}
+                      >
+                        {formatMessageTime(msg.created_at)}
+                      </p>
+                    </div>
+                    {unreadByPeer && (
+                      <span className="mb-1 shrink-0 text-[10px] font-bold text-primary">
+                        1
+                      </span>
+                    )}
                   </div>
                 </li>
               );

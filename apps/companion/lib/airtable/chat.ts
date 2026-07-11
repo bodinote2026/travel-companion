@@ -11,12 +11,18 @@ type ChatRoomFields = {
 type ChatRoomMemberFields = {
   'Room ID': string;
   'User ID': string;
+  'Last Read At'?: string;
 };
 
 type ChatMessageFields = {
   'Room ID': string;
   'Sender ID': string;
   Body: string;
+};
+
+type MemberRecord = {
+  id: string;
+  fields: ChatRoomMemberFields;
 };
 
 function mapRoom(record: { id: string; createdTime?: string; fields: ChatRoomFields }): ChatRoomRow {
@@ -42,6 +48,17 @@ function mapMessage(record: {
   };
 }
 
+function countUnread(
+  messages: ChatMessageRow[],
+  myProfileId: string,
+  lastReadAt: string | null | undefined,
+): number {
+  const readMs = lastReadAt ? new Date(lastReadAt).getTime() : 0;
+  return messages.filter(
+    (m) => m.sender_id !== myProfileId && new Date(m.created_at).getTime() > readMs,
+  ).length;
+}
+
 async function findExistingRoom(profileA: string, profileB: string): Promise<ChatRoomRow | null> {
   const config = requireAirtableConfig();
 
@@ -62,6 +79,20 @@ async function findExistingRoom(profileA: string, profileB: string): Promise<Cha
   }
 
   return null;
+}
+
+async function getMembership(
+  roomId: string,
+  userId: string,
+): Promise<MemberRecord | null> {
+  const config = requireAirtableConfig();
+  const formula = `AND({Room ID}="${escapeAirtableFormula(roomId)}",{User ID}="${escapeAirtableFormula(userId)}")`;
+  const records = await listRecords<ChatRoomMemberFields>(config.chatRoomMembersTable, {
+    filterByFormula: formula,
+    maxRecords: 1,
+  });
+  if (records.length === 0) return null;
+  return { id: records[0].id, fields: records[0].fields };
 }
 
 export async function getOrCreateChatRoom(input: {
@@ -88,11 +119,13 @@ export async function getOrCreateChatRoom(input: {
     Region: input.region,
   });
   const room = mapRoom(created);
+  const now = new Date().toISOString();
 
   await createRecord<ChatRoomMemberFields>(config.chatRoomMembersTable, {
     'Room ID': room.id,
     'User ID': input.myProfileId,
-  });
+    'Last Read At': now,
+  }, { typecast: true });
   await createRecord<ChatRoomMemberFields>(config.chatRoomMembersTable, {
     'Room ID': room.id,
     'User ID': peerId,
@@ -134,6 +167,7 @@ export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer
       (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
     );
     const last = sortedMessages[sortedMessages.length - 1];
+    const myLastRead = membership.fields['Last Read At'] ?? null;
 
     results.push({
       ...room,
@@ -144,6 +178,7 @@ export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer
         companion_seed_id: peerUser.companionSeedId,
       },
       last_message: last?.body ?? null,
+      unread_count: countUnread(sortedMessages, profileId, myLastRead),
     });
   }
 
@@ -154,14 +189,41 @@ export async function listChatRooms(profileId: string): Promise<ChatRoomWithPeer
   );
 }
 
+export async function countTotalUnread(profileId: string): Promise<number> {
+  const rooms = await listChatRooms(profileId);
+  return rooms.reduce((sum, room) => sum + (room.unread_count ?? 0), 0);
+}
+
 export async function isRoomMember(roomId: string, profileId: string): Promise<boolean> {
+  const membership = await getMembership(roomId, profileId);
+  return membership != null;
+}
+
+export async function markRoomAsRead(roomId: string, profileId: string): Promise<string> {
+  const membership = await getMembership(roomId, profileId);
+  if (!membership) throw new Error('채팅방 멤버가 아닙니다.');
+
   const config = requireAirtableConfig();
-  const formula = `AND({Room ID}="${escapeAirtableFormula(roomId)}",{User ID}="${escapeAirtableFormula(profileId)}")`;
-  const records = await listRecords<ChatRoomMemberFields>(config.chatRoomMembersTable, {
-    filterByFormula: formula,
-    maxRecords: 1,
+  const now = new Date().toISOString();
+  await updateRecord<ChatRoomMemberFields>(
+    config.chatRoomMembersTable,
+    membership.id,
+    { 'Last Read At': now },
+    { typecast: true },
+  );
+  return now;
+}
+
+export async function getPeerLastReadAt(
+  roomId: string,
+  myProfileId: string,
+): Promise<string | null> {
+  const config = requireAirtableConfig();
+  const members = await listRecords<ChatRoomMemberFields>(config.chatRoomMembersTable, {
+    filterByFormula: `{Room ID}="${escapeAirtableFormula(roomId)}"`,
   });
-  return records.length > 0;
+  const peer = members.find((m) => m.fields['User ID'] !== myProfileId);
+  return peer?.fields['Last Read At'] ?? null;
 }
 
 export async function listMessages(
@@ -205,6 +267,13 @@ export async function sendMessage(input: {
   await updateRecord<ChatRoomFields>(config.chatRoomsTable, input.roomId, {
     'Last Message At': now,
   });
+
+  // 보낸 사람은 해당 시점까지 읽은 것으로 처리
+  try {
+    await markRoomAsRead(input.roomId, input.senderId);
+  } catch {
+    // 멤버십 갱신 실패해도 메시지 전송은 유지
+  }
 
   return mapMessage(created);
 }

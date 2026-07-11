@@ -27,6 +27,7 @@ export type ChatMessageRow = {
 export type ChatRoomWithPeer = ChatRoomRow & {
   peer: Pick<ProfileRow, 'id' | 'name' | 'avatar_url' | 'companion_seed_id'>;
   last_message?: string | null;
+  unread_count?: number;
 };
 
 export const CHAT_POLL_INTERVAL_MS = 4000;

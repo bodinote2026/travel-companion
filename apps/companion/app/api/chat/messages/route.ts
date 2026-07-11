@@ -1,5 +1,11 @@
 import { NextResponse } from 'next/server';
-import { isRoomMember, listMessages, sendMessage } from '@/lib/db/chat';
+import {
+  getPeerLastReadAt,
+  isRoomMember,
+  listMessages,
+  markRoomAsRead,
+  sendMessage,
+} from '@/lib/db/chat';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,7 +24,15 @@ export async function GET(request: Request) {
     }
 
     const messages = await listMessages(roomId, since ? { since } : undefined);
-    return NextResponse.json({ messages });
+
+    // 채팅방 열람 중이면 Last Read At 갱신
+    await markRoomAsRead(roomId, profileId);
+    const peerLastReadAt = await getPeerLastReadAt(roomId, profileId);
+
+    return NextResponse.json({
+      messages,
+      peer_last_read_at: peerLastReadAt,
+    });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: '메시지 조회 실패' }, { status: 500 });

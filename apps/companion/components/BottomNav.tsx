@@ -3,6 +3,7 @@
 import { Map, MessageCircle, Search, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useChatUnreadCount } from '@/hooks/useChatUnreadCount';
 import { cn } from '@/lib/utils';
 
 export type NavTab = 'map' | 'explore' | 'group-buy' | 'chat' | 'profile';
@@ -58,8 +59,19 @@ function isTabSelected(id: NavTab, href: string, pathname: string, active?: NavT
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function UnreadBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  const label = count > 99 ? '99+' : String(count);
+  return (
+    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold leading-none text-white">
+      {label}
+    </span>
+  );
+}
+
 export function BottomNav({ active, embedded }: Props) {
   const pathname = usePathname();
+  const { count: unreadCount } = useChatUnreadCount();
 
   return (
     <nav
@@ -102,10 +114,13 @@ export function BottomNav({ active, embedded }: Props) {
               href={href}
               className="flex flex-col items-center justify-end gap-0.5 px-0.5 py-1"
             >
-              <Icon
-                className={cn('size-5', selected ? 'text-primary' : 'text-muted-foreground')}
-                strokeWidth={selected ? 2.25 : 1.75}
-              />
+              <span className="relative">
+                <Icon
+                  className={cn('size-5', selected ? 'text-primary' : 'text-muted-foreground')}
+                  strokeWidth={selected ? 2.25 : 1.75}
+                />
+                {id === 'chat' && <UnreadBadge count={unreadCount} />}
+              </span>
               <span
                 className={cn(
                   'whitespace-nowrap text-[10px] font-medium leading-none',
