@@ -1,40 +1,37 @@
 import Link from 'next/link';
-import { Receipt } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
-import { GroupBuyProductList } from '@/components/GroupBuyProductList';
+import { GatheringList } from '@/components/GatheringList';
 import { PageShell } from '@/components/PageShell';
-import { SaleBanner } from '@/components/SaleBanner';
-import { listAllProducts } from '@/lib/db/products';
+import { listGatherings } from '@/lib/db/gatherings';
 
-/** 앱 첫 화면 = 공동구매 목록 */
+/** 앱 첫 화면 = 동행찾기(모집글 목록) */
 export default async function HomePage() {
-  const products = await listAllProducts();
+  const gatherings = await listGatherings();
 
   return (
-    <PageShell active="group-buy">
+    <PageShell active="explore">
       <AppHeader
         variant="brand"
         action={
           <Link
-            href="/orders"
-            className="flex size-10 items-center justify-center rounded-full border border-border bg-card shadow-sm"
-            aria-label="주문 내역"
+            href="/gatherings/new"
+            className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm"
+            aria-label="모집글 작성"
           >
-            <Receipt className="size-5" />
+            <Plus className="size-5" />
           </Link>
         }
       />
 
-      <SaleBanner />
-
-      <div className="mx-4 mb-3 mt-3 overflow-hidden rounded-[1.25rem] border border-primary/20 bg-primary-muted/60 px-4 py-3">
-        <p className="text-sm font-bold text-foreground">공동구매 · 목표 인원 모집</p>
+      <div className="mx-4 mb-1 overflow-hidden rounded-[1.25rem] border border-primary/20 bg-primary-muted/60 px-4 py-3">
+        <p className="text-sm font-bold text-foreground">탐색 · 동행 모집</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          함께 모이면 더 저렴하게, 달성 시 이용권이 발급돼요.
+          함께할 사람을 모집하고, 댓글로 일정을 맞춰 보세요.
         </p>
       </div>
 
-      <GroupBuyProductList products={products} />
+      <GatheringList gatherings={gatherings} />
     </PageShell>
   );
 }

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 /** 세일 배너 클릭 시 이동 경로 — 나중에 특정 상품 URL로 교체 */
-export const SALE_BANNER_HREF = '/';
+export const SALE_BANNER_HREF = '/group-buy';
 
 /** public/sale-banner.png — 파일만 교체하면 반영 */
 export const SALE_BANNER_SRC = '/sale-banner.png';

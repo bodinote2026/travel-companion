@@ -4,7 +4,7 @@ import { ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Props = {
-  /** brand: 로고 + 슬로건 (공동구매 메인). page: 일반 페이지 헤더 */
+  /** brand: 로고 + 슬로건 (메인/탭 홈). page: 일반 페이지 헤더 */
   variant?: 'brand' | 'page';
   title?: string;
   subtitle?: string;

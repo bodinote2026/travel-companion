@@ -22,8 +22,8 @@ const TABS: {
   href: string;
 }[] = [
   { id: 'map', label: '지도', icon: Map, href: '/map' },
-  { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/' },
-  { id: 'explore', label: '동행찾기', icon: Search, href: '/gatherings' },
+  { id: 'group-buy', label: '공동구매', icon: ShoppingBag, href: '/group-buy' },
+  { id: 'explore', label: '동행찾기', icon: Search, href: '/' },
   { id: 'chat', label: '대화하기', icon: MessageCircle, href: '/chat' },
   { id: 'profile', label: '내프로필', icon: User, href: '/mypage' },
 ];
@@ -36,13 +36,17 @@ function isTabSelected(id: NavTab, href: string, pathname: string, active?: NavT
   }
 
   if (id === 'explore') {
-    return pathname === '/gatherings' || pathname.startsWith('/gatherings/');
+    return (
+      pathname === '/' ||
+      pathname === '/gatherings' ||
+      pathname.startsWith('/gatherings/')
+    );
   }
 
   if (id === 'group-buy') {
     return (
-      pathname === '/' ||
       pathname === '/group-buy' ||
+      pathname.startsWith('/group-buy/') ||
       pathname.startsWith('/product/') ||
       pathname.startsWith('/orders')
     );

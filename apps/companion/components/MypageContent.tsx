@@ -185,7 +185,7 @@ export function MypageContent({ initialOrders = [] }: Props) {
           <p className="rounded-[1.25rem] border border-border/80 bg-card py-10 text-center text-sm text-muted-foreground shadow-[var(--shadow-card)]">
             참여한 공동구매가 없습니다.
             <br />
-            <Link href="/" className="mt-1 inline-block text-primary">
+            <Link href="/group-buy" className="mt-1 inline-block text-primary">
               공동구매 둘러보기
             </Link>
           </p>
