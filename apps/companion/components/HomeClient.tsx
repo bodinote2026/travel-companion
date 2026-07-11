@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Image from 'next/image';
 import { Bell, Loader2, MapPin, Search } from 'lucide-react';
 import { getRegion } from '@/lib/regions';
 import type { CategoryFilter, RegionProduct } from '@/lib/regions/types';
@@ -11,6 +10,7 @@ import { useLocationConsent } from '@/hooks/useLocationConsent';
 import { useLocationReporter } from '@/hooks/useLocationReporter';
 import { useNearbyUsers } from '@/hooks/useNearbyUsers';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { AppHeader } from '@/components/AppHeader';
 import { CategoryFilter as CategoryFilterBar } from '@/components/CategoryFilter';
 import { CompanionCard } from '@/components/CompanionCard';
 import { CompanionDetailSheet } from '@/components/CompanionDetailSheet';
@@ -100,23 +100,10 @@ export function HomeClient({ products }: Props) {
     <main
       className={`relative mx-auto min-h-[100dvh] max-w-md bg-background ${bottomChromePaddingClass()}`}
     >
-      <header className="px-5 pb-1 pt-12">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2.5">
-              <Image
-                src="/logo.png"
-                alt="동행"
-                width={36}
-                height={36}
-                className="size-9 shrink-0 object-contain"
-                priority
-              />
-              <h1 className="truncate text-xl font-bold leading-tight tracking-tight">
-                동행 찾기
-              </h1>
-            </div>
-          </div>
+      <AppHeader
+        variant="brand"
+        className="px-5 pb-1"
+        action={
           <button
             type="button"
             aria-label="알림"
@@ -125,8 +112,8 @@ export function HomeClient({ products }: Props) {
             <Bell className="size-5" />
             <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-primary" />
           </button>
-        </div>
-      </header>
+        }
+      />
 
       <div className="px-5 pb-1 pt-3">
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3.5 py-2.5 text-sm text-muted-foreground">
