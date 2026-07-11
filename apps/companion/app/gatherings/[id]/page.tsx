@@ -9,12 +9,16 @@ import { GatheringParticipants } from '@/components/GatheringParticipants';
 import { LinkifiedText } from '@/components/LinkifiedText';
 import { PageShell } from '@/components/PageShell';
 import { getSessionUser } from '@/lib/auth/session';
+import { getAirtableConfig } from '@/lib/airtable/config';
 import { listComments } from '@/lib/db/comments';
 import {
   hasUserApplied,
   listGatheringMemberProfiles,
 } from '@/lib/db/gathering-participants';
-import { countAppliedApplicants, getGatheringById } from '@/lib/db/gatherings';
+import {
+  getGatheringById,
+  syncGatheringParticipantCount,
+} from '@/lib/db/gatherings';
 import { formatGatheringDateLong } from '@/lib/gatherings/datetime';
 import { getRegionDisplayName } from '@/lib/regions';
 
@@ -24,13 +28,19 @@ type Props = {
 
 export default async function GatheringDetailPage({ params }: Props) {
   const { id } = await params;
-  const gathering = await getGatheringById(id);
-  if (!gathering) notFound();
+  const raw = await getGatheringById(id);
+  if (!raw) notFound();
+
+  // 예전 Current Count(동행지기 포함)가 남아 있으면 신청자 기준으로 보정
+  const gathering =
+    (getAirtableConfig()
+      ? await syncGatheringParticipantCount(id)
+      : null) ?? raw;
 
   const session = await getSessionUser();
   const isAuthor = !!session && session.id === gathering.author_id;
 
-  const [comments, members, initiallyApplied, applicantCount] = await Promise.all([
+  const [comments, members, initiallyApplied] = await Promise.all([
     listComments('gathering', id),
     listGatheringMemberProfiles({
       gatheringId: gathering.id,
@@ -41,9 +51,9 @@ export default async function GatheringDetailPage({ params }: Props) {
     session
       ? hasUserApplied(gathering.id, session.id)
       : Promise.resolve(false),
-    countAppliedApplicants(gathering.id),
   ]);
 
+  const applicantCount = gathering.current_count;
   const dateLabel = formatGatheringDateLong(gathering.gathering_date);
   const isFull =
     gathering.status === 'closed' ||
@@ -84,7 +94,7 @@ export default async function GatheringDetailPage({ params }: Props) {
           <p className="flex items-center gap-2">
             <Users className="size-4 text-primary" />
             <span>
-              참여자 {gathering.current_count} / {gathering.target_count}명 모집
+              참여자 {applicantCount} / {gathering.target_count}명 모집
             </span>
           </p>
           <p className="flex items-center gap-2 text-muted-foreground">

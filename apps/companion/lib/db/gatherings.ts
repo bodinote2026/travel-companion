@@ -128,12 +128,79 @@ export async function updateGathering(
   return updated;
 }
 
+/**
+ * 신청 상태 참여자 수 (동행지기 제외).
+ * Gathering_Participants에 작성자 row가 있어도 카운트하지 않는다.
+ */
 export async function countAppliedApplicants(gatheringId: string): Promise<number> {
+  const gathering = await getGatheringById(gatheringId);
+  if (!gathering) return 0;
+
   if (getAirtableConfig()) {
     const rows = await listAirtableAppliedParticipants(gatheringId);
-    return rows.length;
+    return rows.filter((p) => p.user_id !== gathering.author_id).length;
   }
-  return 0;
+
+  // memory: gathering-participants 모듈의 Map을 직접 세지 못하므로
+  // 저장된 current_count를 신뢰 (신청/취소 시 sync가 갱신)
+  return Math.max(0, gathering.current_count);
+}
+
+/**
+ * Gathering_Participants(applied, 동행지기 제외) 기준으로 Current Count를 맞춘다.
+ * 예전 생성분(1로 시작) 보정·신청/취소 후 정합성 유지용.
+ */
+export async function syncGatheringParticipantCount(
+  gatheringId: string,
+): Promise<GatheringRecord | null> {
+  const gathering = await getGatheringById(gatheringId);
+  if (!gathering) return null;
+
+  const count = await countAppliedApplicants(gatheringId);
+  // 정원 도달 시에만 자동 마감. 수동 closed는 상세 조회 sync로 다시 열지 않음.
+  const nextStatus =
+    count >= gathering.target_count ? 'closed' : gathering.status;
+
+  if (gathering.current_count === count && gathering.status === nextStatus) {
+    return gathering;
+  }
+
+  return updateGatheringCounts(gatheringId, {
+    currentCount: count,
+    status: nextStatus,
+  });
+}
+
+/** 전체 모집글 Current Count를 신청자 수(동행지기 제외)로 일괄 보정 */
+export async function reconcileAllGatheringParticipantCounts(): Promise<{
+  checked: number;
+  updated: number;
+  details: { id: string; title: string; before: number; after: number }[];
+}> {
+  const gatherings = await listGatherings();
+  const details: { id: string; title: string; before: number; after: number }[] =
+    [];
+  let updated = 0;
+
+  for (const g of gatherings) {
+    const after = await countAppliedApplicants(g.id);
+    if (g.current_count !== after) {
+      const nextStatus = after >= g.target_count ? 'closed' : g.status;
+      await updateGatheringCounts(g.id, {
+        currentCount: after,
+        status: nextStatus,
+      });
+      updated += 1;
+      details.push({
+        id: g.id,
+        title: g.title,
+        before: g.current_count,
+        after,
+      });
+    }
+  }
+
+  return { checked: gatherings.length, updated, details };
 }
 
 export async function deleteGatheringWithParticipants(gatheringId: string): Promise<void> {

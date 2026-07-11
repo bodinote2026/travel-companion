@@ -3,7 +3,12 @@ import { AppHeader } from '@/components/AppHeader';
 import { GatheringForm } from '@/components/GatheringForm';
 import { PageShell } from '@/components/PageShell';
 import { getSessionUser } from '@/lib/auth/session';
-import { countAppliedApplicants, getGatheringById } from '@/lib/db/gatherings';
+import { getAirtableConfig } from '@/lib/airtable/config';
+import {
+  countAppliedApplicants,
+  getGatheringById,
+  syncGatheringParticipantCount,
+} from '@/lib/db/gatherings';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -16,12 +21,16 @@ export default async function GatheringEditPage({ params }: Props) {
     redirect(`/login?returnUrl=${encodeURIComponent(`/gatherings/${id}/edit`)}`);
   }
 
-  const gathering = await getGatheringById(id);
-  if (!gathering) notFound();
-  if (gathering.author_id !== session.id) {
+  const raw = await getGatheringById(id);
+  if (!raw) notFound();
+  if (raw.author_id !== session.id) {
     redirect(`/gatherings/${id}`);
   }
 
+  const gathering =
+    (getAirtableConfig()
+      ? await syncGatheringParticipantCount(id)
+      : null) ?? raw;
   const applicantCount = await countAppliedApplicants(gathering.id);
 
   return (

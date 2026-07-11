@@ -11,6 +11,7 @@ import {
 import {
   findGatheringsByAuthor,
   getGatheringById,
+  syncGatheringParticipantCount,
   updateGatheringCounts,
   type GatheringRecord,
 } from '@/lib/db/gatherings';
@@ -181,15 +182,19 @@ export async function applyToGathering(input: {
     throw new ApplyGatheringError('본인이 만든 모집글에는 신청할 수 없습니다.', 400);
   }
 
+  // 저장값이 어긋난 경우(예전 1 시작 등)를 먼저 맞춘 뒤 정원 판단
+  const synced =
+    getAirtableConfig()
+      ? ((await syncGatheringParticipantCount(input.gatheringId)) ?? gathering)
+      : gathering;
   const isFull =
-    gathering.status === 'closed' ||
-    gathering.current_count >= gathering.target_count;
+    synced.status === 'closed' || synced.current_count >= synced.target_count;
   if (isFull) {
     throw new ApplyGatheringError('모집이 완료되었습니다.', 409);
   }
 
   if (await hasUserApplied(input.gatheringId, input.userId)) {
-    return { gathering, alreadyApplied: true };
+    return { gathering: synced, alreadyApplied: true };
   }
 
   if (getAirtableConfig()) {
@@ -198,22 +203,26 @@ export async function applyToGathering(input: {
       userId: input.userId,
       authorId: gathering.author_id,
     });
-  } else {
-    const row: MemoryParticipant = {
-      id: crypto.randomUUID(),
-      gathering_id: input.gatheringId,
-      user_id: input.userId,
-      author_id: gathering.author_id,
-      status: 'applied',
-      chat_room_id: null,
-      applied_at: new Date().toISOString(),
-    };
-    memoryParticipants.set(memoryKey(input.gatheringId, input.userId), row);
+    // Current Count = 신청자만 (동행지기 제외). 재집계로 정합성 유지.
+    const updated =
+      (await syncGatheringParticipantCount(input.gatheringId)) ?? synced;
+    return { gathering: updated, alreadyApplied: false };
   }
 
-  const nextCount = gathering.current_count + 1;
+  const row: MemoryParticipant = {
+    id: crypto.randomUUID(),
+    gathering_id: input.gatheringId,
+    user_id: input.userId,
+    author_id: gathering.author_id,
+    status: 'applied',
+    chat_room_id: null,
+    applied_at: new Date().toISOString(),
+  };
+  memoryParticipants.set(memoryKey(input.gatheringId, input.userId), row);
+
+  const nextCount = synced.current_count + 1;
   const nextStatus =
-    nextCount >= gathering.target_count ? 'closed' : gathering.status;
+    nextCount >= synced.target_count ? 'closed' : synced.status;
   const updated = await updateGatheringCounts(input.gatheringId, {
     currentCount: nextCount,
     status: nextStatus,
@@ -245,16 +254,30 @@ export async function cancelGatheringApplication(input: {
       throw new ApplyGatheringError('신청 내역이 없습니다.', 404);
     }
     await cancelAirtableParticipant(participant.id);
-  } else {
-    const key = memoryKey(input.gatheringId, input.userId);
-    const row = memoryParticipants.get(key);
-    if (!row || row.status !== 'applied') {
-      throw new ApplyGatheringError('신청 내역이 없습니다.', 404);
+    const synced =
+      (await syncGatheringParticipantCount(input.gatheringId)) ?? gathering;
+    // 취소로 정원 미달이면 다시 모집 중으로
+    if (
+      synced.status === 'closed' &&
+      synced.current_count < synced.target_count
+    ) {
+      return {
+        gathering: await updateGatheringCounts(input.gatheringId, {
+          currentCount: synced.current_count,
+          status: 'open',
+        }),
+      };
     }
-    memoryParticipants.set(key, { ...row, status: 'cancelled' });
+    return { gathering: synced };
   }
 
-  // 참여자만 카운트 (동행지기 제외) — 0 미만으로 내려가지 않음
+  const key = memoryKey(input.gatheringId, input.userId);
+  const row = memoryParticipants.get(key);
+  if (!row || row.status !== 'applied') {
+    throw new ApplyGatheringError('신청 내역이 없습니다.', 404);
+  }
+  memoryParticipants.set(key, { ...row, status: 'cancelled' });
+
   const nextCount = Math.max(0, gathering.current_count - 1);
   const nextStatus =
     nextCount < gathering.target_count ? 'open' : gathering.status;
