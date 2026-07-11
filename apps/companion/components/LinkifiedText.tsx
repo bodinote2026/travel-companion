@@ -10,7 +10,12 @@ type Props = {
 /**
  * 본문 텍스트의 http(s) URL을 클릭 가능한 링크로 표시.
  * React 텍스트 노드로 렌더해 XSS를 피하고, URL만 <a>로 분리한다.
+ * 기본으로 줄바꿈(pre-wrap)을 유지한다.
  */
 export function LinkifiedText({ text, className, as: Tag = 'p' }: Props) {
-  return <Tag className={cn(className)}>{linkifyToReactNodes(text)}</Tag>;
+  return (
+    <Tag className={cn('whitespace-pre-wrap', className)}>
+      {linkifyToReactNodes(text)}
+    </Tag>
+  );
 }
