@@ -1,7 +1,10 @@
 import {
   createRecord,
+  deleteRecord,
   escapeAirtableFormula,
+  getRecord,
   listRecords,
+  updateRecord,
 } from './client';
 import { requireAirtableConfig } from './config';
 import { resolveAuthorAvatars } from '@/lib/users/avatars';
@@ -90,4 +93,42 @@ export async function createComment(input: {
     ...comment,
     author_avatar_url: avatars.get(comment.author_id) ?? null,
   };
+}
+
+export async function getCommentById(commentId: string): Promise<CommentRecord | null> {
+  const config = requireAirtableConfig();
+  try {
+    const record = await getRecord<AirtableCommentFields>(config.commentsTable, commentId);
+    const comment = mapComment(record);
+    const avatars = await resolveAuthorAvatars([comment.author_id]);
+    return {
+      ...comment,
+      author_avatar_url: avatars.get(comment.author_id) ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function updateCommentBody(
+  commentId: string,
+  body: string,
+): Promise<CommentRecord> {
+  const config = requireAirtableConfig();
+  await updateRecord<AirtableCommentFields>(
+    config.commentsTable,
+    commentId,
+    { Body: body.trim() },
+    { typecast: true },
+  );
+  const refreshed = await getCommentById(commentId);
+  if (!refreshed) {
+    throw new Error('댓글 수정 후 레코드를 찾을 수 없습니다.');
+  }
+  return refreshed;
+}
+
+export async function deleteComment(commentId: string): Promise<void> {
+  const config = requireAirtableConfig();
+  await deleteRecord(config.commentsTable, commentId);
 }
