@@ -17,18 +17,23 @@ type Props = {
 export function GroupBuyProductList({ products }: Props) {
   const [tab, setTab] = useState<RegionTabId>(DEFAULT_REGION_TAB);
   const filtered = filterByRegionTab(products, tab);
+  const sorted = [...filtered].sort((a, b) => {
+    const aPrep = a.groupBuyStatus === 'preparing' ? 1 : 0;
+    const bPrep = b.groupBuyStatus === 'preparing' ? 1 : 0;
+    return aPrep - bPrep;
+  });
 
   return (
     <>
       <RegionTabFilter active={tab} onChange={setTab} />
 
       <div className="flex flex-col gap-3.5 px-4 pb-4">
-        {filtered.length === 0 ? (
+        {sorted.length === 0 ? (
           <p className="rounded-[1.25rem] border border-border/80 bg-card py-10 text-center text-sm text-muted-foreground shadow-[var(--shadow-card)]">
             이 지역에 진행 중인 공동구매가 없습니다.
           </p>
         ) : (
-          filtered.map((product) => <GroupBuyCard key={product.id} product={product} />)
+          sorted.map((product) => <GroupBuyCard key={product.id} product={product} />)
         )}
       </div>
     </>

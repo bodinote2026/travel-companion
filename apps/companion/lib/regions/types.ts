@@ -25,7 +25,7 @@ export type RegionCompanion = {
   responseRate: number;
 };
 
-export type GroupBuyStatus = 'open' | 'success' | 'closed';
+export type GroupBuyStatus = 'open' | 'success' | 'closed' | 'preparing';
 
 /** payment: PG 결제 / kakao_channel: 외부 카카오채널 신청 */
 export type ProductActionType = 'payment' | 'kakao_channel';

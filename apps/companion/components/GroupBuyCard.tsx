@@ -13,9 +13,11 @@ type Props = {
 
 export function GroupBuyCard({ product, compact }: Props) {
   const isKakaoChannel = product.actionType === 'kakao_channel';
+  const isPreparing = product.groupBuyStatus === 'preparing';
   const charge = perPersonCharge(product.discountedPrice, product.targetCount);
   const isComplete =
     !isKakaoChannel &&
+    !isPreparing &&
     (product.groupBuyStatus === 'success' ||
       product.currentCount >= product.targetCount);
   const imageUrl = resolveProductImageUrl(product.imageUrl);
@@ -30,9 +32,15 @@ export function GroupBuyCard({ product, compact }: Props) {
       className={cn(
         'flex gap-3 rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)] transition-colors hover:bg-secondary/30',
         compact && 'p-3',
+        isPreparing && 'opacity-60',
       )}
     >
-      <div className="relative size-20 shrink-0 overflow-hidden rounded-2xl bg-muted">
+      <div
+        className={cn(
+          'relative size-20 shrink-0 overflow-hidden rounded-2xl bg-muted',
+          isPreparing && 'grayscale',
+        )}
+      >
         <Image
           src={imageUrl}
           alt={product.name}
@@ -43,9 +51,15 @@ export function GroupBuyCard({ product, compact }: Props) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="rounded-md bg-primary-muted px-1.5 py-0.5 text-micro font-bold text-primary">
-            {formatDiscountPercent(product.discountRate)}% 할인
-          </span>
+          {isPreparing ? (
+            <span className="rounded-md bg-secondary px-1.5 py-0.5 text-micro font-bold text-muted-foreground">
+              준비중
+            </span>
+          ) : (
+            <span className="rounded-md bg-primary-muted px-1.5 py-0.5 text-micro font-bold text-primary">
+              {formatDiscountPercent(product.discountRate)}% 할인
+            </span>
+          )}
           {isComplete && (
             <span className="text-micro font-semibold text-muted-foreground">
               모집 완료
@@ -71,7 +85,7 @@ export function GroupBuyCard({ product, compact }: Props) {
             {formatPrice(charge)}원 / 1인 청구 · 총 {formatPrice(product.discountedPrice)}원
           </p>
         )}
-        {isKakaoChannel ? (
+        {isKakaoChannel || isPreparing ? (
           <div className="mt-2.5 flex items-center justify-end">
             <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
           </div>

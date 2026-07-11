@@ -26,13 +26,15 @@ export function GroupBuyWidget({ product }: Props) {
   const [message, setMessage] = useState('');
 
   const isKakaoChannel = product.actionType === 'kakao_channel';
+  const isPreparing = product.groupBuyStatus === 'preparing';
   const isComplete =
     !isKakaoChannel &&
+    !isPreparing &&
     (product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount);
   const charge = perPersonCharge(product.discountedPrice, product.targetCount);
 
   async function handleParticipate() {
-    if (!ready) return;
+    if (!ready || isPreparing) return;
 
     if (!profile) {
       const returnUrl = encodeURIComponent(
@@ -88,6 +90,36 @@ export function GroupBuyWidget({ product }: Props) {
       setStatus('error');
       setMessage(err instanceof Error ? err.message : '오류가 발생했습니다.');
     }
+  }
+
+  if (isPreparing) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <span className="rounded-lg bg-secondary px-2 py-1 text-sm font-bold text-muted-foreground">
+          준비중
+        </span>
+        <div className="mt-4 space-y-1 text-sm">
+          <div className="flex justify-between text-muted-foreground">
+            <span>정가</span>
+            <span className="line-through">{formatPrice(product.regularPrice)}원</span>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <span>{isKakaoChannel ? '얼리버드 할인가' : '공동구매가'}</span>
+            <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
+          </div>
+        </div>
+        <p className="mt-4 rounded-xl bg-secondary px-3 py-3 text-center text-sm font-medium text-secondary-foreground">
+          곧 만나요! 준비중인 상품이에요
+        </p>
+        <button
+          type="button"
+          disabled
+          className="mt-4 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-muted text-base font-semibold text-muted-foreground opacity-70"
+        >
+          {isKakaoChannel ? '동행 모집글 보러가기' : '함께 구매하기 (결제)'}
+        </button>
+      </div>
+    );
   }
 
   if (isKakaoChannel) {

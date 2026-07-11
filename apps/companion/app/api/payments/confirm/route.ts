@@ -105,6 +105,12 @@ export async function PUT(request: Request) {
         { status: 400 },
       );
     }
+    if (product.groupBuyStatus === 'preparing') {
+      return NextResponse.json(
+        { error: '곧 만나요! 준비중인 상품이에요.' },
+        { status: 400 },
+      );
+    }
     if (product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount) {
       return NextResponse.json({ error: '모집이 완료된 상품입니다.' }, { status: 400 });
     }

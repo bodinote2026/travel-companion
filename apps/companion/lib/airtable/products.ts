@@ -26,6 +26,21 @@ function parseActionType(value: unknown): ProductActionType {
   return 'payment';
 }
 
+function parseGroupBuyStatus(value: unknown): GroupBuyStatus {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (typeof raw !== 'string') return 'open';
+  const normalized = raw.trim().toLowerCase();
+  if (
+    normalized === 'preparing' ||
+    normalized === 'success' ||
+    normalized === 'closed' ||
+    normalized === 'open'
+  ) {
+    return normalized;
+  }
+  return 'open';
+}
+
 function parseExternalLink(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
@@ -55,7 +70,7 @@ function mapProduct(record: { id: string; fields: AirtableProductFields }): Regi
     discountRate: Number(fields['Discount Rate'] ?? 0),
     targetCount: Number(fields['Target Count'] ?? 0),
     currentCount: Number(fields['Current Count'] ?? 0),
-    groupBuyStatus: (fields['Group Buy Status'] ?? 'open') as GroupBuyStatus,
+    groupBuyStatus: parseGroupBuyStatus(fields['Group Buy Status']),
     actionType: parseActionType(fields['Action Type']),
     externalLink: parseExternalLink(fields['External Link']),
   };
