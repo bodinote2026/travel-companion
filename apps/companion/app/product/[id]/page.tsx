@@ -26,26 +26,48 @@ export default async function ProductPage({ params }: Props) {
     listComments('product', id),
   ]);
   const imageUrl = resolveProductImageUrl(product.imageUrl);
+  const isKakaoChannel = product.actionType === 'kakao_channel';
 
   return (
     <main className={`mx-auto min-h-screen max-w-md bg-background ${bottomChromePaddingClass(true)}`}>
-      <div className="relative h-56 w-full bg-white">
-        <Image
-          src={imageUrl}
-          alt={product.name}
-          fill
-          className="object-contain"
-          sizes="448px"
-          priority
-        />
-        <Link
-          href="/group-buy"
-          aria-label="뒤로"
-          className="absolute left-4 top-12 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
-        >
-          <ChevronLeft className="size-5" />
-        </Link>
-      </div>
+      {isKakaoChannel ? (
+        <div className="relative w-full bg-white">
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            width={1080}
+            height={1920}
+            className="h-auto w-full"
+            sizes="(max-width: 448px) 100vw, 448px"
+            priority
+          />
+          <Link
+            href="/group-buy"
+            aria-label="뒤로"
+            className="absolute left-4 top-12 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
+          >
+            <ChevronLeft className="size-5" />
+          </Link>
+        </div>
+      ) : (
+        <div className="relative h-56 w-full bg-white">
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-contain"
+            sizes="448px"
+            priority
+          />
+          <Link
+            href="/group-buy"
+            aria-label="뒤로"
+            className="absolute left-4 top-12 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
+          >
+            <ChevronLeft className="size-5" />
+          </Link>
+        </div>
+      )}
 
       <div className="px-5 py-5">
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
