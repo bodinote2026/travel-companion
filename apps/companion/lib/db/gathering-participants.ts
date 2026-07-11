@@ -49,6 +49,10 @@ export async function listGatheringMemberProfiles(input: {
       user_id: input.authorId,
       name: input.authorName.trim() || '작성자',
       avatar_url: input.authorAvatarUrl,
+      age: null,
+      region: null,
+      bio: null,
+      interest_categories: [],
       is_author: true,
     },
   ];
@@ -61,6 +65,10 @@ export async function listGatheringMemberProfiles(input: {
       user_id: row.user_id,
       name: '사용자',
       avatar_url: null,
+      age: null,
+      region: null,
+      bio: null,
+      interest_categories: [],
       is_author: false,
     });
   }

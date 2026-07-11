@@ -27,6 +27,10 @@ export type GatheringMemberProfile = {
   user_id: string;
   name: string;
   avatar_url: string | null;
+  age: number | null;
+  region: string | null;
+  bio: string | null;
+  interest_categories: string[];
   is_author: boolean;
 };
 
@@ -115,24 +119,37 @@ export async function listGatheringMemberProfiles(input: {
     .map((p) => p.user_id)
     .filter((id) => id && id !== input.authorId);
 
-  const users = await Promise.all(applicantIds.map((id) => getUserById(id)));
+  const [authorUser, ...applicantUsers] = await Promise.all([
+    input.authorId ? getUserById(input.authorId) : Promise.resolve(null),
+    ...applicantIds.map((id) => getUserById(id)),
+  ]);
 
   const members: GatheringMemberProfile[] = [
     {
       user_id: input.authorId,
-      name: input.authorName.trim() || '작성자',
-      avatar_url: input.authorAvatarUrl,
+      name: authorUser
+        ? userDisplayName(authorUser)
+        : input.authorName.trim() || '작성자',
+      avatar_url: authorUser?.avatarUrl ?? input.authorAvatarUrl,
+      age: authorUser?.age ?? null,
+      region: authorUser?.region?.trim() || null,
+      bio: authorUser?.bio ?? null,
+      interest_categories: authorUser?.interestCategories ?? [],
       is_author: true,
     },
   ];
 
   for (let i = 0; i < applicantIds.length; i += 1) {
     const userId = applicantIds[i];
-    const user = users[i];
+    const user = applicantUsers[i];
     members.push({
       user_id: userId,
       name: user ? userDisplayName(user) : '사용자',
       avatar_url: user?.avatarUrl ?? null,
+      age: user?.age ?? null,
+      region: user?.region?.trim() || null,
+      bio: user?.bio ?? null,
+      interest_categories: user?.interestCategories ?? [],
       is_author: false,
     });
   }
