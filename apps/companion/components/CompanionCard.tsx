@@ -27,6 +27,14 @@ export function CompanionCard({
       ? companion.categories
       : [companion.primaryCategory];
 
+  const locationText = showDistance
+    ? `${companion.area} · ${formatDistance(companion.distanceKm)}`
+    : companion.area;
+  const activitySuffix =
+    companion.activityLabel && !companion.activityActive
+      ? ` · ${companion.activityLabel}`
+      : '';
+
   return (
     <button
       type="button"
@@ -44,6 +52,7 @@ export function CompanionCard({
       />
 
       <div className="min-w-0 flex-1">
+        {/* 1줄: 이름 · 나이 + 동행온도 */}
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-semibold text-foreground">
             {companion.name}
@@ -51,7 +60,7 @@ export function CompanionCard({
           </span>
           {companion.temperature != null && (
             <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-micro font-semibold text-primary">
-              {companion.temperature.toFixed(1)}
+              ° {companion.temperature.toFixed(1)}
             </span>
           )}
           {companion.activityActive && (
@@ -62,33 +71,30 @@ export function CompanionCard({
           )}
         </div>
 
+        {/* 2줄: 소개글 */}
         <p className="mt-1 line-clamp-1 text-sm text-foreground/90">{bioLine}</p>
 
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+        {/* 3줄: 카테고리 태그 + 위치 */}
+        <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5">
           {categoryTags.map((cat) => (
             <span
               key={cat}
               className={cn(
-                'rounded-md px-1.5 py-0.5 text-micro font-semibold',
+                'shrink-0 rounded-full px-2 py-0.5 text-micro font-semibold',
                 getCategoryBadgeClass(cat),
               )}
             >
               {CATEGORY_LABELS[cat]}
             </span>
           ))}
+          <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="size-3 shrink-0" />
+            <span className="truncate">
+              {locationText}
+              {activitySuffix}
+            </span>
+          </p>
         </div>
-
-        <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="size-3 shrink-0" />
-          <span className="truncate">
-            {showDistance
-              ? `${companion.area} · ${formatDistance(companion.distanceKm)}`
-              : companion.area}
-            {companion.activityLabel && !companion.activityActive
-              ? ` · ${companion.activityLabel}`
-              : ''}
-          </span>
-        </p>
       </div>
     </button>
   );

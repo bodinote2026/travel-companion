@@ -23,12 +23,12 @@
   --success-muted: oklch(0.95 0.04 150);
   --warning: oklch(0.55 0.12 60);
   --warning-muted: oklch(0.96 0.03 60);
-  --category-meal: oklch(0.62 0.16 40);
-  --category-meal-muted: oklch(0.95 0.05 40);
-  --category-exercise: oklch(0.55 0.12 230);
-  --category-exercise-muted: oklch(0.95 0.04 230);
-  --category-travel: oklch(0.55 0.12 160);
-  --category-travel-muted: oklch(0.95 0.04 160);
+  --category-meal: oklch(0.55 0.1 40);
+  --category-meal-muted: oklch(0.96 0.03 40);
+  --category-exercise: oklch(0.5 0.08 230);
+  --category-exercise-muted: oklch(0.96 0.025 230);
+  --category-travel: oklch(0.5 0.08 160);
+  --category-travel-muted: oklch(0.96 0.025 160);
   --kakao: #FEE500;
   --kakao-foreground: #191919;
   --radius: 1rem;
