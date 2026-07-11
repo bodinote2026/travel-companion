@@ -163,7 +163,7 @@ export async function cancelGatheringParticipant(
   return mapParticipant(updated);
 }
 
-/** 작성자(맨 앞) + applied 신청자 프로필 */
+/** 동행지기(맨 앞) + applied 참여자 프로필 */
 export async function listGatheringMemberProfiles(input: {
   gatheringId: string;
   authorId: string;
@@ -185,7 +185,7 @@ export async function listGatheringMemberProfiles(input: {
       user_id: input.authorId,
       name: authorUser
         ? userDisplayName(authorUser)
-        : input.authorName.trim() || '작성자',
+        : input.authorName.trim() || '동행지기',
       avatar_url: authorUser?.avatarUrl ?? input.authorAvatarUrl,
       age: authorUser?.age ?? null,
       region: authorUser?.region?.trim() || null,

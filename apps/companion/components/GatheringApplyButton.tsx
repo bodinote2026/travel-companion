@@ -98,7 +98,7 @@ export function GatheringApplyButton({
     }
   }
 
-  // 작성자는 이 버튼을 쓰지 않음(페이지에서 AuthorActions 분기). 방어용.
+  // 동행지기는 이 버튼을 쓰지 않음(페이지에서 AuthorActions 분기). 방어용.
   if (isAuthor) {
     return (
       <div className="mt-5">
@@ -107,10 +107,10 @@ export function GatheringApplyButton({
           disabled
           className="flex h-12 w-full items-center justify-center rounded-2xl bg-secondary text-base font-semibold text-muted-foreground"
         >
-          내가 작성한 모집글
+          동행지기 모집글
         </button>
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          {gathering.current_count} / {gathering.target_count}명 모집 중
+          참여자 {gathering.current_count} / {gathering.target_count}명 모집 중
         </p>
       </div>
     );
@@ -149,7 +149,7 @@ export function GatheringApplyButton({
         <p className="mt-2 text-center text-sm text-destructive">{error}</p>
       )}
       <p className="mt-2 text-center text-xs text-muted-foreground">
-        {gathering.current_count} / {gathering.target_count}명 모집 중
+        참여자 {gathering.current_count} / {gathering.target_count}명 모집 중
       </p>
     </div>
   );

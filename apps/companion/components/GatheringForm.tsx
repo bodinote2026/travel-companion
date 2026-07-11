@@ -57,12 +57,12 @@ export function GatheringForm(props: Props) {
       return;
     }
     if (!Number.isInteger(count) || count < 2 || count > 50) {
-      setError('모집 인원은 2~50명으로 입력해주세요.');
+      setError('필요 참여자 수는 2~50명으로 입력해주세요.');
       return;
     }
     if (isEdit && gathering && count < gathering.current_count) {
       setError(
-        `모집 인원은 현재 인원(${gathering.current_count}명)보다 작을 수 없습니다.`,
+        `필요 참여자 수는 현재 참여자(${gathering.current_count}명)보다 작을 수 없습니다.`,
       );
       return;
     }
@@ -189,7 +189,7 @@ export function GatheringForm(props: Props) {
       </fieldset>
 
       <label className="block">
-        <span className="text-sm font-medium">모집 인원</span>
+        <span className="text-sm font-medium">필요 참여자 수</span>
         <input
           type="number"
           inputMode="numeric"
@@ -201,8 +201,8 @@ export function GatheringForm(props: Props) {
         />
         <span className="mt-1 block text-xs text-muted-foreground">
           {isEdit && gathering
-            ? `현재 ${gathering.current_count}명 · ${gathering.current_count}명 이상으로 설정`
-            : '본인 포함 목표 인원'}
+            ? `현재 참여자 ${gathering.current_count}명 · ${gathering.current_count}명 이상으로 설정`
+            : '동행지기는 제외한 참여자 목표 인원'}
         </span>
       </label>
 

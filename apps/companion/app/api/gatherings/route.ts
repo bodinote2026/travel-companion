@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       target_count < 2 ||
       target_count > 50
     ) {
-      return NextResponse.json({ error: '모집 인원은 2~50명으로 입력해주세요.' }, { status: 400 });
+      return NextResponse.json({ error: '필요 참여자 수는 2~50명으로 입력해주세요.' }, { status: 400 });
     }
 
     const gathering = await createGathering({

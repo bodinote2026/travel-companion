@@ -61,7 +61,7 @@ function mapGathering(record: {
     author_name: record.fields['Author Name']?.trim() || '',
     author_avatar_url: null,
     target_count: parseNumber(record.fields['Target Count'], 1),
-    current_count: parseNumber(record.fields['Current Count'], 1),
+    current_count: parseNumber(record.fields['Current Count'], 0),
     gathering_date: record.fields['Gathering Date']?.trim() || null,
     status: record.fields.Status === 'closed' ? 'closed' : 'open',
     created_at: record.createdTime ?? new Date().toISOString(),
@@ -116,7 +116,7 @@ export async function createGathering(input: {
     'Author ID': input.authorId,
     'Author Name': input.authorName.trim(),
     'Target Count': input.targetCount,
-    'Current Count': 1,
+    'Current Count': 0,
     Status: 'open',
   };
   if (input.gatheringDate) {

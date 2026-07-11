@@ -95,7 +95,7 @@ export default async function GatheringDetailPage({ params }: Props) {
           <p className="flex items-center gap-2">
             <Users className="size-4 text-primary" />
             <span>
-              {gathering.current_count} / {gathering.target_count}명 모집
+              참여자 {gathering.current_count} / {gathering.target_count}명 모집
             </span>
           </p>
           <p className="flex items-center gap-2 text-muted-foreground">

@@ -22,7 +22,7 @@ type Props = {
   onAuthorClick?: (authorId: string) => void;
 };
 
-/** 작성자 아바타 — 기본은 채팅, onAuthorClick 있으면 프로필 등 커스텀 동작 */
+/** 동행/댓글 작성자 아바타 — 기본은 채팅, onAuthorClick 있으면 프로필 등 커스텀 동작 */
 export function AuthorChatAvatar({
   authorId,
   authorName,

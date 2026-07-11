@@ -66,7 +66,7 @@ export async function createGathering(input: {
     author_name: input.authorName.trim(),
     author_avatar_url: null,
     target_count: input.targetCount,
-    current_count: 1,
+    current_count: 0,
     gathering_date: input.gatheringDate?.trim() || null,
     status: 'open',
     created_at: new Date().toISOString(),

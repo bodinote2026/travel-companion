@@ -112,7 +112,7 @@ export function memberToProfilePerson(
     locationLabel: member.region ? getRegionDisplayName(member.region) : null,
     bio: member.bio?.trim() || '',
     interestCategories: member.interest_categories,
-    badgeLabel: member.is_author ? '작성자' : null,
+    badgeLabel: member.is_author ? '동행지기' : null,
   };
 }
 
@@ -488,7 +488,7 @@ function UserProfileSheetContent({ person, onClose, chatActive = false }: Conten
                                 : 'bg-secondary text-muted-foreground',
                             )}
                           >
-                            {item.role === 'host' ? '주최자' : '참여중'}
+                            {item.role === 'host' ? '동행지기' : '참여중'}
                           </span>
                         </div>
                         <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
@@ -504,7 +504,7 @@ function UserProfileSheetContent({ person, onClose, chatActive = false }: Conten
                           )}
                           <span className="inline-flex items-center gap-1 font-medium text-primary">
                             <Users className="size-3.5" />
-                            {item.current_count}/{item.target_count}
+                            참여자 {item.current_count}/{item.target_count}명
                           </span>
                         </div>
                       </Link>

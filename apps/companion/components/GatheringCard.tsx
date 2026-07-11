@@ -75,7 +75,7 @@ export function GatheringCard({ gathering }: Props) {
             )}
             <span className="flex items-center gap-1 font-medium text-primary">
               <Users className="size-3.5" />
-              {gathering.current_count}/{gathering.target_count}
+              참여자 {gathering.current_count}/{gathering.target_count}명
             </span>
           </div>
         </div>

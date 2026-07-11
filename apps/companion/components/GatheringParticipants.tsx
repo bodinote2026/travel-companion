@@ -11,15 +11,19 @@ type Props = {
 
 export function GatheringParticipants({ members }: Props) {
   const [selected, setSelected] = useState<GatheringMemberProfile | null>(null);
+  const participantCount = members.filter((m) => !m.is_author).length;
 
   return (
     <section className="mt-6 px-5">
       <h3 className="text-sm font-semibold text-foreground">
         참여 중인 동행
         <span className="ml-1.5 font-medium text-muted-foreground">
-          {members.length}명
+          참여자 {participantCount}명
         </span>
       </h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        동행지기는 목록 맨 위에 표시되며 참여자 수에는 포함되지 않아요.
+      </p>
 
       <ul className="mt-3 flex flex-col gap-2.5">
         {members.map((member) => (
@@ -41,7 +45,7 @@ export function GatheringParticipants({ members }: Props) {
               </div>
               {member.is_author && (
                 <span className="shrink-0 rounded-full bg-primary-muted px-2 py-0.5 text-micro font-semibold text-primary">
-                  작성자
+                  동행지기
                 </span>
               )}
             </button>

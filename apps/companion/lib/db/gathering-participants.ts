@@ -62,7 +62,7 @@ export async function listGatheringMemberProfiles(input: {
   const members: GatheringMemberProfile[] = [
     {
       user_id: input.authorId,
-      name: input.authorName.trim() || '작성자',
+      name: input.authorName.trim() || '동행지기',
       avatar_url: input.authorAvatarUrl,
       age: null,
       region: null,
@@ -178,7 +178,7 @@ export async function applyToGathering(input: {
     throw new ApplyGatheringError('모집글을 찾을 수 없습니다.', 404);
   }
   if (gathering.author_id === input.userId) {
-    throw new ApplyGatheringError('본인이 작성한 모집글에는 신청할 수 없습니다.', 400);
+    throw new ApplyGatheringError('본인이 만든 모집글에는 신청할 수 없습니다.', 400);
   }
 
   const isFull =
@@ -236,7 +236,7 @@ export async function cancelGatheringApplication(input: {
     throw new ApplyGatheringError('모집글을 찾을 수 없습니다.', 404);
   }
   if (gathering.author_id === input.userId) {
-    throw new ApplyGatheringError('작성자는 참여 취소할 수 없습니다.', 400);
+    throw new ApplyGatheringError('동행지기는 참여 취소할 수 없습니다.', 400);
   }
 
   if (getAirtableConfig()) {
@@ -254,8 +254,8 @@ export async function cancelGatheringApplication(input: {
     memoryParticipants.set(key, { ...row, status: 'cancelled' });
   }
 
-  // 작성자(1) 미만으로 내려가지 않음
-  const nextCount = Math.max(1, gathering.current_count - 1);
+  // 참여자만 카운트 (동행지기 제외) — 0 미만으로 내려가지 않음
+  const nextCount = Math.max(0, gathering.current_count - 1);
   const nextStatus =
     nextCount < gathering.target_count ? 'open' : gathering.status;
   const updated = await updateGatheringCounts(input.gatheringId, {

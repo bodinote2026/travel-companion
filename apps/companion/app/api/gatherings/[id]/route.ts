@@ -81,12 +81,12 @@ export async function PATCH(request: Request, { params }: Props) {
       target_count < 2 ||
       target_count > 50
     ) {
-      return NextResponse.json({ error: '모집 인원은 2~50명으로 입력해주세요.' }, { status: 400 });
+      return NextResponse.json({ error: '필요 참여자 수는 2~50명으로 입력해주세요.' }, { status: 400 });
     }
     if (target_count < existing.current_count) {
       return NextResponse.json(
         {
-          error: `모집 인원은 현재 인원(${existing.current_count}명)보다 작을 수 없습니다.`,
+          error: `필요 참여자 수는 현재 참여자(${existing.current_count}명)보다 작을 수 없습니다.`,
         },
         { status: 400 },
       );

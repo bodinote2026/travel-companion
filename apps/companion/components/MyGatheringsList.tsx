@@ -103,7 +103,7 @@ export function MyGatheringsList() {
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   {item.role === 'host' && (
                     <span className="rounded-md bg-primary-muted px-2 py-0.5 text-[10px] font-bold text-primary">
-                      주최자
+                      동행지기
                     </span>
                   )}
                   <span
@@ -132,7 +132,7 @@ export function MyGatheringsList() {
                 )}
                 <p className="flex items-center gap-1.5">
                   <Users className="size-3.5 shrink-0" />
-                  {item.current_count} / {item.target_count}명
+                  참여자 {item.current_count} / {item.target_count}명
                 </p>
               </div>
             </Link>
