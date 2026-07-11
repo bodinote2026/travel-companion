@@ -233,7 +233,11 @@ export function HomeClient({ products }: Props) {
         <LocationConsentBanner onGranted={handleConsentGranted} onDecline={decline} />
       )}
 
-      <CompanionDetailSheet companion={activeCompanion} onClose={() => setActiveId(null)} />
+      <CompanionDetailSheet
+        companion={activeCompanion}
+        onClose={() => setActiveId(null)}
+        showDistance={hasLocation}
+      />
     </main>
   );
 }
