@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getUserById, updateUserProfile, userDisplayName } from '@/lib/airtable/users';
+import {
+  NicknameTakenError,
+  getUserById,
+  updateUserProfile,
+  userDisplayName,
+} from '@/lib/airtable/users';
 import {
   createSessionToken,
   getSessionUser,
@@ -9,6 +14,7 @@ import { normalizeInterestCategories } from '@/lib/profile/constants';
 import { airtableUserToUserProfile } from '@/lib/profile/transform';
 import { isKnownRegionCode } from '@/lib/regions';
 import { normalizePhone } from '@/lib/user-profile';
+import { displayNickname } from '@/lib/users/nickname';
 
 function isValidProfilePhone(phone: string): boolean {
   const digits = normalizePhone(phone);
@@ -78,7 +84,7 @@ export async function PATCH(request: Request) {
     }
 
     if (nickname !== undefined) {
-      const trimmed = typeof nickname === 'string' ? nickname.trim() : '';
+      const trimmed = displayNickname(typeof nickname === 'string' ? nickname : '');
       if (!trimmed) {
         return NextResponse.json({ error: '별명을 입력해주세요.' }, { status: 400 });
       }
@@ -109,7 +115,7 @@ export async function PATCH(request: Request) {
       age: age !== undefined ? age : undefined,
       region: region !== undefined ? region.trim() : undefined,
       name: name !== undefined ? name.trim() : undefined,
-      nickname: nickname !== undefined ? nickname.trim() : undefined,
+      nickname: nickname !== undefined ? displayNickname(nickname) : undefined,
       phone: phone !== undefined ? phone : undefined,
     });
 
@@ -145,6 +151,9 @@ export async function PATCH(request: Request) {
     return response;
   } catch (error) {
     console.error(error);
+    if (error instanceof NicknameTakenError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : '프로필 저장 실패' },
       { status: 500 },

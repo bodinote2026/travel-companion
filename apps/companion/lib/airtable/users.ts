@@ -8,6 +8,10 @@ import {
 import { normalizePhone } from '@/lib/user-profile';
 import type { ProfileRow } from '@/lib/chat/types';
 import {
+  displayNickname,
+  normalizeNicknameKey,
+} from '@/lib/users/nickname';
+import {
   createRecord,
   escapeAirtableFormula,
   getRecord,
@@ -15,6 +19,13 @@ import {
   updateRecord,
 } from './client';
 import { getAirtableConfig, requireAirtableConfig } from './config';
+
+export class NicknameTakenError extends Error {
+  constructor(message = '이미 사용 중인 별명이에요. 다른 별명을 입력해주세요') {
+    super(message);
+    this.name = 'NicknameTakenError';
+  }
+}
 
 export type AirtableUserFields = {
   Phone?: string;
@@ -219,6 +230,66 @@ function filterRealUsers(users: AirtableUser[], excludeUserId?: string): Airtabl
     .sort((a, b) => userDisplayName(a).localeCompare(userDisplayName(b), 'ko'));
 }
 
+/** Nickname이 있는 모든 Users (시드 포함) — 중복 검사·감사 */
+export async function listUsersWithNickname(): Promise<AirtableUser[]> {
+  const config = requireAirtableConfig();
+  const records = await listRecords<AirtableUserFields>(config.usersTable, {
+    filterByFormula: `AND({Nickname}!="", LEN(TRIM({Nickname}))>0)`,
+  });
+  return records.map(mapUser);
+}
+
+/** 정규화 키 기준으로 닉네임 사용 중인지 (본인 제외) */
+export async function isNicknameTaken(
+  nickname: string,
+  excludeUserId?: string,
+): Promise<boolean> {
+  const key = normalizeNicknameKey(nickname);
+  if (!key) return false;
+
+  const users = await listUsersWithNickname();
+  return users.some(
+    (user) =>
+      user.id !== excludeUserId && normalizeNicknameKey(user.nickname) === key,
+  );
+}
+
+/** 원하는 닉네임이 가능하면 그대로, 아니면 base2, base3… */
+export async function allocateUniqueNickname(
+  desired: string,
+  excludeUserId?: string,
+): Promise<string> {
+  const base = displayNickname(desired) || '사용자';
+  if (!(await isNicknameTaken(base, excludeUserId))) return base;
+
+  for (let n = 2; n <= 99; n += 1) {
+    const candidate = `${base}${n}`;
+    if (!(await isNicknameTaken(candidate, excludeUserId))) return candidate;
+  }
+
+  return `${base}${Date.now().toString().slice(-4)}`;
+}
+
+/** 정규화 키별 중복 그룹 (기존 데이터 점검용) */
+export async function findDuplicateNicknameGroups(): Promise<
+  { key: string; users: { id: string; nickname: string }[] }[]
+> {
+  const users = await listUsersWithNickname();
+  const byKey = new Map<string, { id: string; nickname: string }[]>();
+
+  for (const user of users) {
+    const key = normalizeNicknameKey(user.nickname);
+    if (!key) continue;
+    const list = byKey.get(key) ?? [];
+    list.push({ id: user.id, nickname: user.nickname });
+    byKey.set(key, list);
+  }
+
+  return [...byKey.entries()]
+    .filter(([, group]) => group.length > 1)
+    .map(([key, group]) => ({ key, users: group }));
+}
+
 export async function upsertUser(input: {
   phone: string;
   name: string;
@@ -238,10 +309,11 @@ export async function upsertUser(input: {
     return mapUser(updated);
   }
 
+  const nickname = await allocateUniqueNickname(name);
   const created = await createRecord<AirtableUserFields>(config.usersTable, {
     Phone: phone,
     Name: name,
-    Nickname: name,
+    Nickname: nickname,
     Region: region,
     'Auth Provider': 'phone',
   });
@@ -256,7 +328,7 @@ export async function upsertKakaoUser(input: {
 }): Promise<AirtableUser> {
   const config = requireAirtableConfig();
   const kakaoId = input.kakaoId.trim();
-  const nickname = input.nickname.trim() || `카카오${kakaoId}`;
+  const desired = displayNickname(input.nickname) || `카카오${kakaoId}`;
   const region = resolveRegionForStorage(input.region);
 
   const existing = await findUserByKakaoId(kakaoId);
@@ -264,17 +336,17 @@ export async function upsertKakaoUser(input: {
     // 사용자가 설정한 Nickname은 보존. 비어 있을 때만 카카오 닉네임으로 채움.
     // Name·Avatar URL은 덮어쓰지 않음.
     const fields: Partial<AirtableUserFields> = {};
-    if (!existing.nickname.trim() && nickname) {
-      fields.Nickname = nickname;
+    if (!existing.nickname.trim() && desired) {
+      fields.Nickname = await allocateUniqueNickname(desired, existing.id);
       console.info('[upsertKakaoUser] empty Nickname filled from Kakao', {
         userId: existing.id,
-        nickname,
+        nickname: fields.Nickname,
       });
     } else {
       console.info('[upsertKakaoUser] preserve existing Nickname', {
         userId: existing.id,
         existingNickname: existing.nickname,
-        kakaoNickname: nickname,
+        kakaoNickname: desired,
       });
     }
     if (Object.keys(fields).length === 0) return existing;
@@ -282,6 +354,7 @@ export async function upsertKakaoUser(input: {
     return mapUser(updated);
   }
 
+  const nickname = await allocateUniqueNickname(desired);
   const created = await createRecord<AirtableUserFields>(config.usersTable, {
     Nickname: nickname,
     Region: region,
@@ -328,7 +401,18 @@ export async function updateUserProfile(
     fields.Name = input.name.trim();
   }
   if (input.nickname !== undefined) {
-    fields.Nickname = input.nickname.trim();
+    const next = displayNickname(input.nickname);
+    if (!next) {
+      throw new Error('별명을 입력해주세요.');
+    }
+    const current = await getUserById(userId);
+    const unchanged =
+      current &&
+      normalizeNicknameKey(current.nickname) === normalizeNicknameKey(next);
+    if (!unchanged && (await isNicknameTaken(next, userId))) {
+      throw new NicknameTakenError();
+    }
+    fields.Nickname = next;
   }
   if (input.phone !== undefined) {
     fields.Phone = normalizePhone(input.phone);
