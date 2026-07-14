@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, Minus, Navigation, Plus } from 'lucide-react';
 import type { CompanionListItem } from '@/lib/companions/types';
 import {
+  getKakaoMapKeyHint,
   isKakaoMapKeyConfigured,
   loadKakaoMaps,
   type KakaoCustomOverlay,
@@ -178,10 +179,15 @@ export function CompanionMap({
           map.setCenter(center);
         });
       } catch (err) {
-        console.error(err);
+        console.error('[CompanionMap]', err);
         if (!cancelled) {
+          const hint = getKakaoMapKeyHint();
+          const base =
+            err instanceof Error ? err.message : '지도를 불러오지 못했어요.';
           setError(
-            err instanceof Error ? err.message : '지도를 불러오지 못했어요.',
+            hint && !base.includes(hint)
+              ? `${base}\n키: ${hint}`
+              : base,
           );
         }
       }
@@ -275,9 +281,11 @@ export function CompanionMap({
       )}
 
       {error && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-secondary/80 px-6 text-center">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 overflow-y-auto bg-secondary/90 px-4 py-3 text-center">
           <p className="text-sm font-semibold text-foreground">지도를 표시할 수 없어요</p>
-          <p className="text-xs leading-relaxed text-muted-foreground">{error}</p>
+          <pre className="max-h-40 w-full overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-background/80 px-3 py-2 text-left text-[11px] leading-relaxed text-muted-foreground">
+            {error}
+          </pre>
         </div>
       )}
 
