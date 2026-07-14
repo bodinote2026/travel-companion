@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { GroupBuyCard } from '@/components/GroupBuyCard';
-import { ProductCategoryTabFilter } from '@/components/ProductCategoryTabFilter';
-import { RegionTabFilter } from '@/components/RegionTabFilter';
+import { GroupBuyFilterBar } from '@/components/GroupBuyFilterBar';
 import {
   DEFAULT_PRODUCT_CATEGORY_TAB,
   filterByProductCategory,
@@ -36,8 +35,12 @@ export function GroupBuyProductList({ products }: Props) {
 
   return (
     <>
-      <RegionTabFilter active={regionTab} onChange={setRegionTab} />
-      <ProductCategoryTabFilter active={categoryTab} onChange={setCategoryTab} />
+      <GroupBuyFilterBar
+        region={regionTab}
+        category={categoryTab}
+        onRegionChange={setRegionTab}
+        onCategoryChange={setCategoryTab}
+      />
 
       <div className="flex flex-col gap-3.5 px-4 pb-4">
         {sorted.length === 0 ? (
