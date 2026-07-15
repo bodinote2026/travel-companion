@@ -57,15 +57,34 @@ function parseExternalLink(value: unknown): string | null {
   }
 }
 
+/** Long text: 줄바꿈(또는 쉼표)으로 구분된 http(s) URL 목록 */
+function parseDetailImageUrls(value: unknown): string[] {
+  if (typeof value !== 'string') return [];
+  const seen = new Set<string>();
+  const urls: string[] = [];
+  for (const part of value.split(/[\n,]+/)) {
+    const parsed = parseExternalLink(part);
+    if (!parsed || seen.has(parsed)) continue;
+    seen.add(parsed);
+    urls.push(parsed);
+  }
+  return urls;
+}
+
 function mapProduct(record: { id: string; fields: AirtableProductFields }): RegionProduct {
   const fields = record.fields;
+  const fromList = parseDetailImageUrls(fields['Detail Image URLs']);
+  const fromSingle = parseExternalLink(fields['Detail Image URL']);
+  const detailImageUrls =
+    fromList.length > 0 ? fromList : fromSingle ? [fromSingle] : [];
+
   return {
     id: fields['Product ID'],
     region: fields.Region,
     name: fields.Name ?? '',
     description: fields.Description ?? '',
     imageUrl: resolveProductImageUrl(fields['Image URL']),
-    detailImageUrl: parseExternalLink(fields['Detail Image URL']),
+    detailImageUrls,
     sellerName: fields['Seller Name'] ?? '',
     category: parseProductCategory(fields.Category) ?? '',
     ticketLabel: fields['Ticket Label']?.trim() ?? '',

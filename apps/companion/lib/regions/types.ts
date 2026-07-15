@@ -36,8 +36,8 @@ export type RegionProduct = {
   name: string;
   description: string;
   imageUrl: string;
-  /** 세로로 긴 상세 이미지. 없으면 null */
-  detailImageUrl: string | null;
+  /** 세로로 긴 상세 이미지 URL들 (순서대로). 없으면 빈 배열 */
+  detailImageUrls: string[];
   sellerName: string;
   category: string;
   ticketLabel: string;

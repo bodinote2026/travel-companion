@@ -26,7 +26,7 @@ export default async function ProductPage({ params }: Props) {
     listComments('product', id),
   ]);
   const imageUrl = resolveProductImageUrl(product.imageUrl);
-  const detailImageUrl = product.detailImageUrl?.trim() || null;
+  const detailImageUrls = product.detailImageUrls;
   const isKakaoChannel = product.actionType === 'kakao_channel';
 
   return (
@@ -70,15 +70,18 @@ export default async function ProductPage({ params }: Props) {
         </div>
       )}
 
-      {detailImageUrl ? (
+      {detailImageUrls.length > 0 ? (
         <div className="w-full bg-white">
-          {/* 세로로 긴 상세 이미지: 원본 비율 유지, 가로 100% */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={detailImageUrl}
-            alt={`${product.name} 상세`}
-            className="h-auto w-full object-contain"
-          />
+          {detailImageUrls.map((url, index) => (
+            // 세로로 긴 상세 이미지: 원본 비율 유지, 가로 100%
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={`${url}-${index}`}
+              src={url}
+              alt={`${product.name} 상세 ${index + 1}`}
+              className="h-auto w-full object-contain"
+            />
+          ))}
         </div>
       ) : null}
 
