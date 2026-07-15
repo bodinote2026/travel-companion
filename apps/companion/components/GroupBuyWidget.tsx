@@ -492,8 +492,10 @@ export function GroupBuyWidget({ product, children }: Props) {
 
   return (
     <div>
-      <div className="px-5">{summaryCard}</div>
-      <div className="mt-3">{actionPanel}</div>
+      <div className="mb-3 px-5">{summaryCard}</div>
+      {/* sticky 부모는 아래 children(상세이미지)까지 포함하는 이 루트 div여야 함.
+          mt-3 래퍼로 감싸면 sticky 포함 블록이 패널 높이로 끝나 고정이 즉시 해제됨 */}
+      {actionPanel}
       {children}
     </div>
   );
