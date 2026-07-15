@@ -278,8 +278,13 @@ export function GroupBuyWidget({ product, children }: Props) {
 
   const summaryCount = isReservation ? displayCount : product.currentCount;
 
-  const summaryCard = (
-    <div className="rounded-2xl border border-border bg-card p-4">
+  const reserved = alreadyReserved;
+  const checking = Boolean(profile?.id) && !reservationChecked;
+  const canReserve = !reserved && !isReservationFull;
+  const busy = status === 'loading' || !ready || checking;
+
+  const summarySection = (
+    <div className="px-4 pb-3 pt-4">
       {isPreparing ? (
         <span className="rounded-lg bg-secondary px-2 py-1 text-sm font-bold text-muted-foreground">
           준비중
@@ -308,7 +313,7 @@ export function GroupBuyWidget({ product, children }: Props) {
       </div>
 
       {isPreparing ? (
-        <p className="mt-4 rounded-xl bg-secondary px-3 py-3 text-center text-sm font-medium text-secondary-foreground">
+        <p className="mt-3 rounded-xl bg-secondary px-3 py-3 text-center text-sm font-medium text-secondary-foreground">
           곧 만나요! 준비중인 상품이에요
         </p>
       ) : isReservation ? (
@@ -337,165 +342,158 @@ export function GroupBuyWidget({ product, children }: Props) {
     </div>
   );
 
-  let actionPanel: React.ReactNode = null;
+  let actionSection: React.ReactNode = null;
 
   if (isPreparing) {
-    actionPanel = (
-      <StickyActionPanel>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex justify-between text-base font-bold">
-            <span>1인 청구 금액</span>
-            <span>{formatPrice(charge)}원</span>
-          </div>
-          <button
-            type="button"
-            disabled
-            className="mt-3 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-muted text-base font-semibold text-muted-foreground opacity-70"
-          >
-            {isReservation ? '사전 예약하기' : '함께 구매하기 (결제)'}
-          </button>
+    actionSection = (
+      <div className="px-4 pb-4 pt-3">
+        <div className="flex justify-between text-base font-bold">
+          <span>1인 청구 금액</span>
+          <span>{formatPrice(charge)}원</span>
         </div>
-      </StickyActionPanel>
+        <button
+          type="button"
+          disabled
+          className="mt-3 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-muted text-base font-semibold text-muted-foreground opacity-70"
+        >
+          {isReservation ? '사전 예약하기' : '함께 구매하기 (결제)'}
+        </button>
+      </div>
     );
   } else if (isReservation) {
-    const reserved = alreadyReserved;
-    const checking = Boolean(profile?.id) && !reservationChecked;
-    const canReserve = !reserved && !isReservationFull;
-    const busy = status === 'loading' || !ready || checking;
-
-    actionPanel = (
-      <StickyActionPanel>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex justify-between text-base font-bold">
-            <span>1인 청구 금액</span>
-            <span>{formatPrice(charge)}원</span>
-          </div>
-          {profile ? (
-            <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
-              <span className="font-medium">{profile.name}</span> · {profile.phone}
-            </p>
-          ) : (
-            <p className="mt-3 text-sm text-muted-foreground">
-              사전 예약하려면 로그인이 필요합니다.
-            </p>
+    actionSection = (
+      <div className="px-4 pb-4 pt-3">
+        <div className="flex justify-between text-base font-bold">
+          <span>1인 청구 금액</span>
+          <span>{formatPrice(charge)}원</span>
+        </div>
+        {profile ? (
+          <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+            <span className="font-medium">{profile.name}</span> · {profile.phone}
+          </p>
+        ) : (
+          <p className="mt-3 text-sm text-muted-foreground">
+            사전 예약하려면 로그인이 필요합니다.
+          </p>
+        )}
+        <button
+          type="button"
+          disabled={reserved || !canReserve || busy}
+          onClick={handleReserve}
+          className={cn(
+            'mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-semibold',
+            reserved || isReservationFull
+              ? 'cursor-not-allowed bg-muted text-muted-foreground opacity-80'
+              : 'bg-primary text-primary-foreground',
+            busy && canReserve && 'opacity-70',
           )}
-          <button
-            type="button"
-            disabled={reserved || !canReserve || busy}
-            onClick={handleReserve}
+        >
+          {status === 'loading' || checking ? (
+            <>
+              <Loader2 className="size-5 animate-spin" />
+              {checking ? '확인 중…' : '예약 중…'}
+            </>
+          ) : reserved ? (
+            '예약 완료'
+          ) : isReservationFull ? (
+            '예약 마감'
+          ) : profile ? (
+            '사전 예약하기'
+          ) : (
+            '로그인하고 사전 예약하기'
+          )}
+        </button>
+        {reserved && (
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            취소는{' '}
+            <Link
+              href="/orders"
+              className="font-medium text-primary underline-offset-2 hover:underline"
+            >
+              내 공동구매
+            </Link>
+            에서 할 수 있어요
+          </p>
+        )}
+        {message && (
+          <p
             className={cn(
-              'mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-semibold',
-              reserved || isReservationFull
-                ? 'cursor-not-allowed bg-muted text-muted-foreground opacity-80'
-                : 'bg-primary text-primary-foreground',
-              busy && canReserve && 'opacity-70',
+              'mt-2 rounded-xl px-3 py-2 text-sm',
+              status === 'error'
+                ? 'bg-destructive-muted text-destructive'
+                : 'bg-success-muted text-success',
             )}
           >
-            {status === 'loading' || checking ? (
-              <>
-                <Loader2 className="size-5 animate-spin" />
-                {checking ? '확인 중…' : '예약 중…'}
-              </>
-            ) : reserved ? (
-              '예약 완료'
-            ) : isReservationFull ? (
-              '예약 마감'
-            ) : profile ? (
-              '사전 예약하기'
-            ) : (
-              '로그인하고 사전 예약하기'
-            )}
-          </button>
-          {reserved && (
-            <p className="mt-2 text-center text-xs text-muted-foreground">
-              취소는{' '}
-              <Link
-                href="/orders"
-                className="font-medium text-primary underline-offset-2 hover:underline"
-              >
-                내 공동구매
-              </Link>
-              에서 할 수 있어요
-            </p>
-          )}
-          {message && (
-            <p
-              className={cn(
-                'mt-2 rounded-xl px-3 py-2 text-sm',
-                status === 'error'
-                  ? 'bg-destructive-muted text-destructive'
-                  : 'bg-success-muted text-success',
-              )}
-            >
-              {message}
-            </p>
-          )}
-        </div>
-      </StickyActionPanel>
+            {message}
+          </p>
+        )}
+      </div>
     );
   } else {
-    actionPanel = (
-      <StickyActionPanel>
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <div className="flex justify-between text-base font-bold">
-            <span>1인 청구 금액</span>
-            <span>{formatPrice(charge)}원</span>
-          </div>
-          {!isComplete && status !== 'paid' ? (
-            <>
-              {profile ? (
-                <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
-                  <span className="font-medium">{profile.name}</span> · {profile.phone}
-                </p>
-              ) : (
-                <p className="mt-3 text-sm text-muted-foreground">
-                  결제하려면 휴대폰 인증 로그인이 필요합니다.
-                </p>
-              )}
-              <button
-                type="button"
-                disabled={status === 'loading' || !ready}
-                onClick={handleParticipate}
-                className={cn(
-                  'mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground',
-                  (status === 'loading' || !ready) && 'opacity-70',
-                )}
-              >
-                {status === 'loading' ? (
-                  <>
-                    <Loader2 className="size-5 animate-spin" /> 결제 진행 중…
-                  </>
-                ) : profile ? (
-                  '함께 구매하기 (결제)'
-                ) : (
-                  '로그인하고 구매하기'
-                )}
-              </button>
-            </>
-          ) : null}
-          {message && (
-            <p
+    actionSection = (
+      <div className="px-4 pb-4 pt-3">
+        <div className="flex justify-between text-base font-bold">
+          <span>1인 청구 금액</span>
+          <span>{formatPrice(charge)}원</span>
+        </div>
+        {!isComplete && status !== 'paid' ? (
+          <>
+            {profile ? (
+              <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+                <span className="font-medium">{profile.name}</span> · {profile.phone}
+              </p>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground">
+                결제하려면 휴대폰 인증 로그인이 필요합니다.
+              </p>
+            )}
+            <button
+              type="button"
+              disabled={status === 'loading' || !ready}
+              onClick={handleParticipate}
               className={cn(
-                'mt-2 rounded-xl px-3 py-2 text-sm',
-                status === 'paid'
-                  ? 'bg-success-muted text-success'
-                  : 'bg-destructive-muted text-destructive',
+                'mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground',
+                (status === 'loading' || !ready) && 'opacity-70',
               )}
             >
-              {message}
-            </p>
-          )}
-        </div>
-      </StickyActionPanel>
+              {status === 'loading' ? (
+                <>
+                  <Loader2 className="size-5 animate-spin" /> 결제 진행 중…
+                </>
+              ) : profile ? (
+                '함께 구매하기 (결제)'
+              ) : (
+                '로그인하고 구매하기'
+              )}
+            </button>
+          </>
+        ) : null}
+        {message && (
+          <p
+            className={cn(
+              'mt-2 rounded-xl px-3 py-2 text-sm',
+              status === 'paid'
+                ? 'bg-success-muted text-success'
+                : 'bg-destructive-muted text-destructive',
+            )}
+          >
+            {message}
+          </p>
+        )}
+      </div>
     );
   }
 
   return (
     <div>
-      <div className="mb-3 px-5">{summaryCard}</div>
-      {/* sticky 부모는 아래 children(상세이미지)까지 포함하는 이 루트 div여야 함.
-          mt-3 래퍼로 감싸면 sticky 포함 블록이 패널 높이로 끝나 고정이 즉시 해제됨 */}
-      {actionPanel}
+      {/* sticky 부모는 children(상세이미지)까지 포함해야 고정이 유지됨 */}
+      <StickyActionPanel>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+          {summarySection}
+          <div className="border-t border-border" aria-hidden />
+          {actionSection}
+        </div>
+      </StickyActionPanel>
       {children}
     </div>
   );
