@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: Props) {
         <GroupBuyWidget product={product} />
       </div>
 
-      {product.actionType !== 'kakao_channel' && participants.length > 0 && (
+      {product.actionType === 'payment' && participants.length > 0 && (
         <section className="mt-6 px-5">
           <h2 className="text-sm font-bold">
             참여자 <span className="text-primary">{participants.length}</span>명

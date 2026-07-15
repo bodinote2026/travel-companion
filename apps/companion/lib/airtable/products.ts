@@ -16,13 +16,15 @@ import { parseProductCategory } from '@/lib/regions/product-categories';
 function parseActionType(value: unknown): ProductActionType {
   const raw = Array.isArray(value) ? value[0] : value;
   if (typeof raw !== 'string') return 'payment';
-  const normalized = raw.trim().toLowerCase();
+  const normalized = raw.trim().toLowerCase().replace(/[\s-]+/g, '_');
   if (
     normalized === 'kakao_channel' ||
-    normalized === 'kakao channel' ||
     normalized.includes('kakao')
   ) {
     return 'kakao_channel';
+  }
+  if (normalized === 'reservation' || normalized === 'pre_reservation') {
+    return 'reservation';
   }
   return 'payment';
 }

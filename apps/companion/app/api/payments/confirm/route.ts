@@ -105,6 +105,12 @@ export async function PUT(request: Request) {
         { status: 400 },
       );
     }
+    if (product.actionType === 'reservation') {
+      return NextResponse.json(
+        { error: '이 상품은 사전 예약으로만 신청할 수 있습니다.' },
+        { status: 400 },
+      );
+    }
     if (product.groupBuyStatus === 'preparing') {
       return NextResponse.json(
         { error: '곧 만나요! 준비중인 상품이에요.' },

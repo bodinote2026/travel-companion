@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Loader2, Users } from 'lucide-react';
@@ -19,19 +19,56 @@ type Props = {
 const PAYMENT_NOT_CONFIGURED_MSG =
   '결제 연동 설정 중입니다. PG 키 등록 후 다시 시도해 주세요.';
 
+const RESERVE_SUCCESS_MSG = '예약 완료! 결제 준비되면 문자로 안내드릴게요';
+
 export function GroupBuyWidget({ product }: Props) {
   const router = useRouter();
   const { profile, ready } = useUserProfile();
   const [status, setStatus] = useState<'idle' | 'loading' | 'paid' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const [alreadyReserved, setAlreadyReserved] = useState(false);
+  const [reservationChecked, setReservationChecked] = useState(false);
 
   const isKakaoChannel = product.actionType === 'kakao_channel';
+  const isReservation = product.actionType === 'reservation';
   const isPreparing = product.groupBuyStatus === 'preparing';
   const isComplete =
     !isKakaoChannel &&
+    !isReservation &&
     !isPreparing &&
     (product.groupBuyStatus === 'success' || product.currentCount >= product.targetCount);
   const charge = perPersonCharge(product.discountedPrice, product.targetCount);
+
+  useEffect(() => {
+    if (!isReservation || !ready) return;
+
+    if (!profile?.id) {
+      setAlreadyReserved(false);
+      setReservationChecked(true);
+      return;
+    }
+
+    let cancelled = false;
+    setReservationChecked(false);
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/products/${encodeURIComponent(product.id)}/reservation`);
+        const data = await res.json();
+        if (!cancelled) {
+          setAlreadyReserved(Boolean(data.reserved));
+        }
+      } catch {
+        if (!cancelled) setAlreadyReserved(false);
+      } finally {
+        if (!cancelled) setReservationChecked(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isReservation, ready, profile?.id, product.id]);
 
   async function handleParticipate() {
     if (!ready || isPreparing) return;
@@ -92,6 +129,36 @@ export function GroupBuyWidget({ product }: Props) {
     }
   }
 
+  async function handleReserve() {
+    if (!ready || isPreparing || alreadyReserved) return;
+
+    if (!profile) {
+      const returnUrl = encodeURIComponent(
+        typeof window !== 'undefined' ? window.location.pathname : `/product/${product.id}`,
+      );
+      router.push(`/login?returnUrl=${returnUrl}`);
+      return;
+    }
+
+    setStatus('loading');
+    setMessage('');
+
+    try {
+      const res = await fetch(`/api/products/${encodeURIComponent(product.id)}/reservation`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? '사전 예약 실패');
+
+      setAlreadyReserved(true);
+      setStatus('paid');
+      setMessage(data.message || RESERVE_SUCCESS_MSG);
+    } catch (err) {
+      setStatus('error');
+      setMessage(err instanceof Error ? err.message : '오류가 발생했습니다.');
+    }
+  }
+
   if (isPreparing) {
     return (
       <div className="rounded-2xl border border-border bg-card p-4">
@@ -104,7 +171,9 @@ export function GroupBuyWidget({ product }: Props) {
             <span className="line-through">{formatPrice(product.regularPrice)}원</span>
           </div>
           <div className="flex justify-between font-semibold">
-            <span>{isKakaoChannel ? '얼리버드 할인가' : '공동구매가'}</span>
+            <span>
+              {isKakaoChannel || isReservation ? '얼리버드 할인가' : '공동구매가'}
+            </span>
             <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
           </div>
         </div>
@@ -116,7 +185,11 @@ export function GroupBuyWidget({ product }: Props) {
           disabled
           className="mt-4 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-muted text-base font-semibold text-muted-foreground opacity-70"
         >
-          {isKakaoChannel ? '동행 모집글 보러가기' : '함께 구매하기 (결제)'}
+          {isKakaoChannel
+            ? '동행 모집글 보러가기'
+            : isReservation
+              ? '사전 예약하기'
+              : '함께 구매하기 (결제)'}
         </button>
       </div>
     );
@@ -152,6 +225,87 @@ export function GroupBuyWidget({ product }: Props) {
           동행 모집글 보러가기
           <ArrowRight className="size-5" />
         </Link>
+      </div>
+    );
+  }
+
+  if (isReservation) {
+    const reserved = alreadyReserved || status === 'paid';
+    const checking = Boolean(profile?.id) && !reservationChecked;
+
+    return (
+      <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="flex items-center">
+          <span className="rounded-lg bg-primary-muted px-2 py-1 text-sm font-bold text-primary">
+            사전 예약
+          </span>
+        </div>
+
+        <div className="mt-4 space-y-1 text-sm">
+          <div className="flex justify-between text-muted-foreground">
+            <span>정가</span>
+            <span className="line-through">{formatPrice(product.regularPrice)}원</span>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <span>예약가</span>
+            <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
+          </div>
+        </div>
+
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          지금은 결제 없이 사전 예약만 받아요. 결제 준비가 되면 문자로 안내드릴게요.
+        </p>
+
+        {profile ? (
+          <p className="mt-4 rounded-xl bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+            <span className="font-medium">{profile.name}</span> · {profile.phone}
+          </p>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">
+            사전 예약하려면 로그인이 필요합니다.
+          </p>
+        )}
+
+        <button
+          type="button"
+          disabled={
+            reserved || status === 'loading' || !ready || checking
+          }
+          onClick={handleReserve}
+          className={cn(
+            'mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-semibold',
+            reserved
+              ? 'cursor-not-allowed bg-muted text-muted-foreground opacity-80'
+              : 'bg-primary text-primary-foreground',
+            (status === 'loading' || !ready || checking) && !reserved && 'opacity-70',
+          )}
+        >
+          {status === 'loading' || checking ? (
+            <>
+              <Loader2 className="size-5 animate-spin" />
+              {checking ? '확인 중…' : '예약 중…'}
+            </>
+          ) : reserved ? (
+            '예약 완료'
+          ) : profile ? (
+            '사전 예약하기'
+          ) : (
+            '로그인하고 사전 예약하기'
+          )}
+        </button>
+
+        {message && (
+          <p
+            className={cn(
+              'mt-3 rounded-xl px-3 py-2 text-sm',
+              status === 'paid' || reserved
+                ? 'bg-success-muted text-success'
+                : 'bg-destructive-muted text-destructive',
+            )}
+          >
+            {message}
+          </p>
+        )}
       </div>
     );
   }

@@ -13,6 +13,7 @@ export type AirtableConfig = {
   gatheringsTable: string;
   gatheringParticipantsTable: string;
   commentsTable: string;
+  productReservationsTable: string;
 };
 
 export function getAirtableConfig(): AirtableConfig | null {
@@ -38,6 +39,9 @@ export function getAirtableConfig(): AirtableConfig | null {
       cleanEnv(process.env.AIRTABLE_GATHERING_PARTICIPANTS_TABLE) ||
       'Gathering_Participants',
     commentsTable: cleanEnv(process.env.AIRTABLE_COMMENTS_TABLE) || 'Comments',
+    productReservationsTable:
+      cleanEnv(process.env.AIRTABLE_PRODUCT_RESERVATIONS_TABLE) ||
+      'Product_Reservations',
   };
 }
 
