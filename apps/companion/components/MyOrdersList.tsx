@@ -198,7 +198,7 @@ export function MyOrdersList() {
               {item.kind === 'order' ? (
                 <span className="font-bold">{formatPrice(item.amount)}원</span>
               ) : (
-                <span className="text-xs font-medium text-muted-foreground">예약만 완료</span>
+                <span className="text-xs text-muted-foreground">-</span>
               )}
             </div>
           </Link>
