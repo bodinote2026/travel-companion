@@ -29,7 +29,7 @@ export function SaleBanner({ href = SALE_BANNER_HREF, className }: Props) {
     <Link
       href={href}
       aria-label="세일 배너"
-      className={cn('block w-full overflow-hidden rounded-[1.25rem]', className)}
+      className={cn('block w-full max-w-full overflow-hidden rounded-[1.25rem]', className)}
     >
       {failed ? (
         <div
@@ -45,7 +45,7 @@ export function SaleBanner({ href = SALE_BANNER_HREF, className }: Props) {
           alt="세일 배너"
           width={1898}
           height={829}
-          className="block h-auto w-full"
+          className="block h-auto w-full max-w-full"
           onError={() => setFailed(true)}
         />
       )}

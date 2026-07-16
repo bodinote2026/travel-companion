@@ -4,7 +4,7 @@ import { Map, MessageCircle, Search, ShoppingBag, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useChatUnreadCount } from '@/hooks/useChatUnreadCount';
-import { PAGE_MAX_WIDTH_CLASS } from '@/lib/layout/page-container';
+import { PAGE_FIXED_LAYER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
 
 export type NavTab = 'map' | 'explore' | 'group-buy' | 'chat' | 'profile';
@@ -86,7 +86,10 @@ export function BottomNav({ active, embedded }: Props) {
       className={cn(
         embedded
           ? 'px-1 pb-4 pt-1'
-          : cn('fixed inset-x-0 bottom-0 z-30 mx-auto w-full border-t border-border bg-background/95 px-1 pb-4 pt-2 backdrop-blur', PAGE_MAX_WIDTH_CLASS),
+          : cn(
+              PAGE_FIXED_LAYER_CLASS,
+              'border-t border-border bg-background/95 px-1 pb-4 pt-2 backdrop-blur',
+            ),
       )}
     >
       <div className="grid grid-cols-5 items-end">
