@@ -54,7 +54,7 @@ export function ProfileSetupPageClient() {
       initialBio={profile.bio}
       initialCategories={profile.interest_categories}
       initialAge={profile.age}
-      initialRegion={profile.region}
+      initialRegions={profile.regions}
       initialAvatarUrl={profile.avatar_url}
       showSkip={!fromMypage && !profile.profile_completed}
       title={fromMypage ? '프로필 수정' : '프로필 작성'}

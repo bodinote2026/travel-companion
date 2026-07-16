@@ -94,7 +94,7 @@ export function sessionUserToProfile(user: SessionUser) {
     name: user.name,
     nickname: user.nickname,
     phone: user.phone,
-    region: user.region,
+    regions: [user.region],
     avatar_url: null as string | null,
   };
 }

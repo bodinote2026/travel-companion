@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { primaryRegion } from '@/lib/regions';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
 type StartChatInput = {
@@ -43,7 +44,9 @@ export function useStartChat() {
             myProfileId: profile.id,
             ...(peerProfileId ? { peerProfileId } : {}),
             ...(companionSeedId ? { companionSeedId } : {}),
-            ...(profile.region ? { region: profile.region } : {}),
+            ...(profile.regions.length > 0
+              ? { region: primaryRegion(profile.regions) }
+              : {}),
           }),
         });
         const data = await res.json();

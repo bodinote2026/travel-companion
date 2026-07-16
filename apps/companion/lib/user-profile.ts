@@ -5,7 +5,7 @@ export type UserProfile = {
   /** 공개 표시명 (Users.Nickname) */
   nickname: string;
   phone: string;
-  region: string;
+  regions: string[];
   avatar_url?: string | null;
   bio?: string | null;
   interest_categories?: string[];

@@ -25,7 +25,7 @@ export async function GET(_request: Request, { params }: Props) {
         name: userDisplayName(user),
         avatar_url: user.avatarUrl,
         age: user.age,
-        region: user.region?.trim() || null,
+        regions: user.regions,
         bio: user.bio,
         interest_categories: user.interestCategories,
         companion_seed_id: user.companionSeedId,

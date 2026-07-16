@@ -1,4 +1,9 @@
-import { getRegion } from '@/lib/regions';
+import {
+  getRegion,
+  normalizeUserRegions,
+  parseUserRegions,
+  primaryRegion,
+} from '@/lib/regions';
 import {
   airtableAndFormula,
   airtableRegionFormula,
@@ -33,7 +38,7 @@ export type AirtableUserFields = {
   Name?: string;
   /** 카카오 닉네임 등 공개 표시용 */
   Nickname?: string;
-  Region?: string;
+  Region?: string | string[];
   'Avatar URL'?: string;
   'Companion Seed ID'?: string;
   Bio?: string;
@@ -54,7 +59,7 @@ export type AirtableUser = {
   name: string;
   /** 공개 표시명 (Users.Nickname) */
   nickname: string;
-  region: string;
+  regions: string[];
   avatarUrl: string | null;
   companionSeedId: string | null;
   bio: string | null;
@@ -100,7 +105,7 @@ function mapUser(record: { id: string; fields: AirtableUserFields }): AirtableUs
     phone: record.fields.Phone ?? '',
     name: record.fields.Name ?? '',
     nickname: record.fields.Nickname ?? '',
-    region: record.fields.Region ?? '',
+    regions: parseUserRegions(record.fields.Region),
     avatarUrl: record.fields['Avatar URL'] ?? null,
     companionSeedId: record.fields['Companion Seed ID'] ?? null,
     bio: record.fields.Bio?.trim() || null,
@@ -121,7 +126,7 @@ export function toProfileRow(user: AirtableUser, createdAt?: string): ProfileRow
     id: user.id,
     phone: user.phone,
     name: userDisplayName(user),
-    region: user.region,
+    region: primaryRegion(user.regions),
     avatar_url: user.avatarUrl,
     companion_seed_id: user.companionSeedId,
     created_at: createdAt ?? now,
@@ -314,7 +319,7 @@ export async function upsertUser(input: {
     Phone: phone,
     Name: name,
     Nickname: nickname,
-    Region: region,
+    Region: [region],
     'Auth Provider': 'phone',
   });
   return mapUser(created);
@@ -357,7 +362,7 @@ export async function upsertKakaoUser(input: {
   const nickname = await allocateUniqueNickname(desired);
   const created = await createRecord<AirtableUserFields>(config.usersTable, {
     Nickname: nickname,
-    Region: region,
+    Region: [region],
     'Kakao ID': kakaoId,
     'Auth Provider': 'kakao',
     'Avatar URL': input.avatarUrl ?? undefined,
@@ -372,7 +377,7 @@ export async function updateUserProfile(
     interestCategories?: string[];
     profileCompleted?: boolean;
     age?: number | null;
-    region?: string;
+    regions?: string[];
     name?: string;
     nickname?: string;
     phone?: string;
@@ -394,8 +399,12 @@ export async function updateUserProfile(
   if (input.age !== undefined) {
     fields.Age = input.age ?? undefined;
   }
-  if (input.region !== undefined) {
-    fields.Region = resolveRegionForStorage(input.region);
+  if (input.regions !== undefined) {
+    const normalized = normalizeUserRegions(input.regions);
+    if (normalized.length === 0) {
+      throw new Error('활동 지역을 하나 이상 선택해주세요.');
+    }
+    fields.Region = normalized.map((code) => resolveRegionForStorage(code));
   }
   if (input.name !== undefined) {
     fields.Name = input.name.trim();
@@ -506,7 +515,7 @@ export async function getOrCreateCompanionUser(
   const created = await createRecord<AirtableUserFields>(config.usersTable, {
     Phone: `seed:${companionSeedId}`,
     Nickname: companion.name,
-    Region: regionCode,
+    Region: [regionCode],
     'Avatar URL': companion.avatar,
     'Companion Seed ID': companionSeedId,
   });

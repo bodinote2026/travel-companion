@@ -12,7 +12,7 @@ import {
 } from '@/lib/auth/session';
 import { normalizeInterestCategories } from '@/lib/profile/constants';
 import { airtableUserToUserProfile } from '@/lib/profile/transform';
-import { isKnownRegionCode } from '@/lib/regions';
+import { isKnownRegionCode, normalizeUserRegions, primaryRegion } from '@/lib/regions';
 import { normalizePhone } from '@/lib/user-profile';
 import { displayNickname } from '@/lib/users/nickname';
 
@@ -51,13 +51,13 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { bio, interest_categories, profile_completed, age, region, name, nickname, phone } =
+    const { bio, interest_categories, profile_completed, age, regions, name, nickname, phone } =
       body as {
         bio?: string | null;
         interest_categories?: unknown;
         profile_completed?: boolean;
         age?: number | null;
-        region?: string;
+        regions?: unknown;
         name?: string;
         nickname?: string;
         phone?: string;
@@ -69,9 +69,21 @@ export async function PATCH(request: Request) {
       }
     }
 
-    if (region !== undefined) {
-      const trimmed = typeof region === 'string' ? region.trim() : '';
-      if (!trimmed || !isKnownRegionCode(trimmed)) {
+    let normalizedRegions: string[] | undefined;
+    if (regions !== undefined) {
+      if (!Array.isArray(regions)) {
+        return NextResponse.json({ error: '활동 지역 형식이 올바르지 않습니다.' }, { status: 400 });
+      }
+      normalizedRegions = normalizeUserRegions(
+        regions.filter((value): value is string => typeof value === 'string'),
+      );
+      if (normalizedRegions.length === 0) {
+        return NextResponse.json(
+          { error: '활동 지역을 하나 이상 선택해주세요.' },
+          { status: 400 },
+        );
+      }
+      if (normalizedRegions.some((code) => !isKnownRegionCode(code))) {
         return NextResponse.json({ error: '올바른 지역을 선택해주세요.' }, { status: 400 });
       }
     }
@@ -113,7 +125,7 @@ export async function PATCH(request: Request) {
           : undefined,
       profileCompleted: profile_completed,
       age: age !== undefined ? age : undefined,
-      region: region !== undefined ? region.trim() : undefined,
+      regions: normalizedRegions,
       name: name !== undefined ? name.trim() : undefined,
       nickname: nickname !== undefined ? displayNickname(nickname) : undefined,
       phone: phone !== undefined ? phone : undefined,
@@ -128,7 +140,7 @@ export async function PATCH(request: Request) {
     const response = NextResponse.json({ user: airtableUserToUserProfile(user) });
 
     const sessionChanged =
-      (region !== undefined && user.region !== session.region) ||
+      (normalizedRegions !== undefined && primaryRegion(user.regions) !== session.region) ||
       (name !== undefined && user.name !== session.name) ||
       (phone !== undefined && user.phone !== session.phone) ||
       userDisplayName(user) !== session.nickname;
@@ -139,7 +151,7 @@ export async function PATCH(request: Request) {
         phone: user.phone,
         name: user.name,
         nickname: userDisplayName(user),
-        region: user.region,
+        region: primaryRegion(user.regions),
         airtableId: user.id,
       });
       setSessionCookie(response, token);

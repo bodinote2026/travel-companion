@@ -47,6 +47,13 @@ export function getProductById(productId: string, regionCode = DEFAULT_REGION_CO
   return getRegion(regionCode).products.find((p) => p.id === productId) ?? null;
 }
 
+export {
+  formatRegionsDisplay,
+  normalizeUserRegions,
+  parseUserRegions,
+  primaryRegion,
+  regionsEqual,
+} from './user-regions';
 export { mukhoRegion, seoulRegion };
 export {
   DEFAULT_PRODUCT_REGION_TAB,

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, MessageCircle, Plus, User } from 'lucide-react';
 import { PeerProfileSheet } from '@/components/PeerProfileSheet';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { primaryRegion } from '@/lib/regions';
 import type { ChatRoomWithPeer } from '@/lib/chat/types';
 import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
@@ -96,7 +97,9 @@ export function ChatRoomList() {
         body: JSON.stringify({
           myProfileId: profile.id,
           peerProfileId,
-          ...(profile.region ? { region: profile.region } : {}),
+          ...(profile.regions.length > 0
+            ? { region: primaryRegion(profile.regions) }
+            : {}),
         }),
       });
       const data = await res.json();

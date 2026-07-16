@@ -44,7 +44,7 @@ export function useUserProfile() {
         name: data.user.name,
         nickname: data.user.nickname ?? data.user.name,
         phone: data.user.phone,
-        region: data.user.region,
+        regions: data.user.regions ?? [],
         avatar_url: data.user.avatar_url,
         bio: data.user.bio,
         interest_categories: data.user.interest_categories,

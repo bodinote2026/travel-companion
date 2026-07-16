@@ -1,5 +1,6 @@
 import { normalizePhone } from '@/lib/user-profile';
 import { resolveRegionForStorage } from '@/lib/region-filter';
+import { primaryRegion } from '@/lib/regions';
 import { userDisplayName, upsertKakaoUser, upsertUser } from '@/lib/airtable/users';
 import type { SessionUser } from './session';
 
@@ -19,7 +20,7 @@ export async function completeLogin(input: {
     phone: user.phone,
     name: user.name,
     nickname: userDisplayName(user),
-    region: user.region,
+    region: primaryRegion(user.regions),
     airtableId: user.id,
   };
 }
@@ -40,7 +41,7 @@ export async function completeKakaoLogin(input: {
     phone: user.phone,
     name: user.name,
     nickname: userDisplayName(user),
-    region: user.region,
+    region: primaryRegion(user.regions),
     airtableId: user.id,
   };
 }

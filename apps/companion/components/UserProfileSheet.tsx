@@ -25,7 +25,7 @@ import type {
 import { getCategoryBadgeClass } from '@/lib/design-system';
 import { formatDistance, temperatureLabel } from '@/lib/geo';
 import { formatGatheringDateShort } from '@/lib/gatherings/datetime';
-import { getRegionDisplayName } from '@/lib/regions';
+import { formatRegionsDisplay, getRegionDisplayName } from '@/lib/regions';
 import { CATEGORY_LABELS, type CompanionCategory } from '@/lib/regions/types';
 import { cn } from '@/lib/utils';
 
@@ -99,7 +99,7 @@ export function memberToProfilePerson(
     name: member.name,
     avatarUrl: member.avatar_url,
     age: member.age,
-    locationLabel: member.region ? getRegionDisplayName(member.region) : null,
+    locationLabel: member.regions.length > 0 ? formatRegionsDisplay(member.regions) : null,
     bio: member.bio?.trim() || '',
     interestCategories: member.interest_categories,
     badgeLabel: member.is_author ? '동행지기' : null,
@@ -111,7 +111,7 @@ export type PublicUserProfile = {
   name: string;
   avatar_url: string | null;
   age: number | null;
-  region: string | null;
+  regions: string[];
   bio: string | null;
   interest_categories: string[];
   companion_seed_id?: string | null;
@@ -123,7 +123,7 @@ export function publicUserToProfilePerson(user: PublicUserProfile): ProfileSheet
     name: user.name,
     avatarUrl: user.avatar_url,
     age: user.age,
-    locationLabel: user.region ? getRegionDisplayName(user.region) : null,
+    locationLabel: user.regions.length > 0 ? formatRegionsDisplay(user.regions) : null,
     bio: user.bio?.trim() || '',
     interestCategories: user.interest_categories ?? [],
     companionSeedId: user.companion_seed_id ?? null,

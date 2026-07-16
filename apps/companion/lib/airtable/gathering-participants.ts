@@ -34,7 +34,7 @@ export type GatheringMemberProfile = {
   name: string;
   avatar_url: string | null;
   age: number | null;
-  region: string | null;
+  regions: string[];
   bio: string | null;
   interest_categories: string[];
   is_author: boolean;
@@ -188,7 +188,7 @@ export async function listGatheringMemberProfiles(input: {
         : input.authorName.trim() || '동행지기',
       avatar_url: authorUser?.avatarUrl ?? input.authorAvatarUrl,
       age: authorUser?.age ?? null,
-      region: authorUser?.region?.trim() || null,
+      regions: authorUser?.regions ?? [],
       bio: authorUser?.bio ?? null,
       interest_categories: authorUser?.interestCategories ?? [],
       is_author: true,
@@ -203,7 +203,7 @@ export async function listGatheringMemberProfiles(input: {
       name: user ? userDisplayName(user) : '사용자',
       avatar_url: user?.avatarUrl ?? null,
       age: user?.age ?? null,
-      region: user?.region?.trim() || null,
+      regions: user?.regions ?? [],
       bio: user?.bio ?? null,
       interest_categories: user?.interestCategories ?? [],
       is_author: false,

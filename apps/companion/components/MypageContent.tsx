@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { UserAvatar } from '@/components/UserAvatar';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { getRegionDisplayName } from '@/lib/regions';
+import { formatRegionsDisplay } from '@/lib/regions';
 import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
 
@@ -75,7 +75,7 @@ export function MypageContent() {
                 {profile.phone}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                활동 지역 · {getRegionDisplayName(profile.region)}
+                활동 지역 · {formatRegionsDisplay(profile.regions)}
               </p>
             </div>
           </div>

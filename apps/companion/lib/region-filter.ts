@@ -25,7 +25,7 @@ export function resolveRegionForStorage(explicit?: string | null): string {
   return defaultRegionCode();
 }
 
-/** listRecords filterByFormula — Region 절 (필터 OFF면 undefined) */
+/** listRecords filterByFormula — Region 절 (다중 선택 필드: 값 하나라도 일치하면 매칭) */
 export function airtableRegionFormula(
   regionCode: string,
   escape: (value: string) => string,
