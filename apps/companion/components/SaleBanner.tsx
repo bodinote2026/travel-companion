@@ -4,13 +4,9 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-/** 세일 배너 클릭 시 이동 경로 — 나중에 특정 상품 URL로 교체 */
-export const SALE_BANNER_HREF = '/group-buy';
-
-/** public/sale-banner.png — 파일만 교체하면 반영 */
+/** public/sale-banner.png — 교체 시 파일명 변경으로 캐시 무효화 */
 export const SALE_BANNER_SRC = '/sale-banner.png';
-
-/** sale-banner.png 원본 픽셀 비율 (1898×829 ≈ 2.29:1) */
+export const SALE_BANNER_HREF = '/group-buy';
 const SALE_BANNER_ASPECT_RATIO = '1898 / 829';
 
 type Props = {
