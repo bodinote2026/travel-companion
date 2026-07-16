@@ -3,7 +3,9 @@ import { Plus } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { GatheringList } from '@/components/GatheringList';
 import { PageShell } from '@/components/PageShell';
+import { infoBannerClass } from '@/lib/design-system';
 import { listGatherings } from '@/lib/db/gatherings';
+import { cn } from '@/lib/utils';
 
 /** 앱 첫 화면 = 동행찾기(모집글 목록) */
 export default async function HomePage() {
@@ -24,7 +26,7 @@ export default async function HomePage() {
         }
       />
 
-      <div className="mx-4 mb-1 overflow-hidden rounded-[1.25rem] border border-primary/20 bg-primary-muted/60 px-4 py-3">
+      <div className={cn('mx-4 mb-1', infoBannerClass)}>
         <p className="text-sm font-bold text-foreground">탐색 · 동행 모집</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           함께할 사람을 모집하고, 댓글로 일정을 맞춰 보세요.

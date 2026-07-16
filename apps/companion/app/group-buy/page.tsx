@@ -4,7 +4,9 @@ import { AppHeader } from '@/components/AppHeader';
 import { GroupBuyProductList } from '@/components/GroupBuyProductList';
 import { PageShell } from '@/components/PageShell';
 import { SaleBanner } from '@/components/SaleBanner';
+import { infoBannerClass } from '@/lib/design-system';
 import { listAllProducts } from '@/lib/db/products';
+import { cn } from '@/lib/utils';
 
 /** 공동구매 목록 */
 export default async function GroupBuyPage() {
@@ -27,7 +29,7 @@ export default async function GroupBuyPage() {
 
       <SaleBanner />
 
-      <div className="mx-4 mb-3 mt-3 overflow-hidden rounded-[1.25rem] border border-primary/20 bg-primary-muted/60 px-4 py-3">
+      <div className={cn('mx-4 mb-3 mt-3', infoBannerClass)}>
         <p className="text-sm font-bold text-foreground">공동구매 · 목표 인원 모집</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
           함께 모이면 더 저렴하게, 달성 시 이용권이 발급돼요.

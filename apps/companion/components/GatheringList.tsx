@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { GatheringCard } from '@/components/GatheringCard';
 import { RegionTabFilter } from '@/components/RegionTabFilter';
+import { listSurfaceClass } from '@/lib/design-system';
 import type { GatheringRecord } from '@/lib/db/gatherings';
 import {
   DEFAULT_REGION_TAB,
   filterByRegionTab,
   type RegionTabId,
 } from '@/lib/regions/product-tabs';
+import { cn } from '@/lib/utils';
 
 type Props = {
   gatherings: GatheringRecord[];
@@ -22,9 +24,14 @@ export function GatheringList({ gatherings }: Props) {
     <>
       <RegionTabFilter active={tab} onChange={setTab} />
 
-      <div className="-mx-4 flex flex-col gap-3 bg-[#F5F5F5] px-4 pb-4 pt-2">
+      <div className="flex flex-col gap-3 px-4 pb-4 pt-2">
         {filtered.length === 0 ? (
-          <p className="rounded-2xl bg-white px-4 py-10 text-center text-sm text-muted-foreground">
+          <p
+            className={cn(
+              listSurfaceClass,
+              'px-4 py-10 text-center text-sm text-muted-foreground',
+            )}
+          >
             이 지역에 모집글이 없습니다.
           </p>
         ) : (

@@ -10,6 +10,7 @@ import {
   getGatheringRecruitLabel,
   getGatheringStatusBadge,
 } from '@/lib/gatherings/status';
+import { listSurfaceClass } from '@/lib/design-system';
 import { getRegionDisplayName } from '@/lib/regions';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +29,8 @@ export function GatheringCard({ gathering }: Props) {
     <Link
       href={`/gatherings/${gathering.id}`}
       className={cn(
-        'block rounded-2xl bg-white px-4 py-3.5 transition-transform active:scale-[0.98]',
+        listSurfaceClass,
+        'block px-4 py-3.5 transition-transform active:scale-[0.98]',
       )}
     >
       <div className="flex gap-3.5">
@@ -39,17 +41,17 @@ export function GatheringCard({ gathering }: Props) {
 
         <div className="flex min-h-24 min-w-0 flex-1 flex-col justify-between">
           <div className="flex items-center gap-1.5">
-            <span className="rounded-lg bg-[#F0F0F0] px-2.5 py-1 text-xs font-medium text-[#4A4A4A]">
+            <span className="rounded-lg bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">
               동행
             </span>
             {statusBadge && (
-              <span className="rounded-lg bg-primary-muted px-2.5 py-1 text-xs font-medium text-[#F4623A]">
+              <span className="rounded-lg bg-primary-muted px-2.5 py-1 text-xs font-medium text-primary">
                 {statusBadge}
               </span>
             )}
           </div>
 
-          <p className="truncate text-base font-bold text-[#1A1A1A]">{gathering.title}</p>
+          <p className="truncate text-base font-bold text-foreground">{gathering.title}</p>
 
           <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="size-3.5 shrink-0" strokeWidth={2} />
