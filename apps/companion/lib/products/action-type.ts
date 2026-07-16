@@ -15,6 +15,11 @@ export const PAYMENT_LINK_BUTTON_LABEL = '결제 페이지로 이동';
 
 export const PAYMENT_LINK_NO_LINK_MSG = '결제 링크를 준비 중이에요. 잠시 후 다시 확인해 주세요.';
 
+/** kakao_channel CTA */
+export const KAKAO_CHANNEL_BUTTON_LABEL = '카카오채널에서 신청하기';
+
+export const KAKAO_CHANNEL_NO_LINK_MSG = '신청 링크를 준비 중이에요. 잠시 후 다시 확인해 주세요.';
+
 export function parseProductActionType(value: unknown): ProductActionType {
   const raw = Array.isArray(value) ? value[0] : value;
   if (typeof raw !== 'string') return DEFAULT_PRODUCT_ACTION_TYPE;

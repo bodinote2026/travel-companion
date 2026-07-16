@@ -11,6 +11,8 @@ import {
   isKakaoChannelAction,
   isPaymentLinkAction,
   isReservationAction,
+  KAKAO_CHANNEL_BUTTON_LABEL,
+  KAKAO_CHANNEL_NO_LINK_MSG,
   openProductExternalLink,
   PAYMENT_LINK_BUTTON_LABEL,
   PAYMENT_LINK_NO_LINK_MSG,
@@ -79,8 +81,8 @@ export function GroupBuyWidget({ product, children }: Props) {
   const isKakaoChannel = isKakaoChannelAction(product.actionType);
   const isPaymentLink = isPaymentLinkAction(product.actionType);
   const isReservation = isReservationAction(product.actionType);
-  const externalPaymentUrl = product.externalLink;
-  const hasExternalPaymentUrl = Boolean(externalPaymentUrl);
+  const externalLinkUrl = product.externalLink;
+  const hasExternalLink = Boolean(externalLinkUrl);
   const isPreparing = product.groupBuyStatus === 'preparing';
   const isComplete =
     !isKakaoChannel &&
@@ -225,70 +227,68 @@ export function GroupBuyWidget({ product, children }: Props) {
   }
 
   if (isKakaoChannel) {
+    const kakaoLinkDisabled = isPreparing || !hasExternalLink;
+
     return (
       <div className={PAGE_GUTTER_CLASS}>
-        {isPreparing ? (
-          <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          {isPreparing ? (
             <span className="rounded-lg bg-secondary px-2 py-1 text-sm font-bold text-muted-foreground">
               준비중
             </span>
-            <div className="mt-4 space-y-1 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>정가</span>
-                <span className="line-through">{formatPrice(product.regularPrice)}원</span>
-              </div>
-              <div className="flex justify-between font-semibold">
-                <span>얼리버드 할인가</span>
-                <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
-              </div>
+          ) : (
+            <span className="rounded-lg bg-primary-muted px-2 py-1 text-sm font-bold text-primary">
+              얼리버드
+            </span>
+          )}
+          <div className="mt-4 space-y-1 text-sm">
+            <div className="flex justify-between text-muted-foreground">
+              <span>정가</span>
+              <span className="line-through">{formatPrice(product.regularPrice)}원</span>
             </div>
+            <div className="flex justify-between font-semibold">
+              <span>얼리버드 할인가</span>
+              <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
+            </div>
+          </div>
+          {isPreparing ? (
             <p className="mt-4 rounded-xl bg-secondary px-3 py-3 text-center text-sm font-medium text-secondary-foreground">
               곧 만나요! 준비중인 상품이에요
             </p>
-            <button
-              type="button"
-              disabled
-              className="mt-4 flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-muted text-base font-semibold text-muted-foreground opacity-70"
-            >
-              동행 모집글 보러가기
-            </button>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="flex items-center">
-              <span className="rounded-lg bg-primary-muted px-2 py-1 text-sm font-bold text-primary">
-                얼리버드
-              </span>
-            </div>
-            <div className="mt-4 space-y-1 text-sm">
-              <div className="flex justify-between text-muted-foreground">
-                <span>정가</span>
-                <span className="line-through">{formatPrice(product.regularPrice)}원</span>
-              </div>
-              <div className="flex justify-between font-semibold">
-                <span>얼리버드 할인가</span>
-                <span className="text-primary">{formatPrice(product.discountedPrice)}원</span>
-              </div>
-            </div>
+          ) : (
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              묵호 시그널 동행 모집글을 확인하고 신청해보세요
+              카카오채널에서 신청할 수 있어요. 상세 안내는 위 설명을 확인해 주세요.
             </p>
-            <Link
-              href="/gatherings"
-              className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary text-base font-semibold text-primary-foreground"
-            >
-              동행 모집글 보러가기
-              <ArrowRight className="size-5" />
-            </Link>
-          </div>
-        )}
+          )}
+          {!hasExternalLink && !isPreparing ? (
+            <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-center text-sm text-secondary-foreground">
+              {KAKAO_CHANNEL_NO_LINK_MSG}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            disabled={kakaoLinkDisabled}
+            onClick={() => {
+              if (externalLinkUrl) openProductExternalLink(externalLinkUrl);
+            }}
+            className={cn(
+              'mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-semibold',
+              kakaoLinkDisabled
+                ? 'cursor-not-allowed bg-muted text-muted-foreground opacity-70'
+                : 'bg-primary text-primary-foreground',
+            )}
+          >
+            {KAKAO_CHANNEL_BUTTON_LABEL}
+            {!kakaoLinkDisabled ? <ArrowRight className="size-5" /> : null}
+          </button>
+        </div>
         {children}
       </div>
     );
   }
 
   if (isPaymentLink) {
-    const paymentLinkDisabled = isPreparing || !hasExternalPaymentUrl;
+    const paymentLinkDisabled = isPreparing || !hasExternalLink;
 
     return (
       <div>
@@ -330,7 +330,7 @@ export function GroupBuyWidget({ product, children }: Props) {
               <span>1인 청구 금액</span>
               <span>{formatPrice(charge)}원</span>
             </div>
-            {!hasExternalPaymentUrl && !isPreparing ? (
+            {!hasExternalLink && !isPreparing ? (
               <p className="mt-3 rounded-xl bg-secondary px-3 py-2 text-center text-sm text-secondary-foreground">
                 {PAYMENT_LINK_NO_LINK_MSG}
               </p>
@@ -339,7 +339,7 @@ export function GroupBuyWidget({ product, children }: Props) {
               type="button"
               disabled={paymentLinkDisabled}
               onClick={() => {
-                if (externalPaymentUrl) openProductExternalLink(externalPaymentUrl);
+                if (externalLinkUrl) openProductExternalLink(externalLinkUrl);
               }}
               className={cn(
                 'mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-base font-semibold',
