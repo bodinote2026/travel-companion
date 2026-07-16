@@ -5,6 +5,7 @@ import { CommentSection } from '@/components/CommentSection';
 import { GatheringApplyButton } from '@/components/GatheringApplyButton';
 import { GatheringAuthorActions } from '@/components/GatheringAuthorActions';
 import { GatheringAuthorProfile } from '@/components/GatheringAuthorProfile';
+import { GatheringCoverImage } from '@/components/GatheringCoverImage';
 import { GatheringParticipants } from '@/components/GatheringParticipants';
 import { LinkifiedText } from '@/components/LinkifiedText';
 import { PageShell } from '@/components/PageShell';
@@ -21,6 +22,7 @@ import {
 } from '@/lib/db/gatherings';
 import { formatGatheringDateLong } from '@/lib/gatherings/datetime';
 import { getRegionDisplayName } from '@/lib/regions';
+import { cn } from '@/lib/utils';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -59,6 +61,7 @@ export default async function GatheringDetailPage({ params }: Props) {
     gathering.status === 'closed' ||
     gathering.current_count >= gathering.target_count;
   const loginReturnUrl = `/gatherings/${gathering.id}`;
+  const coverImageUrl = gathering.cover_image_url?.trim() || null;
 
   return (
     <PageShell active="explore" hideNav>
@@ -82,9 +85,14 @@ export default async function GatheringDetailPage({ params }: Props) {
           />
         </div>
 
+        {coverImageUrl ? <GatheringCoverImage src={coverImageUrl} /> : null}
+
         <LinkifiedText
           text={gathering.description}
-          className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground"
+          className={cn(
+            'whitespace-pre-wrap text-sm leading-relaxed text-foreground',
+            coverImageUrl ? 'mt-0' : 'mt-4',
+          )}
         />
 
         <div className="mt-5 flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-sm">
