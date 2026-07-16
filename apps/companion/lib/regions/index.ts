@@ -1,6 +1,28 @@
+import { coerceToUserRegion, DEFAULT_REGION } from './constants';
 import { mukhoRegion } from './mukho';
 import { seoulRegion } from './seoul';
 import type { RegionConfig } from './types';
+
+export {
+  DEFAULT_REGION,
+  DEFAULT_REGION as DEFAULT_REGION_CODE,
+  buildAirtableRegionField,
+  coerceToUserRegion,
+  isKnownUserRegion,
+  normalizeUserRegionList,
+  REGION_MUKHO,
+  REGION_SEOUL,
+  sanitizeRegionToken,
+  USER_REGION_VALUES,
+  type UserRegionValue,
+} from './constants';
+export {
+  formatRegionsDisplay,
+  normalizeUserRegions,
+  parseUserRegions,
+  primaryRegion,
+  regionsEqual,
+} from './user-regions';
 
 /**
  * 서비스 지역 목록 (UI 표시 순서).
@@ -12,9 +34,6 @@ const REGIONS: Record<string, RegionConfig> = Object.fromEntries(
   REGION_LIST.map((region) => [region.code, region]),
 );
 
-/** 기본 서비스 지역. 조회 필터는 lib/region-filter.ts 참고 */
-export const DEFAULT_REGION_CODE = 'mukho';
-
 /** 프로필 등 UI용 지역 선택 옵션 */
 export const REGION_OPTIONS: { code: string; name: string }[] = REGION_LIST.map((region) => ({
   code: region.code,
@@ -22,11 +41,14 @@ export const REGION_OPTIONS: { code: string; name: string }[] = REGION_LIST.map(
 }));
 
 export function isKnownRegionCode(code: string): boolean {
+  const coerced = coerceToUserRegion(code);
+  if (coerced && REGIONS[coerced]) return true;
   return Object.prototype.hasOwnProperty.call(REGIONS, code);
 }
 
-export function getRegion(code: string = DEFAULT_REGION_CODE): RegionConfig {
-  const region = REGIONS[code];
+export function getRegion(code: string = DEFAULT_REGION): RegionConfig {
+  const resolved = coerceToUserRegion(code) ?? code;
+  const region = REGIONS[resolved];
   if (!region) {
     throw new Error(`Unknown region: ${code}`);
   }
@@ -36,31 +58,18 @@ export function getRegion(code: string = DEFAULT_REGION_CODE): RegionConfig {
 /** 알 수 없는 코드면 코드 문자열 그대로 반환 */
 export function getRegionDisplayName(code: string): string {
   if (code === 'national') return '전국';
-  return REGIONS[code]?.name ?? code;
+  const resolved = coerceToUserRegion(code) ?? code;
+  return REGIONS[resolved]?.name ?? resolved;
 }
 
 export function getAllRegions(): RegionConfig[] {
   return [...REGION_LIST];
 }
 
-export function getProductById(productId: string, regionCode = DEFAULT_REGION_CODE) {
+export function getProductById(productId: string, regionCode = DEFAULT_REGION) {
   return getRegion(regionCode).products.find((p) => p.id === productId) ?? null;
 }
 
-export {
-  airtableLabelToRegionCode,
-  buildAirtableRegionField,
-  REGION_AIRTABLE_LABEL_BY_CODE,
-  regionCodeToAirtableLabel,
-  regionCodesToAirtableLabels,
-} from './airtable-regions';
-export {
-  formatRegionsDisplay,
-  normalizeUserRegions,
-  parseUserRegions,
-  primaryRegion,
-  regionsEqual,
-} from './user-regions';
 export { mukhoRegion, seoulRegion };
 export {
   DEFAULT_PRODUCT_REGION_TAB,

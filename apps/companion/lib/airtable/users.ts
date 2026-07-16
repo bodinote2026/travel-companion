@@ -4,7 +4,7 @@ import {
   parseUserRegions,
   primaryRegion,
 } from '@/lib/regions';
-import { buildAirtableRegionField } from '@/lib/regions/airtable-regions';
+import { buildAirtableRegionField } from '@/lib/regions/constants';
 import {
   airtableAndFormula,
   airtableRegionFormula,
@@ -96,11 +96,32 @@ function logAirtableUsersPayload(
   fields: Partial<AirtableUserFields>,
   recordId?: string,
 ): void {
+  const httpPayload = recordId
+    ? { records: [{ id: recordId, fields }] }
+    : { records: [{ fields }] };
+
   console.log('[Airtable Users]', action, {
     ...(recordId ? { recordId } : {}),
     fields,
-    Region: fields.Region,
   });
+
+  if (fields.Region !== undefined) {
+    console.log('[Airtable Users] Region detail', {
+      isArray: Array.isArray(fields.Region),
+      raw: fields.Region,
+      json: JSON.stringify(fields.Region),
+      entries: Array.isArray(fields.Region)
+        ? fields.Region.map((value, index) => ({
+            index,
+            value,
+            typeof: typeof value,
+            json: JSON.stringify(value),
+          }))
+        : [{ value: fields.Region, typeof: typeof fields.Region }],
+    });
+  }
+
+  console.log('[Airtable Users] HTTP body', JSON.stringify(httpPayload));
 }
 
 async function createUserRecord(
@@ -491,17 +512,11 @@ export async function updateUserLocation(
   lat: number,
   lng: number,
 ): Promise<AirtableUser> {
-  const config = requireAirtableConfig();
-  const updated = await updateRecord<AirtableUserFields>(
-    config.usersTable,
-    userId,
-    {
-      Latitude: lat,
-      Longitude: lng,
-      'Location Updated At': new Date().toISOString(),
-    },
-    { typecast: true },
-  );
+  const updated = await updateUserRecord(userId, {
+    Latitude: lat,
+    Longitude: lng,
+    'Location Updated At': new Date().toISOString(),
+  });
 
   const mapped = mapUser(updated);
   if (

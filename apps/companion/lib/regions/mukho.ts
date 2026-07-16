@@ -3,7 +3,7 @@ import { PRODUCT_PLACEHOLDER_IMAGE } from '@/lib/products/format';
 
 /** 묵호(강원 동해시) 서비스 지역 설정 */
 export const mukhoRegion: RegionConfig = {
-  code: 'mukho',
+  code: '묵호',
   name: '묵호',
   tagline: '동해 바다와 함께하는 동행 · 공동구매',
   bannerTitle: '동행 · 함께할 사람을 찾다',
@@ -72,7 +72,7 @@ export const mukhoRegion: RegionConfig = {
   products: [
     {
       id: 'a47bc3f0-cbe8-4664-86f8-cc88c81f3804',
-      region: 'mukho',
+      region: '묵호',
       name: '묵호항 싱싱 회센터 세트',
       description: '당일 입항 대구·광어 회 2~3인분 + 해물탕. 묵호항에서 바로 픽업.',
       imageUrl: PRODUCT_PLACEHOLDER_IMAGE,
@@ -91,7 +91,7 @@ export const mukhoRegion: RegionConfig = {
     },
     {
       id: 'ca84cb14-564e-445b-98b4-b439db7f6a55',
-      region: 'mukho',
+      region: '묵호',
       name: '논골담길·묵호등대 가이드 투어',
       description: '현지 가이드와 함께하는 3시간 도보 투어. 논골담길 + 묵호등대 코스.',
       imageUrl: PRODUCT_PLACEHOLDER_IMAGE,
@@ -110,7 +110,7 @@ export const mukhoRegion: RegionConfig = {
     },
     {
       id: '703c8a96-2322-4cf6-bd5d-c7846f7b2f7a',
-      region: 'mukho',
+      region: '묵호',
       name: '동해 특산품 선물세트',
       description: '오징어채·멸치젓·망고빙수 재료 등 묵호·동해 특산품 모음. 택배 발송.',
       imageUrl: PRODUCT_PLACEHOLDER_IMAGE,

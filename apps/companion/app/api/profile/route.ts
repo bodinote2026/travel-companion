@@ -71,6 +71,10 @@ export async function PATCH(request: Request) {
 
     let normalizedRegions: string[] | undefined;
     if (regions !== undefined) {
+      console.info('[PATCH /api/profile] regions raw', {
+        isArray: Array.isArray(regions),
+        json: JSON.stringify(regions),
+      });
       if (!Array.isArray(regions)) {
         return NextResponse.json({ error: '활동 지역 형식이 올바르지 않습니다.' }, { status: 400 });
       }

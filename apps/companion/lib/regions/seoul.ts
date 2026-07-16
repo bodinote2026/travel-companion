@@ -2,7 +2,7 @@ import type { RegionConfig } from './types';
 
 /** 서울 서비스 지역 설정 (콘텐츠는 추후 확장) */
 export const seoulRegion: RegionConfig = {
-  code: 'seoul',
+  code: '서울',
   name: '서울',
   tagline: '서울에서 함께하는 동행 · 공동구매',
   bannerTitle: '동행 · 함께할 사람을 찾다',
