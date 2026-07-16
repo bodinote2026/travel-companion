@@ -15,6 +15,8 @@ import {
 import { UserAvatar } from '@/components/UserAvatar';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { getRegionDisplayName } from '@/lib/regions';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
+import { cn } from '@/lib/utils';
 
 const CATEGORY_EMOJI: Record<string, string> = {
   식사: '🍴',
@@ -50,7 +52,7 @@ export function MypageContent() {
   }
 
   return (
-    <div className="flex flex-col gap-4 px-4 pb-4 pt-1">
+    <div className={cn(PAGE_GUTTER_CLASS, 'flex flex-col gap-4 pb-4 pt-1')}>
       <div className="rounded-[1.25rem] border border-border/80 bg-card p-4 shadow-[var(--shadow-card)]">
         <div className="flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-center gap-3">

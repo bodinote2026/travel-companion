@@ -9,6 +9,7 @@ import { formatPrice, perPersonCharge } from '@/lib/geo';
 import { formatDiscountPercent } from '@/lib/products/format';
 import { openPaymentWindow } from '@/lib/payments/client-sdk';
 import type { ClientCheckoutConfig } from '@/lib/payments/types';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { cn } from '@/lib/utils';
 
@@ -45,7 +46,8 @@ function StickyActionPanel({ children }: { children: React.ReactNode }) {
       <div ref={sentinelRef} className="h-px w-full" aria-hidden />
       <div
         className={cn(
-          'sticky top-0 z-40 bg-background px-5 transition-[box-shadow,border-color,padding]',
+          'sticky top-0 z-40 bg-background transition-[box-shadow,border-color,padding]',
+          PAGE_GUTTER_CLASS,
           stuck
             ? 'border-b border-border/70 pb-3 pt-[env(safe-area-inset-top,0px)] shadow-[0_6px_18px_rgba(0,0,0,0.08)]'
             : 'border-b border-transparent pb-0 pt-0 shadow-none',
@@ -212,7 +214,7 @@ export function GroupBuyWidget({ product, children }: Props) {
 
   if (isKakaoChannel) {
     return (
-      <div className="px-5">
+      <div className={PAGE_GUTTER_CLASS}>
         {isPreparing ? (
           <div className="rounded-2xl border border-border bg-card p-4">
             <span className="rounded-lg bg-secondary px-2 py-1 text-sm font-bold text-muted-foreground">
@@ -484,7 +486,7 @@ export function GroupBuyWidget({ product, children }: Props) {
   return (
     <div>
       {/* sticky 포함 블록은 children(상세이미지)까지 길게 유지. overflow-hidden 금지 */}
-      <div className="px-5">
+      <div className={PAGE_GUTTER_CLASS}>
         <div className="rounded-t-2xl border border-b-0 border-border bg-card">
           {summarySection}
         </div>

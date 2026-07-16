@@ -3,6 +3,7 @@
 import { Dumbbell, Plane, Sparkles, Utensils } from 'lucide-react';
 import type { CategoryFilter } from '@/lib/regions/types';
 import { CATEGORY_OPTIONS } from '@/lib/regions/types';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
 
 const ICONS = {
@@ -19,7 +20,7 @@ type Props = {
 
 export function CategoryFilter({ active, onChange }: Props) {
   return (
-    <div className="flex items-center gap-2.5 overflow-x-auto px-4 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className={cn(PAGE_GUTTER_CLASS, 'flex items-center gap-2.5 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden')}>
       {CATEGORY_OPTIONS.map(({ id, label }) => {
         const Icon = ICONS[id];
         const selected = active === id;

@@ -2,15 +2,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, Store } from 'lucide-react';
-import { BottomChrome } from '@/components/BottomChrome';
 import { CommentSection } from '@/components/CommentSection';
 import { GroupBuyWidget } from '@/components/GroupBuyWidget';
 import { LinkifiedText } from '@/components/LinkifiedText';
-import { bottomChromePaddingClass } from '@/lib/bottom-chrome';
+import { PageGutter } from '@/components/PageGutter';
+import { PageShell } from '@/components/PageShell';
 import { listComments } from '@/lib/db/comments';
 import { listParticipants } from '@/lib/db/orders';
 import { getProductById } from '@/lib/db/products';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { resolveProductImageUrl } from '@/lib/products/format';
+import { cn } from '@/lib/utils';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -33,7 +35,7 @@ export default async function ProductPage({ params }: Props) {
     <>
       {detailImageUrls.length > 0 ? (
         <section className="mt-8">
-          <h2 className="px-5 text-sm font-bold">상세정보</h2>
+          <h2 className={cn(PAGE_GUTTER_CLASS, 'text-sm font-bold')}>상세정보</h2>
           <div className="mt-3 w-full bg-white">
             {detailImageUrls.map((url, index) => (
               // eslint-disable-next-line @next/next/no-img-element
@@ -49,7 +51,7 @@ export default async function ProductPage({ params }: Props) {
       ) : null}
 
       {product.actionType === 'payment' && participants.length > 0 ? (
-        <section className="mt-6 px-5">
+        <section className={cn(PAGE_GUTTER_CLASS, 'mt-6')}>
           <h2 className="text-sm font-bold">
             참여자 <span className="text-primary">{participants.length}</span>명
           </h2>
@@ -70,9 +72,7 @@ export default async function ProductPage({ params }: Props) {
   );
 
   return (
-    <main
-      className={`mx-auto min-h-screen max-w-md bg-background ${bottomChromePaddingClass(true)}`}
-    >
+    <PageShell active="group-buy" hideNav>
       {isKakaoChannel ? (
         <div className="relative w-full bg-white">
           <Image
@@ -112,7 +112,7 @@ export default async function ProductPage({ params }: Props) {
         </div>
       )}
 
-      <div className="px-5 py-5">
+      <PageGutter className="py-5">
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Store className="size-4" />
           {product.sellerName}
@@ -125,7 +125,7 @@ export default async function ProductPage({ params }: Props) {
           text={product.description}
           className="mt-2 text-sm leading-relaxed text-muted-foreground"
         />
-      </div>
+      </PageGutter>
 
       <GroupBuyWidget product={product}>{detailAndParticipants}</GroupBuyWidget>
 
@@ -135,8 +135,6 @@ export default async function ProductPage({ params }: Props) {
         initialComments={comments}
         loginReturnUrl={`/product/${product.id}`}
       />
-
-      <BottomChrome hideNav />
-    </main>
+    </PageShell>
   );
 }

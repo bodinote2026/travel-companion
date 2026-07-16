@@ -19,7 +19,7 @@ type Props = {
 };
 
 /**
- * 안내 박스와 같은 가로 폭(mx-4)으로 살짝 축소.
+ * PageGutter 안에서 사용 — 좌우 inset은 부모 gutter가 담당.
  * 원본 비율 유지 + img가 영역을 꽉 채워 여백 없음.
  */
 export function SaleBanner({ href = SALE_BANNER_HREF, className }: Props) {
@@ -29,10 +29,7 @@ export function SaleBanner({ href = SALE_BANNER_HREF, className }: Props) {
     <Link
       href={href}
       aria-label="세일 배너"
-      className={cn(
-        'mx-4 block overflow-hidden rounded-[1.25rem]',
-        className,
-      )}
+      className={cn('block w-full overflow-hidden rounded-[1.25rem]', className)}
     >
       {failed ? (
         <div

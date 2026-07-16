@@ -21,6 +21,7 @@ import {
   syncGatheringParticipantCount,
 } from '@/lib/db/gatherings';
 import { formatGatheringDateLong } from '@/lib/gatherings/datetime';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { getRegionDisplayName } from '@/lib/regions';
 import { cn } from '@/lib/utils';
 
@@ -67,7 +68,7 @@ export default async function GatheringDetailPage({ params }: Props) {
     <PageShell active="explore" hideNav>
       <AppHeader title="모집글" backHref="/gatherings" />
 
-      <article className="px-5 pb-2">
+      <article className={cn(PAGE_GUTTER_CLASS, 'pb-2')}>
         <div className="flex items-center gap-2">
           <span className="rounded-md bg-primary-muted px-2 py-0.5 text-xs font-bold text-primary">
             {getRegionDisplayName(gathering.region)}

@@ -5,6 +5,7 @@ import { GatheringCard } from '@/components/GatheringCard';
 import { RegionTabFilter } from '@/components/RegionTabFilter';
 import { listSurfaceClass } from '@/lib/design-system';
 import type { GatheringRecord } from '@/lib/db/gatherings';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import {
   DEFAULT_REGION_TAB,
   filterByRegionTab,
@@ -24,7 +25,7 @@ export function GatheringList({ gatherings }: Props) {
     <>
       <RegionTabFilter active={tab} onChange={setTab} />
 
-      <div className="flex flex-col gap-3 px-4 pb-4 pt-2">
+      <div className={cn(PAGE_GUTTER_CLASS, 'flex flex-col gap-3 pb-4 pt-2')}>
         {filtered.length === 0 ? (
           <p
             className={cn(

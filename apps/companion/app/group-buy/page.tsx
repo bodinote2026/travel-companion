@@ -2,11 +2,11 @@ import Link from 'next/link';
 import { Receipt } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { GroupBuyProductList } from '@/components/GroupBuyProductList';
+import { PageGutter } from '@/components/PageGutter';
 import { PageShell } from '@/components/PageShell';
 import { SaleBanner } from '@/components/SaleBanner';
 import { infoBannerClass } from '@/lib/design-system';
 import { listAllProducts } from '@/lib/db/products';
-import { cn } from '@/lib/utils';
 
 /** 공동구매 목록 */
 export default async function GroupBuyPage() {
@@ -27,14 +27,15 @@ export default async function GroupBuyPage() {
         }
       />
 
-      <SaleBanner />
-
-      <div className={cn('mx-4 mb-3 mt-3', infoBannerClass)}>
-        <p className="text-sm font-bold text-foreground">공동구매 · 목표 인원 모집</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          함께 모이면 더 저렴하게, 달성 시 이용권이 발급돼요.
-        </p>
-      </div>
+      <PageGutter className="mt-3 space-y-3">
+        <SaleBanner />
+        <div className={infoBannerClass}>
+          <p className="text-sm font-bold text-foreground">공동구매 · 목표 인원 모집</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            함께 모이면 더 저렴하게, 달성 시 이용권이 발급돼요.
+          </p>
+        </div>
+      </PageGutter>
 
       <GroupBuyProductList products={products} />
     </PageShell>

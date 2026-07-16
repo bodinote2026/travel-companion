@@ -4,10 +4,12 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2, MessageSquare, Pencil, Trash2 } from 'lucide-react';
 import { AuthorChatAvatar } from '@/components/AuthorChatAvatar';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { LinkifiedText } from '@/components/LinkifiedText';
 import { PeerProfileSheet } from '@/components/PeerProfileSheet';
 import type { CommentRecord, CommentTargetType } from '@/lib/db/comments';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { cn } from '@/lib/utils';
 
 function formatCommentTime(value: string): string {
   const date = new Date(value);
@@ -149,7 +151,7 @@ export function CommentSection({
   }
 
   return (
-    <section className="mt-6 px-5 pb-4">
+    <section className={cn(PAGE_GUTTER_CLASS, 'mt-6 pb-4')}>
       <h2 className="flex items-center gap-1.5 text-sm font-bold">
         <MessageSquare className="size-4" />
         댓글 <span className="text-primary">{comments.length}</span>

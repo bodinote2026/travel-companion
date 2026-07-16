@@ -12,6 +12,7 @@ import {
   REGION_TABS,
   type RegionTabId,
 } from '@/lib/regions/product-tabs';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -136,7 +137,7 @@ export function GroupBuyFilterBar({
   }, [openMenu]);
 
   return (
-    <div ref={rootRef} className="flex items-center gap-2 px-4 pb-3 pt-1">
+    <div ref={rootRef} className={cn(PAGE_GUTTER_CLASS, 'flex items-center gap-2 pb-3 pt-1')}>
       <FilterDropdown
         label="지역"
         icon="📍"

@@ -15,12 +15,12 @@ import { CategoryFilter as CategoryFilterBar } from '@/components/CategoryFilter
 import { CompanionCard } from '@/components/CompanionCard';
 import { CompanionDetailSheet } from '@/components/CompanionDetailSheet';
 import { CompanionMap } from '@/components/CompanionMap';
-import { BottomChrome } from '@/components/BottomChrome';
 import { LocationAllowPrompt } from '@/components/LocationAllowPrompt';
 import { LocationConsentBanner } from '@/components/LocationConsentBanner';
-import { bottomChromePaddingClass } from '@/lib/bottom-chrome';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { isIosDevice } from '@/lib/geo/browser-geolocation';
 import { isKakaoMapKeyConfigured } from '@/lib/kakao/maps-loader';
+import { cn } from '@/lib/utils';
 
 const region = getRegion();
 
@@ -112,12 +112,9 @@ export function HomeClient() {
   };
 
   return (
-    <main
-      className={`relative mx-auto min-h-[100dvh] max-w-md bg-background ${bottomChromePaddingClass()}`}
-    >
+    <>
       <AppHeader
         variant="brand"
-        className="px-5 pb-1"
         action={
           <button
             type="button"
@@ -130,7 +127,7 @@ export function HomeClient() {
         }
       />
 
-      <div className="px-5 pb-1 pt-3">
+      <div className={cn(PAGE_GUTTER_CLASS, 'pb-1 pt-3')}>
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3.5 py-2.5 text-sm text-muted-foreground">
           <Search className="size-4" />
           어떤 동행을 찾고 있나요?
@@ -139,7 +136,12 @@ export function HomeClient() {
 
       <CategoryFilterBar active={category} onChange={setCategory} />
 
-      <section className="relative mx-4 mt-1 h-64 overflow-hidden rounded-[1.25rem] border border-border bg-secondary/40 sm:h-72">
+      <section
+        className={cn(
+          PAGE_GUTTER_CLASS,
+          'relative mt-1 h-64 overflow-hidden rounded-[1.25rem] border border-border bg-secondary/40 sm:h-72',
+        )}
+      >
         {showMapComingSoon ? (
           <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
             <MapPin className="size-8 text-muted-foreground/50" />
@@ -218,7 +220,7 @@ export function HomeClient() {
       </section>
 
       <section className="mt-4">
-        <div className="flex items-center justify-between px-5 pb-2">
+        <div className={cn(PAGE_GUTTER_CLASS, 'flex items-center justify-between pb-2')}>
           <p className="text-sm font-semibold">
             {hasLocation ? `내 주변 동행 ${companions.length}명` : `동행 ${companions.length}명`}
           </p>
@@ -226,7 +228,7 @@ export function HomeClient() {
             {hasLocation ? '가까운 순' : '지역 기준'}
           </span>
         </div>
-        <div className="flex flex-col gap-3 px-4">
+        <div className={cn(PAGE_GUTTER_CLASS, 'flex flex-col gap-3')}>
           {companions.length === 0 ? (
             <p className="rounded-[1.25rem] border border-border bg-card py-10 text-center text-sm text-muted-foreground">
               {hasLocation
@@ -249,8 +251,6 @@ export function HomeClient() {
         </div>
       </section>
 
-      <BottomChrome active="map" />
-
       {showConsentBanner && (
         <LocationConsentBanner onGranted={handleConsentGranted} onDecline={decline} />
       )}
@@ -260,6 +260,6 @@ export function HomeClient() {
         onClose={() => setActiveId(null)}
         showDistance={hasLocation}
       />
-    </main>
+    </>
   );
 }

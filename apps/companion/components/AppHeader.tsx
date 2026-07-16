@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft } from 'lucide-react';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -26,7 +27,7 @@ export function AppHeader({
   if (variant === 'brand') {
     return (
       <header
-        className={cn('flex items-center gap-3 px-4 pb-3 pt-12', className)}
+        className={cn(PAGE_GUTTER_CLASS, 'flex items-center gap-3 pb-3 pt-12', className)}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <Image
@@ -47,7 +48,7 @@ export function AppHeader({
   }
 
   return (
-    <header className={cn('flex items-center gap-3 px-4 pb-3 pt-12', className)}>
+    <header className={cn(PAGE_GUTTER_CLASS, 'flex items-center gap-3 pb-3 pt-12', className)}>
       {backHref ? (
         <Link
           href={backHref}

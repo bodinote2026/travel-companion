@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
+import { cn } from '@/lib/utils';
 
 export function SiteFooter() {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <footer className="px-4 py-2.5 text-center">
+    <footer className={cn(PAGE_GUTTER_CLASS, 'py-2.5 text-center')}>
       <button
         type="button"
         onClick={() => setExpanded((open) => !open)}

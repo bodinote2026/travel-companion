@@ -8,6 +8,7 @@ import { Loader2, MessageCircle, Plus, User } from 'lucide-react';
 import { PeerProfileSheet } from '@/components/PeerProfileSheet';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import type { ChatRoomWithPeer } from '@/lib/chat/types';
+import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { cn } from '@/lib/utils';
 
 type RealUser = {
@@ -117,7 +118,7 @@ export function ChatRoomList() {
   }
 
   return (
-    <div className="flex flex-col gap-3 px-4 pb-4 pt-2">
+    <div className={cn(PAGE_GUTTER_CLASS, 'flex flex-col gap-3 pb-4 pt-2')}>
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {profile.nickname || '사용자'}님의 대화
