@@ -257,7 +257,7 @@ export function GroupBuyWidget({ product, children }: Props) {
             </p>
           ) : (
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              카카오채널에서 신청할 수 있어요. 상세 안내는 위 설명을 확인해 주세요.
+              동행 모집글을 확인하고 신청해 보세요.
             </p>
           )}
           {!hasExternalLink && !isPreparing ? (
