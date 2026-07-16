@@ -2,7 +2,8 @@
 
 import { Calendar, MapPin, Users } from 'lucide-react';
 import Link from 'next/link';
-import { AuthorChatAvatar } from '@/components/AuthorChatAvatar';
+import { GatheringCoverThumbnail } from '@/components/GatheringCoverThumbnail';
+import { UserAvatar } from '@/components/UserAvatar';
 import type { GatheringRecord } from '@/lib/db/gatherings';
 import { formatGatheringDateShort } from '@/lib/gatherings/datetime';
 import { getRegionDisplayName } from '@/lib/regions';
@@ -24,11 +25,9 @@ export function GatheringCard({ gathering }: Props) {
       )}
     >
       <div className="flex gap-3">
-        <AuthorChatAvatar
-          authorId={gathering.author_id}
-          authorName={gathering.author_name}
-          authorAvatarUrl={gathering.author_avatar_url}
-          size="md"
+        <GatheringCoverThumbnail
+          coverImageUrl={gathering.cover_image_url}
+          region={gathering.region}
         />
 
         <div className="min-w-0 flex-1">
@@ -54,8 +53,16 @@ export function GatheringCard({ gathering }: Props) {
           </p>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-muted-foreground">
-            <span className="truncate font-medium text-foreground">
-              {gathering.author_name}
+            <span className="inline-flex min-w-0 max-w-full items-center gap-1.5">
+              <UserAvatar
+                name={gathering.author_name}
+                avatarUrl={gathering.author_avatar_url}
+                size="xs"
+                className="shrink-0"
+              />
+              <span className="truncate font-medium text-foreground">
+                {gathering.author_name}
+              </span>
             </span>
             {dateLabel && (
               <span className="flex items-center gap-1">

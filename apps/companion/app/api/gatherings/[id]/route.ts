@@ -52,13 +52,15 @@ export async function PATCH(request: Request, { params }: Props) {
     }
 
     const body = await request.json();
-    const { title, description, region, target_count, gathering_date, status } = body as {
+    const { title, description, region, target_count, gathering_date, status, cover_image_url } =
+      body as {
       title?: string;
       description?: string;
       region?: string;
       target_count?: number;
       gathering_date?: string | null;
       status?: string;
+      cover_image_url?: string | null;
     };
 
     const trimmedTitle = title?.trim() ?? '';
@@ -96,6 +98,9 @@ export async function PATCH(request: Request, { params }: Props) {
       title: trimmedTitle,
       description: trimmedDescription,
       region: trimmedRegion,
+      ...(cover_image_url !== undefined
+        ? { coverImageUrl: cover_image_url?.trim() || null }
+        : {}),
       targetCount: target_count,
       gatheringDate: gathering_date?.trim() || null,
       status: nextStatus,

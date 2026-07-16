@@ -15,6 +15,7 @@ export type AirtableGatheringFields = {
   Title?: string;
   Description?: string;
   Region?: string;
+  'Cover Image'?: string;
   'Author ID'?: string;
   'Author Name'?: string;
   'Target Count'?: number;
@@ -28,6 +29,7 @@ export type GatheringRecord = {
   title: string;
   description: string;
   region: string;
+  cover_image_url: string | null;
   author_id: string;
   author_name: string;
   author_avatar_url: string | null;
@@ -57,6 +59,7 @@ function mapGathering(record: {
     title: record.fields.Title?.trim() || '',
     description: record.fields.Description?.trim() || '',
     region: record.fields.Region?.trim() || '',
+    cover_image_url: record.fields['Cover Image']?.trim() || null,
     author_id: record.fields['Author ID']?.trim() || '',
     author_name: record.fields['Author Name']?.trim() || '',
     author_avatar_url: null,
@@ -103,6 +106,7 @@ export async function createGathering(input: {
   title: string;
   description: string;
   region: string;
+  coverImageUrl?: string | null;
   authorId: string;
   authorName: string;
   targetCount: number;
@@ -119,6 +123,10 @@ export async function createGathering(input: {
     'Current Count': 0,
     Status: 'open',
   };
+  const coverImage = input.coverImageUrl?.trim();
+  if (coverImage) {
+    fields['Cover Image'] = coverImage;
+  }
   if (input.gatheringDate) {
     fields['Gathering Date'] = input.gatheringDate;
   }
@@ -176,6 +184,7 @@ export async function updateGathering(
     title: string;
     description: string;
     region: string;
+    coverImageUrl?: string | null;
     targetCount: number;
     gatheringDate?: string | null;
     status: GatheringStatus;
@@ -191,10 +200,13 @@ export async function updateGathering(
     'Gathering Date': input.gatheringDate?.trim() || undefined,
   };
 
-  // 날짜 비우기: Airtable에 null로 전달
+  // 날짜·대표 이미지 비우기: Airtable에 null로 전달
   const payloadFields: Record<string, unknown> = { ...fields };
   if (!input.gatheringDate?.trim()) {
     payloadFields['Gathering Date'] = null;
+  }
+  if (input.coverImageUrl !== undefined) {
+    payloadFields['Cover Image'] = input.coverImageUrl?.trim() || null;
   }
 
   const updated = await updateRecord<AirtableGatheringFields>(

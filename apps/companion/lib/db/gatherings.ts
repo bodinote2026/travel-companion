@@ -48,6 +48,7 @@ export async function createGathering(input: {
   title: string;
   description: string;
   region: string;
+  coverImageUrl?: string | null;
   authorId: string;
   authorName: string;
   targetCount: number;
@@ -62,6 +63,7 @@ export async function createGathering(input: {
     title: input.title.trim(),
     description: input.description.trim(),
     region: input.region.trim(),
+    cover_image_url: input.coverImageUrl?.trim() || null,
     author_id: input.authorId,
     author_name: input.authorName.trim(),
     author_avatar_url: null,
@@ -102,6 +104,7 @@ export async function updateGathering(
     title: string;
     description: string;
     region: string;
+    coverImageUrl?: string | null;
     targetCount: number;
     gatheringDate?: string | null;
     status: GatheringStatus;
@@ -120,6 +123,10 @@ export async function updateGathering(
     title: input.title.trim(),
     description: input.description.trim(),
     region: input.region.trim(),
+    cover_image_url:
+      input.coverImageUrl !== undefined
+        ? input.coverImageUrl?.trim() || null
+        : existing.cover_image_url,
     target_count: input.targetCount,
     gathering_date: input.gatheringDate?.trim() || null,
     status: input.status,

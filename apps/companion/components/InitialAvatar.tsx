@@ -18,11 +18,12 @@ function toneForName(name: string): string {
 
 type Props = {
   name: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
 };
 
 const SIZE_CLASS = {
+  xs: 'size-5 text-[10px]',
   sm: 'size-7 text-xs',
   md: 'size-10 text-sm',
   lg: 'size-14 text-xl',

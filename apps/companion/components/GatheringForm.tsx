@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Camera, Loader2 } from 'lucide-react';
+import { GatheringCoverThumbnail } from '@/components/GatheringCoverThumbnail';
 import type { GatheringRecord, GatheringStatus } from '@/lib/db/gatherings';
 import {
   combineGatheringDateTime,
@@ -33,6 +34,9 @@ export function GatheringForm(props: Props) {
   const [targetCount, setTargetCount] = useState(String(gathering?.target_count ?? 4));
   const [gatheringDate, setGatheringDate] = useState(initialDateTime.date);
   const [gatheringTime, setGatheringTime] = useState(initialDateTime.time);
+  const [coverImageUrl, setCoverImageUrl] = useState(gathering?.cover_image_url ?? '');
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<GatheringStatus>(gathering?.status ?? 'open');
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -40,6 +44,34 @@ export function GatheringForm(props: Props) {
 
   function resolvedGatheringDate(): string | null {
     return combineGatheringDateTime(gatheringDate, gatheringTime);
+  }
+
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setError('');
+    setUploadingCover(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/gatherings/cover', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? '사진 업로드 실패');
+      setCoverImageUrl(typeof data.url === 'string' ? data.url : '');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '대표 이미지 업로드에 실패했습니다.');
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
+  function handleRemoveCover() {
+    setCoverImageUrl('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -77,6 +109,7 @@ export function GatheringForm(props: Props) {
             region,
             target_count: count,
             gathering_date: resolvedGatheringDate(),
+            cover_image_url: coverImageUrl.trim() || null,
             status,
           }),
         });
@@ -94,6 +127,7 @@ export function GatheringForm(props: Props) {
             region,
             target_count: count,
             gathering_date: resolvedGatheringDate(),
+            cover_image_url: coverImageUrl.trim() || null,
           }),
         });
         const data = await res.json();
@@ -160,6 +194,51 @@ export function GatheringForm(props: Props) {
         <span className="mt-1 block text-right text-xs text-muted-foreground">
           {description.length}/1000
         </span>
+      </label>
+
+      <label className="block">
+        <span className="text-sm font-medium">
+          대표 이미지 <span className="font-normal text-muted-foreground">(선택)</span>
+        </span>
+        <div className="mt-2 flex items-start gap-3">
+          <GatheringCoverThumbnail
+            coverImageUrl={coverImageUrl || null}
+            region={region}
+          />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleCoverChange}
+            />
+            <button
+              type="button"
+              disabled={loading || deleting || uploadingCover}
+              onClick={() => coverInputRef.current?.click()}
+              className="inline-flex w-fit items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground disabled:opacity-70"
+            >
+              {uploadingCover ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Camera className="size-3.5" />
+              )}
+              {coverImageUrl ? '대표 이미지 변경' : '대표 이미지 추가'}
+            </button>
+            {coverImageUrl && (
+              <button
+                type="button"
+                disabled={loading || deleting || uploadingCover}
+                onClick={handleRemoveCover}
+                className="w-fit text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-70"
+              >
+                이미지 제거
+              </button>
+            )}
+            <p className="text-xs text-muted-foreground">jpg, png, webp · 최대 5MB</p>
+          </div>
+        </div>
       </label>
 
       <fieldset>
@@ -275,7 +354,7 @@ export function GatheringForm(props: Props) {
 
       <button
         type="submit"
-        disabled={loading || deleting}
+        disabled={loading || deleting || uploadingCover}
         className="flex h-12 items-center justify-center rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-70"
       >
         {loading ? (
@@ -290,7 +369,7 @@ export function GatheringForm(props: Props) {
       {isEdit && (
         <button
           type="button"
-          disabled={loading || deleting}
+          disabled={loading || deleting || uploadingCover}
           onClick={handleDelete}
           className="flex h-12 items-center justify-center rounded-2xl border border-destructive/30 bg-destructive-muted text-base font-semibold text-destructive disabled:opacity-70"
         >

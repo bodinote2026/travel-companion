@@ -7,17 +7,19 @@ import { cn } from '@/lib/utils';
 type Props = {
   name: string;
   avatarUrl?: string | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
 };
 
 const SIZE_PX = {
+  xs: 20,
   sm: 28,
   md: 40,
   lg: 56,
 } as const;
 
 const SIZE_CLASS = {
+  xs: 'size-5',
   sm: 'size-7',
   md: 'size-10',
   lg: 'size-14',

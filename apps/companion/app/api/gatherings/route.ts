@@ -29,12 +29,13 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { title, description, region, target_count, gathering_date } = body as {
+    const { title, description, region, target_count, gathering_date, cover_image_url } = body as {
       title?: string;
       description?: string;
       region?: string;
       target_count?: number;
       gathering_date?: string | null;
+      cover_image_url?: string | null;
     };
 
     const trimmedTitle = title?.trim() ?? '';
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
       title: trimmedTitle,
       description: trimmedDescription,
       region: trimmedRegion,
+      coverImageUrl: cover_image_url?.trim() || null,
       authorId: session.id,
       authorName: session.nickname,
       targetCount: target_count,
