@@ -7,13 +7,15 @@ import { GroupBuyWidget } from '@/components/GroupBuyWidget';
 import { LinkifiedText } from '@/components/LinkifiedText';
 import { PageGutter } from '@/components/PageGutter';
 import { PageShell } from '@/components/PageShell';
+import { getSessionUser } from '@/lib/auth/session';
 import { listComments } from '@/lib/db/comments';
 import { listParticipants } from '@/lib/db/orders';
 import { getProductById } from '@/lib/db/products';
 import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
-import { resolveProductImageUrl } from '@/lib/products/format';
+import { canViewProduct } from '@/lib/products/access';
 import { cn } from '@/lib/utils';
 import { isKakaoChannelAction, isPaymentAction } from '@/lib/products/action-type';
+import { resolveProductImageUrl } from '@/lib/products/format';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -23,6 +25,9 @@ export default async function ProductPage({ params }: Props) {
   const { id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
+
+  const session = await getSessionUser();
+  if (!(await canViewProduct(product, session?.id))) notFound();
 
   const [participants, comments] = await Promise.all([
     listParticipants(id),

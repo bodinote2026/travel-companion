@@ -50,6 +50,8 @@ export type RegionProduct = {
   groupBuyStatus: GroupBuyStatus;
   actionType: ProductActionType;
   externalLink: string | null;
+  /** Airtable Hidden — true면 공개 목록에서 제외 */
+  hidden?: boolean;
 };
 
 export type RegionConfig = {

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import type { RegionProduct } from '@/lib/regions/types';
+import { filterListedProducts } from '@/lib/products/visibility';
 import { GroupBuyCard } from './GroupBuyCard';
 import { cn } from '@/lib/utils';
 
@@ -10,8 +11,9 @@ type Props = {
 };
 
 export function GroupBuySection({ products, variant = 'page' }: Props) {
-  const active = products.filter((p) => p.groupBuyStatus === 'open');
-  const items = (active.length > 0 ? active : products).slice(0, variant === 'home' ? 1 : 2);
+  const visible = filterListedProducts(products);
+  const active = visible.filter((p) => p.groupBuyStatus === 'open');
+  const items = (active.length > 0 ? active : visible).slice(0, variant === 'home' ? 1 : 2);
 
   if (items.length === 0) return null;
 

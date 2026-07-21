@@ -16,6 +16,7 @@ import {
   mukhoSeedToAirtableFields,
 } from './product-seeds';
 import { parseProductCategory } from '@/lib/regions/product-categories';
+import { filterListedProducts, parseProductHidden } from '@/lib/products/visibility';
 
 function parseGroupBuyStatus(value: unknown): GroupBuyStatus {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -85,6 +86,7 @@ function mapProduct(record: { id: string; fields: AirtableProductFields }): Regi
     groupBuyStatus: parseGroupBuyStatus(fields['Group Buy Status']),
     actionType: parseProductActionType(fields['Action Type']),
     externalLink: parseExternalLink(fields['External Link']),
+    ...(parseProductHidden(fields.Hidden) ? { hidden: true } : {}),
   };
 }
 
@@ -113,11 +115,11 @@ async function fetchAllProducts(): Promise<RegionProduct[]> {
 
 /** Airtable Products 전체 (Region 필터 없음) — 공동구매 탭 등 */
 export async function listAllProducts(): Promise<RegionProduct[]> {
-  return fetchAllProducts();
+  return filterListedProducts(await fetchAllProducts());
 }
 
 export async function listProducts(region = DEFAULT_REGION_CODE): Promise<RegionProduct[]> {
-  const products = await fetchAllProducts();
+  const products = filterListedProducts(await fetchAllProducts());
 
   if (!isRegionFilterEnabled()) return products;
   return products.filter((product) => product.region === region);

@@ -15,6 +15,7 @@ import {
   isPaymentLinkAction,
   isReservationAction,
 } from '@/lib/products/action-type';
+import { assertProductAvailableForNewParticipation } from '@/lib/products/access';
 import { resolveRegionForStorage } from '@/lib/region-filter';
 import { upsertUser } from '@/lib/airtable/users';
 
@@ -110,6 +111,14 @@ export async function PUT(request: Request) {
     const product = await getProductById(productId, resolvedRegion);
     if (!product) {
       return NextResponse.json({ error: '상품을 찾을 수 없습니다.' }, { status: 404 });
+    }
+    try {
+      assertProductAvailableForNewParticipation(product);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : '참여할 수 없는 상품입니다.' },
+        { status: 400 },
+      );
     }
     if (isKakaoChannelAction(product.actionType)) {
       return NextResponse.json(

@@ -3,6 +3,7 @@ import { getSessionUser } from '@/lib/auth/session';
 import { createComment, listComments, type CommentTargetType } from '@/lib/db/comments';
 import { getGatheringById } from '@/lib/db/gatherings';
 import { getProductById } from '@/lib/db/products';
+import { canViewProduct } from '@/lib/products/access';
 
 type Props = {
   params: Promise<{ targetType: string; targetId: string }>;
@@ -53,7 +54,7 @@ export async function POST(request: Request, { params }: Props) {
       }
     } else {
       const product = await getProductById(targetId);
-      if (!product) {
+      if (!product || !(await canViewProduct(product, session.id))) {
         return NextResponse.json({ error: '상품을 찾을 수 없습니다.' }, { status: 404 });
       }
     }

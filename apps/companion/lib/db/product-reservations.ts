@@ -14,6 +14,7 @@ import {
   parseOrderQuantity,
 } from '@/lib/group-buy/quantity';
 import { getProductById } from '@/lib/db/products';
+import { assertProductAvailableForNewParticipation } from '@/lib/products/access';
 import { normalizePhone } from '@/lib/user-profile';
 
 export type { ProductReservationRecord, ProductReservationStatus };
@@ -117,6 +118,15 @@ export async function reserveProduct(input: {
   }
   if (product.groupBuyStatus === 'closed') {
     throw new ProductReservationError('예약이 마감된 상품입니다.', 400);
+  }
+
+  try {
+    assertProductAvailableForNewParticipation(product);
+  } catch (error) {
+    throw new ProductReservationError(
+      error instanceof Error ? error.message : '예약할 수 없는 상품입니다.',
+      400,
+    );
   }
 
   const name = input.name.trim();

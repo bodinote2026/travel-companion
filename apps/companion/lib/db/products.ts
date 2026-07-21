@@ -7,6 +7,7 @@ import {
 } from '@/lib/airtable/products';
 import { DEFAULT_REGION_CODE, getAllRegions, getRegion } from '@/lib/regions';
 import { isRegionFilterEnabled } from '@/lib/region-filter';
+import { filterListedProducts } from '@/lib/products/visibility';
 import type { RegionProduct } from '@/lib/regions/types';
 
 /** 모든 지역 상품 (공동구매 지역 탭용) */
@@ -15,7 +16,7 @@ export async function listAllProducts(): Promise<RegionProduct[]> {
     await seedProductsIfEmpty(DEFAULT_REGION_CODE);
     return listAirtableAllProducts();
   }
-  return getAllRegions().flatMap((r) => r.products);
+  return filterListedProducts(getAllRegions().flatMap((r) => r.products));
 }
 
 export async function listProducts(region = DEFAULT_REGION_CODE): Promise<RegionProduct[]> {
@@ -23,9 +24,10 @@ export async function listProducts(region = DEFAULT_REGION_CODE): Promise<Region
     await seedProductsIfEmpty(region);
     return listAirtableProducts(region);
   }
-  return isRegionFilterEnabled()
+  const products = isRegionFilterEnabled()
     ? getRegion(region).products
     : getAllRegions().flatMap((r) => r.products);
+  return filterListedProducts(products);
 }
 
 export async function getProductById(

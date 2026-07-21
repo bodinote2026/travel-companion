@@ -22,6 +22,7 @@ export type AirtableProductFields = {
   'Group Buy Status': GroupBuyStatus;
   'Action Type'?: ProductActionType;
   'External Link'?: string;
+  Hidden?: boolean;
 };
 
 export const MUKHO_PRODUCT_SEEDS: Omit<RegionProduct, 'region'>[] = [
