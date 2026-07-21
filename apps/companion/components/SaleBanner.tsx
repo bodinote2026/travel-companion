@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-/** public/sale-banner.png — 교체 시 파일명 변경으로 캐시 무효화 */
-export const SALE_BANNER_SRC = '/sale-banner.png';
+/** public/sale-banner-v2.png — 교체 시 파일명 변경으로 캐시 무효화 */
+export const SALE_BANNER_SRC = '/sale-banner-v2.png';
 export const SALE_BANNER_HREF = '/group-buy';
 const SALE_BANNER_ASPECT_RATIO = '1898 / 829';
 
