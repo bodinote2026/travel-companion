@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ChevronLeft, Store } from 'lucide-react';
+import { AppHeader } from '@/components/AppHeader';
 import { CommentSection } from '@/components/CommentSection';
+import { GatheringCoverImage } from '@/components/GatheringCoverImage';
 import { GroupBuyWidget } from '@/components/GroupBuyWidget';
 import { LinkifiedText } from '@/components/LinkifiedText';
 import { PageGutter } from '@/components/PageGutter';
@@ -13,9 +14,9 @@ import { listParticipants } from '@/lib/db/orders';
 import { getProductById } from '@/lib/db/products';
 import { PAGE_GUTTER_CLASS } from '@/lib/layout/page-container';
 import { canViewProduct } from '@/lib/products/access';
+import { isPaymentAction } from '@/lib/products/action-type';
+import { PRODUCT_PLACEHOLDER_IMAGE } from '@/lib/products/format';
 import { cn } from '@/lib/utils';
-import { isKakaoChannelAction, isPaymentAction } from '@/lib/products/action-type';
-import { resolveProductImageUrl } from '@/lib/products/format';
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -33,9 +34,10 @@ export default async function ProductPage({ params }: Props) {
     listParticipants(id),
     listComments('product', id),
   ]);
-  const imageUrl = resolveProductImageUrl(product.imageUrl);
+  const heroImageUrl = product.imageUrl?.trim() ?? '';
+  const hasHeroImage =
+    heroImageUrl.length > 0 && heroImageUrl !== PRODUCT_PLACEHOLDER_IMAGE;
   const detailImageUrls = product.detailImageUrls;
-  const isKakaoChannel = isKakaoChannelAction(product.actionType);
 
   const detailAndParticipants = (
     <>
@@ -79,43 +81,19 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <PageShell active="group-buy" hideNav>
-      {isKakaoChannel ? (
-        <div className="relative w-full bg-white">
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            width={1080}
-            height={1920}
-            className="h-auto w-full"
-            sizes="(max-width: 448px) 100vw, 448px"
-            priority
-          />
+      {hasHeroImage ? (
+        <div className={cn('relative', PAGE_GUTTER_CLASS)}>
+          <GatheringCoverImage src={heroImageUrl} />
           <Link
             href="/group-buy"
             aria-label="뒤로"
-            className="absolute left-4 top-12 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
+            className="absolute left-4 top-12 z-10 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
           >
             <ChevronLeft className="size-5" />
           </Link>
         </div>
       ) : (
-        <div className="relative h-56 w-full bg-white">
-          <Image
-            src={imageUrl}
-            alt={product.name}
-            fill
-            className="object-contain"
-            sizes="448px"
-            priority
-          />
-          <Link
-            href="/group-buy"
-            aria-label="뒤로"
-            className="absolute left-4 top-12 flex size-10 items-center justify-center rounded-full bg-card/90 backdrop-blur"
-          >
-            <ChevronLeft className="size-5" />
-          </Link>
-        </div>
+        <AppHeader backHref="/group-buy" />
       )}
 
       <PageGutter className="py-5">
