@@ -7,7 +7,11 @@ import {
   updateRecord,
 } from './client';
 import { requireAirtableConfig } from './config';
-import { resolveAuthorAvatars } from '@/lib/users/avatars';
+import {
+  DEFAULT_AUTHOR_DISPLAY_NAME,
+  enrichAuthorProfile,
+  enrichWithAuthorProfiles,
+} from '@/lib/users/display-names';
 
 export type GatheringStatus = 'open' | 'closed';
 
@@ -79,11 +83,9 @@ export async function listGatherings(): Promise<GatheringRecord[]> {
     .map(mapGathering)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const avatars = await resolveAuthorAvatars(gatherings.map((g) => g.author_id));
-  return gatherings.map((g) => ({
-    ...g,
-    author_avatar_url: avatars.get(g.author_id) ?? null,
-  }));
+  return enrichWithAuthorProfiles(gatherings, {
+    defaultName: DEFAULT_AUTHOR_DISPLAY_NAME,
+  });
 }
 
 export async function getGatheringById(id: string): Promise<GatheringRecord | null> {
@@ -91,12 +93,7 @@ export async function getGatheringById(id: string): Promise<GatheringRecord | nu
   try {
     const record = await getRecord<AirtableGatheringFields>(config.gatheringsTable, id);
     const gathering = mapGathering(record);
-    if (!gathering.author_id) return gathering;
-    const avatars = await resolveAuthorAvatars([gathering.author_id]);
-    return {
-      ...gathering,
-      author_avatar_url: avatars.get(gathering.author_id) ?? null,
-    };
+    return enrichAuthorProfile(gathering, { defaultName: DEFAULT_AUTHOR_DISPLAY_NAME });
   } catch {
     return null;
   }
@@ -137,11 +134,7 @@ export async function createGathering(input: {
     { typecast: true },
   );
   const gathering = mapGathering(created);
-  const avatars = await resolveAuthorAvatars([gathering.author_id]);
-  return {
-    ...gathering,
-    author_avatar_url: avatars.get(gathering.author_id) ?? null,
-  };
+  return enrichAuthorProfile(gathering, { defaultName: DEFAULT_AUTHOR_DISPLAY_NAME });
 }
 
 export async function findGatheringsByAuthor(authorId: string): Promise<GatheringRecord[]> {
@@ -150,7 +143,10 @@ export async function findGatheringsByAuthor(authorId: string): Promise<Gatherin
   const records = await listRecords<AirtableGatheringFields>(config.gatheringsTable, {
     filterByFormula: formula,
   });
-  return records.map(mapGathering);
+  const gatherings = records.map(mapGathering);
+  return enrichWithAuthorProfiles(gatherings, {
+    defaultName: DEFAULT_AUTHOR_DISPLAY_NAME,
+  });
 }
 
 export async function updateGatheringCounts(
@@ -170,12 +166,7 @@ export async function updateGatheringCounts(
     { typecast: true },
   );
   const gathering = mapGathering(updated);
-  if (!gathering.author_id) return gathering;
-  const avatars = await resolveAuthorAvatars([gathering.author_id]);
-  return {
-    ...gathering,
-    author_avatar_url: avatars.get(gathering.author_id) ?? null,
-  };
+  return enrichAuthorProfile(gathering, { defaultName: DEFAULT_AUTHOR_DISPLAY_NAME });
 }
 
 export async function updateGathering(
@@ -216,12 +207,7 @@ export async function updateGathering(
     { typecast: true },
   );
   const gathering = mapGathering(updated);
-  if (!gathering.author_id) return gathering;
-  const avatars = await resolveAuthorAvatars([gathering.author_id]);
-  return {
-    ...gathering,
-    author_avatar_url: avatars.get(gathering.author_id) ?? null,
-  };
+  return enrichAuthorProfile(gathering, { defaultName: DEFAULT_AUTHOR_DISPLAY_NAME });
 }
 
 export async function deleteGathering(gatheringId: string): Promise<void> {

@@ -1,5 +1,6 @@
 import { createRecord, escapeAirtableFormula, listRecords } from './client';
 import { requireAirtableConfig } from './config';
+import { enrichParticipantDisplayNames } from '@/lib/users/display-names';
 
 export type ParticipantRecord = {
   id: string;
@@ -51,7 +52,8 @@ export async function listParticipants(productId: string): Promise<ParticipantRe
   const records = await listRecords<ParticipantFields>(config.participantsTable, {
     filterByFormula: formula,
   });
-  return records
+  const participants = records
     .map(mapParticipant)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  return enrichParticipantDisplayNames(participants);
 }

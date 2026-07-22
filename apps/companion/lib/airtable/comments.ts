@@ -7,7 +7,11 @@ import {
   updateRecord,
 } from './client';
 import { requireAirtableConfig } from './config';
-import { resolveAuthorAvatars } from '@/lib/users/avatars';
+import {
+  DEFAULT_USER_DISPLAY_NAME,
+  enrichAuthorProfile,
+  enrichWithAuthorProfiles,
+} from '@/lib/users/display-names';
 
 export type CommentTargetType = 'gathering' | 'product';
 
@@ -61,11 +65,9 @@ export async function listComments(
     .map(mapComment)
     .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-  const avatars = await resolveAuthorAvatars(comments.map((c) => c.author_id));
-  return comments.map((c) => ({
-    ...c,
-    author_avatar_url: avatars.get(c.author_id) ?? null,
-  }));
+  return enrichWithAuthorProfiles(comments, {
+    defaultName: DEFAULT_USER_DISPLAY_NAME,
+  });
 }
 
 export async function createComment(input: {
@@ -88,11 +90,7 @@ export async function createComment(input: {
     { typecast: true },
   );
   const comment = mapComment(created);
-  const avatars = await resolveAuthorAvatars([comment.author_id]);
-  return {
-    ...comment,
-    author_avatar_url: avatars.get(comment.author_id) ?? null,
-  };
+  return enrichAuthorProfile(comment, { defaultName: DEFAULT_USER_DISPLAY_NAME });
 }
 
 export async function getCommentById(commentId: string): Promise<CommentRecord | null> {
@@ -100,11 +98,7 @@ export async function getCommentById(commentId: string): Promise<CommentRecord |
   try {
     const record = await getRecord<AirtableCommentFields>(config.commentsTable, commentId);
     const comment = mapComment(record);
-    const avatars = await resolveAuthorAvatars([comment.author_id]);
-    return {
-      ...comment,
-      author_avatar_url: avatars.get(comment.author_id) ?? null,
-    };
+    return enrichAuthorProfile(comment, { defaultName: DEFAULT_USER_DISPLAY_NAME });
   } catch {
     return null;
   }

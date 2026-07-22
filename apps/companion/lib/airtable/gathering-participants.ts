@@ -6,7 +6,12 @@ import {
   updateRecord,
 } from './client';
 import { requireAirtableConfig } from './config';
-import { getUserById, userDisplayName } from './users';
+import {
+  DEFAULT_AUTHOR_DISPLAY_NAME,
+  DEFAULT_USER_DISPLAY_NAME,
+  resolveDisplayNameFromUser,
+  resolveUsersByIds,
+} from '@/lib/users/display-names';
 
 export type GatheringParticipantStatus = 'applied' | 'cancelled';
 
@@ -206,17 +211,18 @@ export async function listGatheringMemberProfiles(input: {
     .map((p) => p.user_id)
     .filter((id) => id && id !== input.authorId);
 
-  const [authorUser, ...applicantUsers] = await Promise.all([
-    input.authorId ? getUserById(input.authorId) : Promise.resolve(null),
-    ...applicantIds.map((id) => getUserById(id)),
-  ]);
+  const userIds = [...new Set([input.authorId, ...applicantIds].filter(Boolean))];
+  const users = await resolveUsersByIds(userIds);
+  const authorUser = input.authorId ? (users.get(input.authorId) ?? null) : null;
 
   const members: GatheringMemberProfile[] = [
     {
       user_id: input.authorId,
-      name: authorUser
-        ? userDisplayName(authorUser)
-        : input.authorName.trim() || '동행지기',
+      name: resolveDisplayNameFromUser(
+        authorUser,
+        input.authorName,
+        DEFAULT_AUTHOR_DISPLAY_NAME,
+      ),
       avatar_url: authorUser?.avatarUrl ?? input.authorAvatarUrl,
       age: authorUser?.age ?? null,
       regions: authorUser?.regions ?? [],
@@ -226,12 +232,11 @@ export async function listGatheringMemberProfiles(input: {
     },
   ];
 
-  for (let i = 0; i < applicantIds.length; i += 1) {
-    const userId = applicantIds[i];
-    const user = applicantUsers[i];
+  for (const userId of applicantIds) {
+    const user = users.get(userId) ?? null;
     members.push({
       user_id: userId,
-      name: user ? userDisplayName(user) : '사용자',
+      name: resolveDisplayNameFromUser(user, '', DEFAULT_USER_DISPLAY_NAME),
       avatar_url: user?.avatarUrl ?? null,
       age: user?.age ?? null,
       regions: user?.regions ?? [],
